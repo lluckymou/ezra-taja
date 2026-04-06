@@ -1,0 +1,57 @@
+/* ================================================================
+   LOCAL FONT DECLARATIONS — assets/fonts/
+================================================================ */
+
+/* Pretendard Variable — covers Korean + full Latin Extended (accents, ç, etc.) */
+@font-face {
+  font-family: 'Pretendard';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Pretendard Variable'),
+       url('../fonts/PretendardVariable.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Song Myung';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Song Myung Regular'), local('SongMyung-Regular'),
+       url('../fonts/SongMyung-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nanum Myeongjo';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Nanum Myeongjo'), local('NanumMyeongjo'),
+       url('../fonts/NanumMyeongjo-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nanum Myeongjo';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Nanum Myeongjo Bold'), local('NanumMyeongjo-Bold'),
+       url('../fonts/NanumMyeongjo-Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Nanum Myeongjo';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Nanum Myeongjo ExtraBold'), local('NanumMyeongjo-ExtraBold'),
+       url('../fonts/NanumMyeongjo-ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Noto Color Emoji';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/NotoColorEmoji-Regular.ttf') format('truetype');
+}

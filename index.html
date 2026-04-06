@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>EZRA Taja - 타자</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<div id="startup-overlay">
+  <div id="startup-inner">
+    <img id="startup-logo" src="assets/img/lluc.png" alt="lluc">
+    <span id="startup-text"></span>
+  </div>
+  <div id="lang-select" class="startup-hidden">
+    <div id="lang-select-title" data-i18n="langSelect.title">Choose your language</div>
+    <div id="lang-select-btns"></div>
+  </div>
+</div>
+
+<!-- ── TITLE SCREEN ──────────────────────────────────────── -->
+<div id="scr-title" class="screen">
+<div id="menu-wrap">
+
+  <!-- Logo + utility buttons -->
+  <div id="menu-header">
+    <div id="menu-logo-wrap">
+      <img id="menu-logo-gif" draggable="false" src="assets/img/logo.gif" alt="logo">
+    </div>
+    <p id="menu-slogan" data-i18n="title.slogan"></p>
+  </div>
+
+  <!-- Character editor main area -->
+  <div id="menu-main">
+    <div class="ava-tabs" id="ava-tabs-left">
+      <button class="ava-tab" data-ava-tab="top">🦰</button>
+      <button class="ava-tab" data-ava-tab="beard">🧔</button>
+      <button class="ava-tab" data-ava-tab="acc">👓</button>
+      <button class="ava-tab" data-ava-tab="cloth">👕</button>
+    </div>
+    <div id="ava-center">
+      <div id="ava-preview-wrap">
+        <button id="ava-randomize" title="Randomize">🎲</button>
+        <div id="ava-preview"></div>
+      </div>
+      <!-- Edit bar: shown when a tab is active -->
+      <div id="ava-edit-bar">
+        <div id="ava-edit-rows">
+          <div class="ava-edit-row" id="ava-edit-row1">
+            <button class="ava-edit-nav" id="ava-edit-prev1">‹</button>
+            <span id="ava-edit-label1"></span>
+            <button class="ava-edit-nav" id="ava-edit-next1">›</button>
+          </div>
+          <div class="ava-edit-row" id="ava-edit-row2">
+            <button class="ava-edit-nav" id="ava-edit-prev2">‹</button>
+            <span id="ava-edit-label2"></span>
+            <button class="ava-edit-nav" id="ava-edit-next2">›</button>
+          </div>
+          <div class="ava-edit-row" id="ava-edit-row3">
+            <button class="ava-edit-nav" id="ava-edit-prev3">‹</button>
+            <span id="ava-edit-label3"></span>
+            <button class="ava-edit-nav" id="ava-edit-next3">›</button>
+          </div>
+          <div id="ava-edit-weapon"><div class="wg-list" id="wg-pick"></div></div>
+        </div>
+        <button id="ava-edit-close">✕</button>
+      </div>
+    </div>
+    <div class="ava-tabs" id="ava-tabs-right">
+      <button class="ava-tab" data-ava-tab="skin">🖐🏾</button>
+      <button class="ava-tab" data-ava-tab="face">😁</button>
+      <button class="ava-tab" data-ava-tab="eyes">👀</button>
+      <button class="ava-tab" data-ava-tab="weapon">⚔️</button>
+    </div>
+  </div>
+
+  <!-- Bottom row: CONTROLE | JOGAR | DIFICULDADE -->
+  <div id="menu-bottom">
+    <div class="menu-bot-wrap">
+      <button id="btn-my-dict" data-i18n="dict.myDictBtn">📙 My Dictionary</button>
+      <button id="mode-toggle-btn" class="menu-bot-btn">
+        <div class="bot-btn-inner">
+          <span id="mode-toggle-emoji">⌨️</span>
+          <div class="bot-btn-labels">
+            <span id="mode-toggle-label" data-i18n="options.keyboardControls">Keyboard Controls</span>
+          </div>
+        </div>
+      </button>
+    </div>
+    <button id="btn-play" data-i18n="title.playBtn">▶ Start Game!</button>
+    <div class="menu-bot-wrap">
+      <button id="btn-settings" data-i18n="options.gameOptions">⚙️ Game Options</button>
+      <button id="difficulty-toggle-btn" class="menu-bot-btn">
+        <div class="bot-btn-inner">
+          <span id="difficulty-toggle-emoji">⚔️</span>
+          <div class="bot-btn-labels">
+            <span id="difficulty-toggle-label">Normal</span>
+            <span id="difficulty-hearts-label">10 ❤️</span>
+          </div>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <div id="menu-footer"><span id="title-hi"></span></div>
+
+</div><!-- /menu-wrap -->
+</div>
+
+<!-- ── MY DICTIONARY FLOATING MODAL ──────────────────────── -->
+<div id="my-dict-modal" class="off">
+  <div id="my-dict-modal-inner">
+    <div id="my-dict-header">
+      <span>📖 <span data-i18n="dict.myDict">My Dictionary</span></span>
+      <button id="my-dict-close" onclick="document.getElementById('my-dict-modal').classList.add('off')">✕</button>
+    </div>
+    <div class="dict-panel-sub"><span data-i18n="dict.myDictSub">Words you've encountered on your runs</span></div>
+    <div class="dict-tabs" id="title-dict-tabs">
+      <button class="dict-tab active" data-cat="all" data-i18n="dict.tabAll">All</button>
+      <button class="dict-tab" data-cat="noun" data-i18n="dict.tabNoun">Nouns</button>
+      <button class="dict-tab" data-cat="verb" data-i18n="dict.tabVerb">Verbs</button>
+      <button class="dict-tab" data-cat="adjective" data-i18n="dict.tabAdj">Adj.</button>
+    </div>
+    <div class="dict-search-wrap" id="title-dict-search-wrap">
+      <input id="dict-search" type="text" placeholder="Search…" data-i18n-placeholder="dict.searchPlaceholder" autocomplete="off">
+    </div>
+    <div id="dict-list"></div>
+    <div style="text-align:center; margin-top: auto; padding-top: 12px;">
+      <button id="title-reset-btn" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">↺ Reset progress</button>
+    </div>
+  </div>
+</div>
+<!-- ── SETTINGS MODAL ────────────────────────────────────── -->
+<div id="settings-modal" class="off">
+  <div id="settings-modal-inner">
+    <div id="settings-header">
+      <span><span data-i18n="options.gameOptions">⚙️ Game Options</span></span>
+      <button id="settings-close" onclick="document.getElementById('settings-modal').classList.add('off')">✕</button>
+    </div>
+    <div class="settings-content">
+      <div class="gopts-grid">
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.difficulty">⚔️ Difficulty</div>
+          <select id="sel-difficulty" class="gopt-select">
+            <option value="baby">🍼 Baby: 50❤️</option>
+            <option value="easy">😊 Easy: 20❤️</option>
+            <option value="normal">⚔️ Normal: 10❤️</option>
+            <option value="hard">💪 Hard: 5❤️</option>
+            <option value="hardcore">💀 Hardcore: 1❤️</option>
+          </select>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.language">🌐 Language</div>
+          <select id="sel-lang" class="gopt-select">
+            <option value="en" selected>English</option>
+            <option value="ko">한국어</option>
+            <option value="pt">Português</option>
+          </select>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.varyFonts">🔤 Varying Fonts</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-fonts" checked>
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.weather">🌤️ Weather</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-weather" checked>
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.speakWords">🔊 Speak Words</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-tts" checked>
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.hanjaPowerups">🀄 Hanja Powerups</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-hanja" checked>
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.translations">💬 Translations</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-translation" checked>
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.hanjaOnMonsters">漢 Hanja on Monsters</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-hanja-monsters">
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.clickableDoors">🚪 Clickable Doors</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-clickable-doors">
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.touchControls">📱 Touch Controls</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-touch">
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+      </div>
+      <div id="settings-credits">
+        <div class="credits-by" data-i18n="credits.byLine">🫰 By Lucas Nascimento</div>
+        <div class="credits-thanks" data-i18n="credits.thanks">Special thanks to Roh HaYoung and KIT for showing me Korean culture and language, I'm eternally grateful to all of you. You have changed my life forever. I hope this project inspires more people to study your language and connect to your beautiful and inspiring culture.</div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ── DONATE MODAL ────────────────────────────────────────── -->
+<div id="donate-modal" class="off">
+  <div id="donate-modal-inner">
+    <button id="donate-close">✕</button>
+    <div class="modal-big-emoji">🥺</div>
+    <p id="donate-title" data-i18n="donate.enjoyingIt"></p>
+    <p id="donate-msg"></p>
+    <a id="donate-btn" href="https://github.com/sponsors/lluckymou?frequency=one-time" target="_blank" rel="noopener noreferrer">
+      <img src="assets/img/donate-icon.svg" alt="GitHub Sponsors">
+      <span data-i18n="donate.btnLabel">Support on GitHub Sponsors</span>
+    </a>
+    <p id="donate-pix">Brasileiros: Minha Chave Pix é meu e-mail secundário <i>lluckymou@gmail.com</i>.</p>
+  </div>
+</div>
+<!-- ── TTS WARNING MODAL ───────────────────────────────────── -->
+<div id="tts-modal" class="off">
+  <div id="tts-modal-inner">
+    <button id="tts-modal-close">✕</button>
+    <div class="modal-big-emoji">🔇</div>
+    <p id="tts-modal-msg" data-i18n="ttsWarning.body"></p>
+  </div>
+</div>
+<!-- ── GAME OVER ──────────────────────────────────────────── -->
+<div id="scr-over" class="screen off">
+  <h2 id="go-title">🪦 게임 오버</h2>
+  <div id="go-detail"></div>
+  <div id="go-hiscore"></div>
+  <button id="btn-restart" data-i18n="gameOver.mainMenu">🏠 Main Menu</button>
+</div>
+
+<!-- ── PAUSE ──────────────────────────────────────────────── -->
+<div id="scr-pause" class="screen off">
+  <div id="pause-backdrop">
+    <div id="pause-panel">
+      <div id="pause-top">
+        <h2 data-i18n="pause.title">Paused</h2>
+        <div id="pause-run-stats" style="display:none"></div>
+      </div>
+      <div id="pause-mid-opts">
+        <div class="pause-opt-row">
+          <span class="pause-opt-label" data-i18n="options.weather">🌤️ Weather</span>
+          <label class="gopt-toggle"><input type="checkbox" id="pause-chk-weather" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        </div>
+        <div class="pause-opt-row">
+          <span class="pause-opt-label" data-i18n="options.speakWords">🔊 Speak Words</span>
+          <label class="gopt-toggle"><input type="checkbox" id="pause-chk-tts" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        </div>
+        <div class="pause-opt-row">
+          <span class="pause-opt-label" data-i18n="options.translations">💬 Translations</span>
+          <label class="gopt-toggle"><input type="checkbox" id="pause-chk-translation" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        </div>
+        <div class="pause-opt-row">
+          <span class="pause-opt-label" data-i18n="options.hanjaOnMonsters">漢 Hanja on Monsters</span>
+          <label class="gopt-toggle"><input type="checkbox" id="pause-chk-hanja-monsters"><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        </div>
+      </div>
+      <div class="pause-btns">
+        <button class="pause-btn" id="btn-resume" data-i18n="pause.resume">▶ Resume</button>
+        <button class="pause-btn pause-btn-outline" id="btn-menu" data-i18n="pause.mainMenu">Main Menu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODIFIER SCREEN ────────────────────────────────────── -->
+<div id="scr-modifier" class="screen off">
+  <div class="menu-card" style="max-width:600px">
+    <h2 style="color:#667eea">✨ <span data-i18n="modifier.title">Choose an Item</span></h2>
+    <p style="color:#888;font-size:.85rem" data-i18n="modifier.subtitle">Pick one to keep forever</p>
+    <div id="modifier-choices"></div>
+    <button id="modifier-skip" style="margin-top:12px;opacity:.5">
+      <span data-i18n="modifier.skip">Skip</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── IN-RUN SHOP ────────────────────────────────────────── -->
+<div id="scr-shop" class="screen off">
+  <div class="menu-card" style="max-width:640px">
+    <h2 style="color:#667eea">🏪 <span data-i18n="shop.title">Shop</span></h2>
+    <p id="run-shop-wallet" style="color:#ffd700;font-size:1rem">💰 0원</p>
+    <div id="shop-items-grid"></div>
+    <button onclick="closeRunShop()" style="margin-top:12px">
+      <span data-i18n="shop.leave">Leave</span>
+    </button>
+  </div>
+</div>
+
+<!-- ── TREASURE SCREEN ────────────────────────────────────── -->
+<div id="scr-treasure" class="screen off">
+  <div class="menu-card" style="max-width:480px">
+    <h2 style="color:#ffd700">💰 <span data-i18n="treasure.title">Treasure Room</span></h2>
+    <div id="treasure-items"></div>
+    <div style="display:flex;gap:12px;margin-top:12px">
+      <button id="treasure-collect">
+        💎 <span data-i18n="treasure.collectAll">Collect All</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CASINO SCREEN ──────────────────────────────────────── -->
+<div id="scr-casino" class="screen off">
+  <div class="menu-card casino-card">
+    <h2 style="color:#c084fc">🎰 <span data-i18n="casino.title">Casino</span></h2>
+    <p class="casino-hint" data-i18n="casino.spinHint">Spin the slots — then STOP!</p>
+    <div class="casino-slots" id="casino-slots">
+      <div class="casino-slot" id="casino-slot-0"></div>
+      <div class="casino-slot" id="casino-slot-1"></div>
+      <div class="casino-slot" id="casino-slot-2"></div>
+    </div>
+    <div class="casino-controls">
+      <button id="casino-stop-btn" class="casino-stop">⏹ STOP</button>
+      <button id="casino-accept-btn" class="casino-accept hidden" data-i18n="casino.acceptBtn">✅ ACCEPT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TEACHER SCREEN ──────────────────────────────────────── -->
+<div id="scr-teacher" class="screen off">
+  <div class="menu-card">
+    <h2>🎓 <span data-i18n="teacher.title">Teacher</span></h2>
+    <div id="teacher-content"></div>
+  </div>
+</div>
+
+<!-- ── TUTORIAL BOX ───────────────────────────────────────── -->
+<div id="tutorial-box" class="off">
+  <span id="tutorial-emoji"></span>
+  <span id="tutorial-text"></span>
+</div>
+
+<!-- ── CANVAS ─────────────────────────────────────────────── -->
+<canvas id="gc"></canvas>
+
+<!-- ── HUD ───────────────────────────────────────────────── -->
+<div id="hud">
+  <!-- Room/world info (replaces wave card) -->
+  <div class="hcard" id="hcard-wave">
+    <div class="hlbl" id="hud-world-lbl">World</div>
+    <div class="wave-body">
+      <!-- Progress ring with world icon inside -->
+      <div class="wave-ring-wrap" style="position:relative">
+        <svg id="wave-ring" viewBox="0 0 36 36" width="44" height="44">
+          <circle class="ring-bg" cx="18" cy="18" r="15.9" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="3"/>
+          <circle id="ring-arc" cx="18" cy="18" r="15.9" fill="none" stroke="#4caf50" stroke-width="3"
+            stroke-dasharray="0 100" stroke-linecap="round"
+            transform="rotate(-90 18 18)" style="transition:stroke-dasharray .3s ease"/>
+          <text id="ring-world-icon" x="18" y="23" text-anchor="middle" font-size="14" style="pointer-events:none;font-family:serif">🌲</text>
+        </svg>
+      </div>
+      <!-- Dictionary button -->
+      <div onclick="toggleBook()" style="cursor:pointer;pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 4px" title="Dictionary (B)">
+        <div style="font-size:1.4rem;line-height:1.5rem">📒</div>
+        <div style="font-size:.72rem;opacity:.65;white-space:nowrap">사전</div>
+      </div>
+      <!-- Map icon + room code below -->
+      <div onclick="toggleMap()" style="cursor:pointer;pointer-events:all;display:flex;flex-direction:column;align-items:center;gap:2px;margin:0 4px" title="Map (M)">
+        <div style="font-size:1.5rem;line-height:1">🗺️</div>
+        <div id="hw-room" style="font-size:.72rem;opacity:.65;white-space:nowrap">A1</div>
+      </div>
+      <!-- Clock widget -->
+      <div id="hud-clock" style="display:flex;flex-direction:column;align-items:center;gap:4px;margin:0 4px;pointer-events:none;user-select:none;cursor:default">
+        <div id="hud-clock-icon" style="font-size:1.3rem;line-height:1;position:relative;display:inline-block">☀️<span id="hud-clock-weather" style="position:absolute;bottom:-1px;right:-3px;font-size:.55rem;line-height:1"></span></div>
+        <div id="hud-clock-time" style="font-size:.72rem;opacity:.65;white-space:nowrap;width:28px;text-align:center">12:00</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Inventory HUD (identical to original) -->
+  <div id="inv-hud" style="display:none">
+    <div id="inv-main-row">
+      <button class="inv-nav" id="inv-prev" title="Tab+Shift">◁</button>
+      <div id="inv-slot" onclick="invUseClick()">
+        <div id="inv-emoji"></div>
+        <div id="inv-count"></div>
+        <div id="inv-slot-hover">
+          <button id="inv-use-hover" title="Enter">USE</button>
+        </div>
+      </div>
+      <button class="inv-nav" id="inv-next" title="Tab">▷</button>
+    </div>
+    <div id="inv-item-name"></div>
+  </div>
+
+  <!-- Wallet / pause -->
+  <div class="hcard" id="hcard-score">
+    <div class="hlbl">💰 원</div>
+    <div class="score-body">
+      <div class="score-vals">
+        <div id="hs-val">0</div>
+        <div id="hs-best-row">
+          <span id="hs-best-lbl"></span><span id="hs-best">0</span>
+        </div>
+      </div>
+      <button id="btn-pause" onclick="pauseGame()">⏸&#xFE0E;</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MINIMAP PANEL ─────────────────────────────────────── -->
+<div id="map-panel" class="off">
+  <div id="map-panel-header">
+    <span>🗺️ <span data-i18n="map.title">Dungeon Map</span></span>
+    <button class="map-esc-btn" onclick="toggleMap()"><span>🗙</span></button>
+  </div>
+  <div id="minimap-grid"></div>
+  <div id="map-legend">
+    <span>⚔️ <span data-i18n="map.legendCombat">Combat</span></span>
+    <span><span id="map-legend-boss">🐲</span> <span data-i18n="map.legendBoss">Boss</span></span>
+    <span>🏪 <span data-i18n="map.legendShop">Shop</span></span>
+    <span>✨ <span data-i18n="map.legendItem">Item</span></span>
+    <span>💰 <span data-i18n="map.legendTreasure">Treasure</span></span>
+    <span>🎰 <span data-i18n="map.legendCasino">Casino</span></span>
+    <span>⛺ <span data-i18n="map.legendCamp">Camp</span></span>
+    <span>🎓 <span data-i18n="map.legendTeacher">Teacher</span></span>
+  </div>
+  <div id="map-perms-row" style="margin-top:8px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
+    <div style="font-size:.72rem;color:#888;margin-bottom:4px" data-i18n="map.nextWorlds">Next Worlds</div>
+    <div id="map-next-worlds" style="font-size:1.4rem;letter-spacing:6px">—</div>
+  </div>
+</div>
+
+<!-- ── DICTIONARY PANEL ───────────────────────────────────── -->
+<div id="book-panel" class="off">
+  <div id="book-panel-header">
+    <span>📖 <span data-i18n="dict.myDict">My Dictionary</span></span>
+    <button class="map-esc-btn no-touch" id="book-expand-btn" title="Expand">⛶</button>
+    <button class="map-esc-btn" onclick="toggleBook()"><span>🗙</span></button>
+  </div>
+  <div id="book-content">
+    <div class="dict-tabs">
+      <button class="dict-tab active" data-cat="noun" data-i18n="dict.tabNoun">🍓 Noun</button>
+      <button class="dict-tab" data-cat="verb" data-i18n="dict.tabVerb">✅ Verb</button>
+      <button class="dict-tab" data-cat="adjective" data-i18n="dict.tabAdj">📌 Adj.</button>
+    </div>
+    <div id="book-dict-search-wrap" style="margin:6px 0">
+      <input id="book-dict-search" type="text" placeholder="Search…" data-i18n-placeholder="dict.searchPlaceholder" autocomplete="off" style="width:100%;box-sizing:border-box">
+    </div>
+    <div id="book-dict-list"></div>
+  </div>
+</div>
+
+<!-- ── GROUND ITEMS ───────────────────────────────────────── -->
+<div id="ground-items"></div>
+
+<!-- ── PLAYER DOOR ANIMATION GHOST ───────────────────────── -->
+<div id="pl-door-ghost"></div>
+
+<!-- ── PLAYER AREA ────────────────────────────────────────── -->
+<div id="player-area">
+  <div id="kb-left" class="kb-panel"></div>
+  <div id="player-inner">
+    <div id="pl-emoji-row">
+      <div id="pl-emoji-wrap">
+        <div id="pl-emoji">😊</div>
+        <span id="spell-ico">✨</span>
+        <div id="pl-chevron">⌃</div>
+      </div>
+    </div>
+    <div id="pl-lives"></div>
+    <div id="inp-wrap">
+      <span id="ctrl-hint" title="Hold Ctrl for quick actions">CTRL</span>
+      <button id="touch-space-btn" type="button">⎵</button>
+      <input id="typing" type="text"
+      placeholder="Type Korean here..." data-i18n-placeholder="typing.placeholder"
+      autocomplete="off" autocorrect="off"
+      autocapitalize="none" spellcheck="false"
+      inputmode="text">
+      <span id="ime-toggle" title="Toggle Korean/QWERTY input">↹ㅤ영</span>
+    </div>
+  </div>
+  <div id="kb-right" class="kb-panel"></div>
+</div>
+
+<!-- ── ANNOUNCE / FX (identical to original) ─────────────── -->
+<div id="announce"><div id="announce-txt"></div></div>
+
+<!-- ── WEATHER CANVAS ─────────────────────────────────────── -->
+<canvas id="wx-canvas"></canvas>
+<!-- ── DAY/NIGHT CANVAS (never opacity-animated) ─────────── -->
+<canvas id="dn-canvas"></canvas>
+
+<!-- ── CTRL QUICK-ACTION PANEL ────────────────────────────── -->
+<div id="ctrl-panel" class="off" onclick="if(event.target===this)closeCtrlPanel()">
+  <div class="ctrl-wallet">💰 <span id="ctrl-wallet-val">0</span>원</div>
+  <button class="ctrl-esc-btn" onclick="ctrlPauseAction()">
+    <span class="no-touch">ESC</span>
+    <p style="margin: 0;font-size: 8pt; line-height: 0;margin-bottom: 4px; font-weight: 400;" data-i18n="pause.pauseShort">PAUSE</p>
+  </button>
+  <div class="ctrl-actions">
+    <button class="ctrl-action-btn" onclick="ctrlPanelAction('map')">
+      <span class="cak-letter">M</span>
+      <span class="cak-sub">🗺️ <span data-i18n="map.toggle">Toggle Map</span></span>
+    </button>
+    <button class="ctrl-action-btn" onclick="ctrlPanelAction('book')">
+      <span class="cak-letter">B</span>
+      <span class="cak-sub">📙 <span data-i18n="dict.openBook">Open Book</span></span>
+    </button>
+  </div>
+  <div class="ctrl-center">
+    <div class="ctrl-inv-panel">
+      <button class="ctrl-nav" id="ctrl-prev" onclick="ctrlInvNav(-1)">←</button>
+      <div class="ctrl-inv-slot">
+        <span id="ctrl-inv-emoji"></span>
+        <span id="ctrl-inv-count"></span>
+      </div>
+      <button class="ctrl-nav" id="ctrl-next" onclick="ctrlInvNav(1)">→</button>
+    </div>
+    <div id="ctrl-inv-dots" class="ctrl-inv-dots"></div>
+    <div id="ctrl-inv-name" class="ctrl-inv-name"></div>
+    <div id="ctrl-inv-desc" class="ctrl-inv-desc"></div>
+    <button class="ctrl-use-btn" id="ctrl-use-btn" onclick="ctrlPanelAction('use')">↓</button>
+  </div>
+  <div id="perm-bar"></div>
+</div>
+
+<!-- ── FREEZE OVERLAY ─────────────────────────────────────── -->
+<div id="freeze-overlay"></div>
+
+<!-- ── EFFECT BUBBLE ─────────────────────────────────────── -->
+<div id="effect-bubble"></div>
+
+<!-- ── SHOP TOOLTIP ───────────────────────────────────────── -->
+<div id="shop-tooltip"></div>
+
+<!-- ── FIRST CLEAR BANNER ─────────────────────────────────── -->
+<div id="first-clear-banner" class="off">
+  <span data-i18n="announce.firstClear">Click 🗺️ to view the map</span>
+</div>
+
+<!-- ── CHEAT MENU (hidden; type "cheatcode" to open) ─────── -->
+<div id="cheat-menu">
+  <div id="cheat-title">
+    ⚡ Cheat Menu
+    <span id="cheat-close" onclick="closeCheatMenu()">✕</span>
+  </div>
+  <div class="cheat-row">
+    <label>God Mode</label>
+    <button class="cheat-btn" id="c-god" onclick="cheatToggleGod()">OFF</button>
+  </div>
+  <div class="cheat-row">
+    <label>Auto-Shoot</label>
+    <button class="cheat-btn" id="c-auto" onclick="cheatToggleAuto()">OFF</button>
+  </div>
+  <div class="cheat-row">
+    <label>Add HP</label>
+    <input class="cheat-inp" id="c-lives-in" type="number" value="5" min="1" max="20">
+    <button class="cheat-btn" onclick="cheatAddLives()">+Add</button>
+  </div>
+  <div class="cheat-row">
+    <label>Add 원</label>
+    <button class="cheat-btn" onclick="cheatAddCoins()">+9999</button>
+  </div>
+  <div class="cheat-row">
+    <label>Destravar todas as aulas</label>
+    <button class="cheat-btn" id="cheat-unlock-lessons" onclick="cheatUnlockLessons()">Unlock</button>
+  </div>
+  <div class="cheat-row">
+    <label>Dicionário completo (99 kills)</label>
+    <button class="cheat-btn" id="cheat-unlock-dict" onclick="cheatUnlockDict()">Unlock</button>
+  </div>
+  <div class="cheat-row">
+    <label data-i18n="options.weather">🌤️ Weather</label>
+    <select class="cheat-inp" id="c-wx" style="width:100px">
+      <option value="clear"   data-i18n="weather.clear"    data-i18n-prefix="☀️ ">☀️ Clear</option>
+      <option value="foggy"   data-i18n="weather.foggy"    data-i18n-prefix="🌫️ ">🌫️ Foggy</option>
+      <option value="drizzle" data-i18n="weather.drizzle"  data-i18n-prefix="🌦 ">🌦 Drizzle</option>
+      <option value="raining" data-i18n="weather.raining"  data-i18n-prefix="🌧 ">🌧 Rain</option>
+      <option value="snowing" data-i18n="weather.snowing"  data-i18n-prefix="🌨 ">🌨 Snow</option>
+      <option value="blizzard" data-i18n="weather.blizzard" data-i18n-prefix="❄️ ">❄️ Blizzard</option>
+      <option value="fall"    data-i18n="weather.fall"     data-i18n-prefix="🍁 ">🍁 Autumn</option>
+      <option value="blossom" data-i18n="weather.blossom"  data-i18n-prefix="🌸 ">🌸 Blossom</option>
+    </select>
+    <button class="cheat-btn" onclick="cheatSetWeather()">Set</button>
+  </div>
+  <div class="cheat-row">
+    <label>Time</label>
+    <input type="range" id="c-tod" min="0" max="24" step="0.5" value="12" style="width:100px">
+    <span id="c-tod-val">12:00</span>
+    <button class="cheat-btn" onclick="cheatSetTOD()">Set</button>
+  </div>
+  <div class="cheat-row">
+    <label>Next World</label>
+    <button class="cheat-btn" onclick="cheatNextWorld()">→</button>
+  </div>
+  <div class="cheat-row">
+    <label>Clear Room</label>
+    <button class="cheat-btn red" onclick="cheatClearRoom()">Kill All</button>
+  </div>
+  <div class="cheat-row">
+    <label>Give All</label>
+    <button class="cheat-btn" onclick="cheatGiveAll()">Give All</button>
+  </div>
+  <div class="cheat-row">
+    <label>Summon Monster</label>
+    <select class="cheat-inp" id="c-mon-type" style="width:70px">
+      <option value="all">All</option>
+      <option value="verb">Verb</option>
+      <option value="adjective">Adj</option>
+      <option value="noun">Noun</option>
+    </select>
+    <input class="cheat-inp" id="c-mon-hp" type="number" min="1" max="5" value="1" style="width:40px" title="HP">
+    <input class="cheat-inp" id="c-mon-wave" type="number" min="1" max="48" value="1" style="width:44px" title="Wave/Difficulty">
+    <button class="cheat-btn" onclick="cheatSummonMonster()">Spawn</button>
+  </div>
+  <div class="cheat-row">
+    <label>Mon. Special</label>
+    <select class="cheat-inp" id="c-mon-special" style="width:100px">
+      <option value="">none</option>
+      <option value="archer">🏹 Archer</option>
+      <option value="ice">❄️ Ice</option>
+      <option value="musician">🎵 Musician</option>
+      <option value="warrior">🛡 Warrior</option>
+      <option value="king">🏯 King</option>
+      <option value="eruptor">🌋 Eruptor</option>
+    </select>
+  </div>
+  <div class="cheat-row">
+    <label>Spawn Orbs</label>
+    <input class="cheat-inp" id="c-orb-count" type="number" min="1" max="10" value="3" style="width:44px" title="Count">
+    <button class="cheat-btn" onclick="cheatSpawnOrbs()">Spawn</button>
+  </div>
+  <div class="cheat-row">
+    <label>Add Item</label>
+    <select class="cheat-inp" id="c-item-sel" style="width:110px"></select>
+    <button class="cheat-btn" onclick="cheatAddItem()">Add</button>
+  </div>
+  <div class="cheat-row">
+    <label>Add Modifier</label>
+    <select class="cheat-inp" id="c-mod-sel" style="width:110px"></select>
+    <button class="cheat-btn" onclick="cheatAddMod()">Add</button>
+  </div>
+  <div class="cheat-row">
+    <label>Reset tudo</label>
+    <button class="cheat-btn red" id="cheat-reset-btn">Reset</button>
+  </div>
+</div>
+
+<!-- ── DOOR TRANSITION OVERLAY ─────────────────────────────── -->
+<div id="door-overlay"></div>
+
+<!-- ── LORE ANIMATION OVERLAY ────────────────────────────── -->
+<div id="lore-overlay" style="display:none">
+  <div id="lore-player-outer">
+    <div id="lore-player-inner"></div>
+  </div>
+  <div id="lore-villain-outer">
+    <div id="lore-villain-inner">🦹</div>
+  </div>
+  <div id="lore-speech"></div>
+  <div id="lore-particles"></div>
+</div>
+
+<!-- ── ROTATE OVERLAY (portrait mode) ─────────────────────── -->
+<div id="rotate-overlay">
+  <div id="rotate-content">
+    <div id="rotate-phone-icon" style="font-size:3.5rem">📱</div>
+    <div id="rotate-text" style="font-size:1.1rem;margin-top:12px;opacity:.9"></div>
+  </div>
+  <div style="position:absolute;bottom:15px;left:0;right:0;text-align:center;font-size:.72rem;opacity:.3;letter-spacing:.3px">Made by Lucas Nascimento 🌲</div>
+</div>
+
+<script src="assets/js/avataaars.js"></script>
+<script type="module" src="assets/js/game.js"></script>
+<script>
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('dragstart',   e => e.preventDefault());
+</script>
+</body>
+</html>
