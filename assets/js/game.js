@@ -2258,6 +2258,7 @@ function showTitleScreen() {
   G.phase = 'title';
   document.body.classList.add('phase-title');
   G.gameTime = 210; // reset to midday so menu is always bright
+  _applyMenuZoom();
   // Initialize background room preview if not already set
   if (!G.menuPreview) _initMenuPreview();
   _weatherCycleTimer = 0;
@@ -3502,6 +3503,17 @@ function _applyTouchZoom() {
   });
 }
 
+function _applyMenuZoom() {
+  const wrap = document.getElementById('menu-wrap');
+  if (!wrap) return;
+  wrap.style.zoom = '';
+  requestAnimationFrame(() => {
+    const avail = (window.visualViewport?.height ?? window.innerHeight) * 0.97;
+    const natural = wrap.scrollHeight;
+    if (natural > avail) wrap.style.zoom = String(avail / natural);
+  });
+}
+
 function _applyCtrlZoom() {
   const panel = document.getElementById('ctrl-panel');
   if (!panel) return;
@@ -3644,6 +3656,7 @@ window.addEventListener('resize', () => {
   resizeCanvas();
   _applyTouchZoom();
   if (G.ctrlPanelOpen) _applyCtrlZoom();
+  if (G.phase === 'title') _applyMenuZoom();
 });
 
 /* ================================================================
