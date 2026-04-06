@@ -431,7 +431,7 @@ export function initRoomSpawner(templates) {
   // Tutorial: first monster spawning in world 0
   if (G.run?.worldIdx === 0 && G.run?.tutorial && !G.run.tutorial.firstMonsterShown) {
     G.run.tutorial.firstMonsterShown = true;
-    if (typeof window !== 'undefined') window._showTutorial?.('⚔️', 'tutorial.typeToKill');
+    if (typeof window !== 'undefined') window._showTutorial?.('⚔️', 'tutorial.typeToKill', null, { allowDuringCombat: true, autoClose: 30 });
     // Mark the first template so its monster will pause before hitting player
     if (G.room.wTemplates.length > 0) {
       G.room.wTemplates[0]._tutorialStop = true;
@@ -1596,15 +1596,15 @@ export function spawnGroundItem(x, y) {
   const entry = { id: ++G.room._groundId, x, y, keys, keyIdx:0, item, life, maxLife:life, el, isHanja: useHanja };
   G.room.groundItems.push(entry);
 
-  // Tutorial: item drop hints in world 0 (first time each type)
+  // Tutorial: item drop hints in world 0 (first time each type) — queued, shows after combat
   if (G.run?.worldIdx === 0 && G.run?.tutorial && typeof window !== 'undefined') {
     const tut = G.run.tutorial;
     if (useHanja && !tut.hanjaDropShown) {
       tut.hanjaDropShown = true;
-      window._showTutorial?.('漢', 'tutorial.pickHanja');
+      window._showTutorial?.('漢', 'tutorial.pickHanja', null, { autoClose: 25, priority: 10 });
     } else if (!useHanja && !tut.hangulDropShown) {
       tut.hangulDropShown = true;
-      window._showTutorial?.('🪙', 'tutorial.pickHangul');
+      window._showTutorial?.('🪙', 'tutorial.pickHangul', null, { autoClose: 25, priority: 10 });
     }
   }
 
@@ -1680,6 +1680,8 @@ export function tryCollectGroundItem(val) {
   setTimeout(() => { if (gi.el) gi.el.remove(); }, 750);
   G.room.groundItems = G.room.groundItems.filter(g => g !== gi);
   addToInventory(gi.item);
+  // Dismiss item-pickup tutorial tip when player collects an item
+  if (typeof window !== 'undefined') window._hideTutorial?.(true);
   return true;
 }
 

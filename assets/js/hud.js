@@ -572,6 +572,7 @@ export function renderTeacherScreen(cell) {
   const scr = document.getElementById('scr-teacher');
   if (!scr) return;
   scr.classList.remove('off');
+  window._onTeacherOpen?.();
 
   const container = document.getElementById('teacher-content');
   const lesson = cell.currentLesson;

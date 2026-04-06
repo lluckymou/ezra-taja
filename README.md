@@ -1,5 +1,7 @@
 <div align="center">
-  <img src="assets/img/logo.gif" alt="EZRA Taja" width="480">
+  <a href="https://lluckymou.github.io/ezra-taja/">
+    <img src="assets/img/logo.gif" alt="EZRA Taja" width="480">
+  </a>
   <br><br>
 
   _Learning Korean by typing_ | _타이핑으로 한국어 배우기_
@@ -13,7 +15,7 @@
 
 **EZRA Taja** is a roguelite dungeon crawler where you defeat monsters by typing Korean words. It was born out of a frustration: my Korean teacher showed me [Hancom Taja](https://taja.hancom.com), a classic Korean typing trainer, but I couldn't use it because my system locale wasn't set to Korean. So I built my own version - and then kept going.
 
-The philosophy here isn't to gamify language learning. It's the opposite: to *"ensinify"* a game - take something genuinely fun and challenging, and weave language learning into its fabric so naturally that vocabulary acquisition becomes a side effect of playing. The goal is a game worth playing on its own merits, where Korean just happens to be the mechanic.
+The philosophy here isn't to _gamify_ learning. It's the opposite: to *"learnify"* a game - take something genuinely fun and challenging, and weave language learning into its game design so naturally that vocabulary acquisition becomes a side effect of playing. The goal is a game worth playing on its own merits, where Korean just happens to be the mechanic.
 
 The first version took roughly a month to build and ships with a full roguelite feature set alongside a serious vocabulary system.
 

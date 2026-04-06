@@ -710,6 +710,8 @@ export function enterRoom(col, row) {
   }
 
   // Tutorial box triggers on room entry
+  // Always force-close any active tip on room change (panels must close on room change)
+  window._hideTutorial?.(true);
   if (typeof window !== 'undefined' && G.run?.tutorial) {
     const tut  = G.run.tutorial;
     const wIdx = G.run.worldIdx;
@@ -717,18 +719,16 @@ export function enterRoom(col, row) {
     if (cell.type === 'boss' && cell.cleared && wIdx === 0) {
       window._showTutorial?.('🐲', 'tutorial.typeToAdvance', null, { persist: true });
     } else {
-      // Hide existing tutorial (unless persistent) when entering any other room
-      window._hideTutorial?.();
-      // Casino → luck hint (any world)
+      // Casino → luck hint (any world) — non-combat room, show immediately, auto-close 20s
       if (cell.type === 'casino' && !cell.casinoUsed) {
-        window._showTutorial?.('🎰', 'tutorial.casinoLuck');
+        window._showTutorial?.('🎰', 'tutorial.casinoLuck', null, { autoClose: 20 });
       }
-      // World 0 special rooms (first visit) → interact hints
+      // World 0 special rooms (first visit) → interact hints — non-combat, auto-close 25s
       else if (wIdx === 0 && !cell.cleared) {
-        if      (cell.type === 'shop')     window._showTutorial?.('🏪', 'tutorial.typeToBuy',  { room: i18n('map.legendShop') });
-        else if (cell.type === 'teacher')  window._showTutorial?.('🎓', 'tutorial.typeToTalk', { room: i18n('map.legendTeacher') });
-        else if (cell.type === 'treasure') window._showTutorial?.('💰', 'tutorial.typeToOpen', { room: i18n('map.legendTreasure') });
-        else if (cell.type === 'modifier') window._showTutorial?.('✨', 'tutorial.typeToOpen', { room: i18n('map.legendItem') });
+        if      (cell.type === 'shop')     window._showTutorial?.('🏪', 'tutorial.typeToBuy',  { room: i18n('map.legendShop') },     { autoClose: 25 });
+        else if (cell.type === 'teacher')  window._showTutorial?.('🎓', 'tutorial.typeToTalk', { room: i18n('map.legendTeacher') },   { autoClose: 25 });
+        else if (cell.type === 'treasure') window._showTutorial?.('💰', 'tutorial.typeToOpen', { room: i18n('map.legendTreasure') },  { autoClose: 25 });
+        else if (cell.type === 'modifier') window._showTutorial?.('✨', 'tutorial.typeToOpen', { room: i18n('map.legendItem') },      { autoClose: 25 });
       }
     }
   }
@@ -797,12 +797,12 @@ function onRoomCleared(cell) {
       const n = tut.world0CombatCleared;
       if (n === 1 && !tut.firstRoomClearShown) {
         tut.firstRoomClearShown = true;
-        window._showTutorial?.('🧭', 'tutorial.typeToNavigate');
+        window._showTutorial?.('🧭', 'tutorial.typeToNavigate', null, { autoClose: 20 });
       } else if (n === 2 && !tut.mapHintShown) {
         tut.mapHintShown = true;
-        window._showTutorial?.('🗺️', 'tutorial.pressMap');
+        window._showTutorial?.('🗺️', 'tutorial.pressMap', null, { autoClose: 25 });
       } else if (n >= 5) {
-        window._showTutorial?.('🐲', 'tutorial.findBoss');
+        window._showTutorial?.('🐲', 'tutorial.findBoss', null, { autoClose: 30 });
       }
     } else {
       // World 1+: teacher hint after 5 combat rooms if teacher exists, no interaction, no cooldown
@@ -813,11 +813,14 @@ function onRoomCleared(cell) {
         const onCd = cdTs !== undefined && (G.gameTime - cdTs) < 1860;
         if (hasTeacher && !tut.teacherInteractedThisWorld && !onCd) {
           tut.teacherHintShownWorld = wIdx;
-          window._showTutorial?.('🎓', 'tutorial.findTeacher');
+          window._showTutorial?.('🎓', 'tutorial.findTeacher', null, { autoClose: 30 });
         }
       }
     }
   }
+
+  // Flush any tip that was queued during combat (item drops etc.)
+  window._flushTutQueue?.();
 
   if (typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();
 }
@@ -861,6 +864,8 @@ function onBossDefeated(cell) {
   if (G.run?.worldIdx === 0 && typeof window !== 'undefined') {
     window._showTutorial?.('🐲', 'tutorial.typeToAdvance', null, { persist: true });
   }
+  // Flush any tip queued during boss fight
+  window._flushTutQueue?.();
 }
 
 // setCombatRef kept for compatibility; no-op since addToInventory is imported directly

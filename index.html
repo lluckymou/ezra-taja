@@ -345,13 +345,14 @@
 <!-- ── TEACHER SCREEN ──────────────────────────────────────── -->
 <div id="scr-teacher" class="screen off">
   <div class="menu-card">
-    <h2>🎓 <span data-i18n="teacher.title">Teacher</span></h2>
+    <h2><span data-i18n="teacher.title">🎓 Teacher</span></h2>
     <div id="teacher-content"></div>
   </div>
 </div>
 
 <!-- ── TUTORIAL BOX ───────────────────────────────────────── -->
 <div id="tutorial-box" class="off">
+  <button id="tutorial-close" onclick="window._hideTutorial(true)">✕</button>
   <span id="tutorial-emoji"></span>
   <span id="tutorial-text"></span>
 </div>
@@ -419,7 +420,7 @@
           <span id="hs-best-lbl"></span><span id="hs-best">0</span>
         </div>
       </div>
-      <button id="btn-pause" onclick="pauseGame()">⏸&#xFE0E;</button>
+      <button id="btn-pause" onclick="pauseGame()"><img src="assets/img/pause.svg" alt="Pause" width="22" height="22"></button>
     </div>
   </div>
 </div>

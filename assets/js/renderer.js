@@ -54,10 +54,11 @@ export function initRenderer(mainCanvas, weatherCanvas, dayNightCanvas) {
 ================================================================ */
 export function rendererResize() {
   if (!canvas) return;
-  canvas.width   = G.W;
-  canvas.height  = G.vH;
-  wxCanvas.width  = G.W;
-  wxCanvas.height = G.vH;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width   = Math.floor(G.W * dpr); canvas.height  = Math.floor(G.vH * dpr);
+  canvas.style.width = G.W + 'px'; canvas.style.height = G.vH + 'px';
+  wxCanvas.width  = Math.floor(G.W * dpr); wxCanvas.height = Math.floor(G.vH * dpr);
+  wxCanvas.style.width = G.W + 'px'; wxCanvas.style.height = G.vH + 'px';
 }
 
 /* ================================================================
@@ -809,10 +810,13 @@ function _drawWxParticles(particles, w, alphaMult) {
 /** Draw weather particles only — day/night handled separately by drawDayNight(). */
 export function drawWeather() {
   if (!wxCtx) return;
-  if (wxCanvas.width !== G.W || wxCanvas.height !== G.vH) {
-    wxCanvas.width  = G.W;
-    wxCanvas.height = G.vH;
+  const _dpr = window.devicePixelRatio || 1;
+  const _pw = Math.floor(G.W * _dpr), _ph = Math.floor(G.vH * _dpr);
+  if (wxCanvas.width !== _pw || wxCanvas.height !== _ph) {
+    wxCanvas.width  = _pw; wxCanvas.height = _ph;
+    wxCanvas.style.width = G.W + 'px'; wxCanvas.style.height = G.vH + 'px';
   }
+  wxCtx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
   wxCtx.clearRect(0, 0, G.W, G.vH);
   if (!G.weatherEnabled) return;
 
@@ -827,10 +831,13 @@ export function drawWeather() {
 /** Draw the day/night darkness overlay on a dedicated canvas that is never opacity-animated. */
 export function drawDayNight() {
   if (!dnCtx) return;
-  if (dnCanvas.width !== G.W || dnCanvas.height !== G.vH) {
-    dnCanvas.width  = G.W;
-    dnCanvas.height = G.vH;
+  const _dpr = window.devicePixelRatio || 1;
+  const _pw = Math.floor(G.W * _dpr), _ph = Math.floor(G.vH * _dpr);
+  if (dnCanvas.width !== _pw || dnCanvas.height !== _ph) {
+    dnCanvas.width  = _pw; dnCanvas.height = _ph;
+    dnCanvas.style.width = G.W + 'px'; dnCanvas.style.height = G.vH + 'px';
   }
+  dnCtx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
   dnCtx.clearRect(0, 0, G.W, G.vH);
   const brightness = getDayBrightness();
   if (brightness < 1.0) {

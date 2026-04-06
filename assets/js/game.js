@@ -760,22 +760,71 @@ export function init() {
   const _tutBox   = document.getElementById('tutorial-box');
   const _tutEmoji = document.getElementById('tutorial-emoji');
   const _tutText  = document.getElementById('tutorial-text');
-  let _tutPersist = false;
+  let _tutPersist    = false;
+  let _tutAutoTimer  = null; // setTimeout handle for auto-close
+  let _tutCurrentKey = null; // key of currently shown tip
+  // Queue for tips triggered during combat (shown after combat clears)
+  let _tutQueue = []; // [{emoji, msgKey, vars, opts}]
+
+  function _clearTutTimer() {
+    if (_tutAutoTimer) { clearTimeout(_tutAutoTimer); _tutAutoTimer = null; }
+  }
 
   window._showTutorial = (emoji, msgKey, vars = null, opts = {}) => {
     if (!_tutBox) return;
+    // If in combat, queue it instead (unless it's allowed during combat)
+    if (G.mode === 'combat' && !opts.allowDuringCombat) {
+      // Replace queue (last queued tip wins unless higher priority replaces)
+      const pri = opts.priority || 0;
+      const topPri = _tutQueue.length ? (_tutQueue[0].opts?.priority || 0) : -1;
+      if (!_tutQueue.length || pri >= topPri) {
+        _tutQueue = [{ emoji, msgKey, vars, opts }];
+      }
+      return;
+    }
+    _clearTutTimer();
     _tutEmoji.textContent = emoji;
     _tutText.textContent  = vars ? i18n(msgKey, vars) : i18n(msgKey);
     _tutBox.classList.remove('off');
-    _tutPersist = opts.persist || false;
+    _tutPersist    = opts.persist || false;
+    _tutCurrentKey = msgKey;
     if (G.run?.tutorial) G.run.tutorial.key = msgKey;
+    // Auto-close after given seconds
+    if (opts.autoClose) {
+      _tutAutoTimer = setTimeout(() => window._hideTutorial(true), opts.autoClose * 1000);
+    }
   };
+
   window._hideTutorial = (force = false) => {
     if (!_tutBox) return;
     if (_tutPersist && !force) return;
+    _clearTutTimer();
     _tutBox.classList.add('off');
     if (G.run?.tutorial) G.run.tutorial.key = null;
-    _tutPersist = false;
+    _tutPersist    = false;
+    _tutCurrentKey = null;
+  };
+
+  // Called after room is cleared — flush any queued tip
+  window._flushTutQueue = () => {
+    if (_tutQueue.length > 0) {
+      const { emoji, msgKey, vars, opts } = _tutQueue.shift();
+      _tutQueue = [];
+      // Small delay so the "Room cleared" announce reads first
+      setTimeout(() => window._showTutorial(emoji, msgKey, vars, opts), 600);
+    }
+  };
+
+  // Called when map is opened — dismiss map-related tip
+  window._onMapOpen = () => {
+    if (_tutCurrentKey === 'tutorial.pressMap') window._hideTutorial(true);
+  };
+
+  // Called when teacher screen opens — dismiss teacher tip
+  window._onTeacherOpen = () => {
+    if (_tutCurrentKey === 'tutorial.typeToTalk' || _tutCurrentKey === 'tutorial.findTeacher') {
+      window._hideTutorial(true);
+    }
   };
 
   // Wire global callbacks
@@ -969,7 +1018,9 @@ function loop(ts) {
 
   resizeCanvas();
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const _dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
+  ctx.clearRect(0, 0, G.W, G.vH || window.innerHeight);
 
   // Menu/title background: render a preview room
   if (G.phase === 'title' && G.menuPreview) {
@@ -1009,7 +1060,7 @@ function loop(ts) {
           const hr = (G.gameTime % 420) / 420 * 24;
           if (hr >= 22 || hr < 3) {
             tut.nightHintShown = true;
-            window._showTutorial?.('🌙', 'tutorial.buyTent');
+            window._showTutorial?.('🌙', 'tutorial.buyTent', null, { autoClose: 15 });
           }
         }
       }
@@ -1098,11 +1149,20 @@ function loop(ts) {
 }
 
 function resizeCanvas() {
+  const dpr = window.devicePixelRatio || 1;
   const w = Math.floor(window.innerWidth);
   const h = Math.floor(G.vH || window.innerHeight);
-  if (canvas.width !== w || canvas.height !== h) {
-    canvas.width  = w; canvas.height  = h;
-    wxCanvas.width = w; wxCanvas.height = h;
+  const pw = Math.floor(w * dpr);
+  const ph = Math.floor(h * dpr);
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width  = pw; canvas.height  = ph;
+    canvas.style.width  = w + 'px'; canvas.style.height = h + 'px';
+    wxCanvas.width = pw; wxCanvas.height = ph;
+    wxCanvas.style.width = w + 'px'; wxCanvas.style.height = h + 'px';
+    if (dnCanvas) {
+      dnCanvas.width = pw; dnCanvas.height = ph;
+      dnCanvas.style.width = w + 'px'; dnCanvas.style.height = h + 'px';
+    }
     G.W = w; G.H = window.innerHeight;
   }
 }
@@ -3070,6 +3130,7 @@ window.toggleMap = function() {
   const mapOpen = !panel.classList.contains('off');
   document.body.classList.toggle('map-open', mapOpen);
   if (mapOpen) {
+    window._onMapOpen?.();
     updateMap(); updateMapExtras();
     setMapPlaceholder(true);
     if (G.touchMode && G.phase === 'run') {
@@ -4179,26 +4240,35 @@ function updateDoorButtons() {
    MOBILE — visualViewport (verbatim from original)
 ================================================================ */
 if ('visualViewport' in window) {
-  window.visualViewport.addEventListener('resize', () => {
-    const vvh = window.visualViewport.height;
+  function _applyVisualViewport() {
+    const vvh = Math.floor(window.visualViewport.height);
     const oldVH = G.vH;
+    if (vvh === oldVH) return;
     G.vH = vvh;
-    canvas.height   = vvh;
-    wxCanvas.height = vvh;
-    if (dnCanvas) dnCanvas.height = vvh;
+    const _dprVV = window.devicePixelRatio || 1;
+    canvas.width   = Math.floor(G.W * _dprVV); canvas.height   = Math.floor(vvh * _dprVV);
+    canvas.style.width = G.W + 'px'; canvas.style.height = vvh + 'px';
+    wxCanvas.width = Math.floor(G.W * _dprVV); wxCanvas.height = Math.floor(vvh * _dprVV);
+    wxCanvas.style.width = G.W + 'px'; wxCanvas.style.height = vvh + 'px';
+    if (dnCanvas) {
+      dnCanvas.width = Math.floor(G.W * _dprVV); dnCanvas.height = Math.floor(vvh * _dprVV);
+      dnCanvas.style.width = G.W + 'px'; dnCanvas.style.height = vvh + 'px';
+    }
     const kb = window.innerHeight - vvh;
     if (paEl) paEl.style.bottom = Math.max(0, kb) + 'px';
-    if (oldVH > 0 && vvh !== oldVH) {
+    if (oldVH > 0) {
       const ratio = vvh / oldVH;
       for (const m of (G.room?.monsters || [])) if (m.y > 0) m.y *= ratio;
     }
-  });
-  function fixScroll() {
-    document.body.style.height = window.visualViewport.height + 'px';
+    document.body.style.height = vvh + 'px';
     window.scrollTo(0, 0);
   }
-  window.visualViewport.addEventListener('resize', fixScroll);
-  window.visualViewport.addEventListener('scroll', () => window.scrollTo(0, 0));
+  window.visualViewport.addEventListener('resize', _applyVisualViewport);
+  // Chrome mobile fires scroll (not resize) when the browser nav-bar appears/hides
+  window.visualViewport.addEventListener('scroll', () => {
+    window.scrollTo(0, 0);
+    _applyVisualViewport();
+  });
 }
 
 /* ================================================================
