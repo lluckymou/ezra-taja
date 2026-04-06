@@ -4526,6 +4526,12 @@ function screenOff(id) {
       _rotateLangTimer = null;
     }
 
+    // Translations not yet loaded — show English fallback to avoid raw key flash
+    if (!langs.length) {
+      rotateText.textContent = 'Rotate your device';
+      return;
+    }
+
     if (!chosenLang && langs.length) {
       // Cycle through available meta.rotateDevice strings
       _rotateLangIndex = 0;
