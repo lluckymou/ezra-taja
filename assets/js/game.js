@@ -2142,12 +2142,21 @@ function buildTitleScreen() {
   const hiEl = document.getElementById('title-hi');
   if (hiEl && G.hiScore > 0) hiEl.textContent = `Best: ${G.hiScore}원`;
 
-  // Logo easter egg: click randomizes menu weather
-  document.getElementById('menu-logo-wrap')?.addEventListener('click', () => {
-    if (G.phase !== 'title' || !G.menuPreview) return;
-    const allowed = ALL_WEATHERS.filter(w => w !== 'clear' && w !== 'foggy' && w !== 'raining' && w !== 'blizzard');
-    if (allowed.length) startWeatherFade(allowed[Math.floor(Math.random() * allowed.length)]);
-  });
+  // Logo easter egg: click randomizes menu weather (5s cooldown)
+  (function() {
+    const logoWrap = document.getElementById('menu-logo-wrap');
+    if (!logoWrap) return;
+    let _cooldown = false;
+    logoWrap.addEventListener('click', () => {
+      if (G.phase !== 'title' || !G.menuPreview || _cooldown) return;
+      const allowed = ALL_WEATHERS.filter(w => w !== 'clear' && w !== 'foggy' && w !== 'raining' && w !== 'blizzard' && w !== G.weather);
+      if (!allowed.length) return;
+      startWeatherFade(allowed[Math.floor(Math.random() * allowed.length)]);
+      _cooldown = true;
+      logoWrap.style.cursor = 'default';
+      setTimeout(() => { _cooldown = false; logoWrap.style.cursor = ''; }, 5000);
+    });
+  })();
 
   // My Dictionary button — opens floating modal
   document.getElementById('btn-my-dict')?.addEventListener('click', () => {
