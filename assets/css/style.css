@@ -28,6 +28,20 @@ body.mobile-fs #freeze-overlay { top: var(--tb-h); }
 body.mobile-fs #hud  { top: calc(8px + var(--tb-h)); }
 body.mobile-fs #btn-map { top: calc(8px + var(--tb-h)); }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── SVG icon helper — inherits CSS color via mask ── */
+.icon-close, .icon-fs-enter, .icon-fs-exit {
+  display: inline-block;
+  width: 1em; height: 1em;
+  -webkit-mask-size: contain; mask-size: contain;
+  -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+  -webkit-mask-position: center; mask-position: center;
+  background-color: currentColor;
+  flex-shrink: 0;
+}
+.icon-close    { -webkit-mask-image: url(../img/close.svg);            mask-image: url(../img/close.svg); }
+.icon-fs-enter { -webkit-mask-image: url(../img/fullscreen-enter.svg); mask-image: url(../img/fullscreen-enter.svg); }
+.icon-fs-exit  { -webkit-mask-image: url(../img/fullscreen-exit.svg);  mask-image: url(../img/fullscreen-exit.svg); }
 button, input, select, textarea { font-family: inherit; }
 input, textarea { user-select: text; -webkit-user-select: text; }
 
@@ -2463,7 +2477,7 @@ body.touch-mode #map-panel:not(.off) {
   height: 20px;
   background: rgba(3, 13, 26, 0.72);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-  padding: 0 8px 0 6px;
+  padding: 0 16px;
   align-items: center; justify-content: space-between;
   font-size: 0.6rem; color: rgba(255,255,255,.38);
   letter-spacing: .4px; pointer-events: auto;

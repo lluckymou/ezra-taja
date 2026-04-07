@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>EZRA Taja - 타자</title>
+<title>EZRA Taja</title>
+<meta name="description" content="EZRA Taja (타자) is a typing-based roguelike dungeon crawler designed to help you learn Korean in a fun and engaging way. Explore procedurally generated dungeons, battle monsters, and collect loot — all by typing Korean words!">
+<meta name="author" content="Lucas Nascimento">
 <link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/img/icon.svg">
 <link rel="manifest" href="manifest.json">
@@ -76,7 +78,7 @@
           </div>
           <div id="ava-edit-weapon"><div class="wg-list" id="wg-pick"></div></div>
         </div>
-        <button id="ava-edit-close">✕</button>
+        <button id="ava-edit-close"><span class="icon-close"></span></button>
       </div>
     </div>
     <div class="ava-tabs" id="ava-tabs-right">
@@ -125,7 +127,7 @@
   <div id="my-dict-modal-inner">
     <div id="my-dict-header">
       <span>📖 <span data-i18n="dict.myDict">My Dictionary</span></span>
-      <button id="my-dict-close" onclick="document.getElementById('my-dict-modal').classList.add('off')">✕</button>
+      <button id="my-dict-close" onclick="document.getElementById('my-dict-modal').classList.add('off')"><span class="icon-close"></span></button>
     </div>
     <div class="dict-panel-sub"><span data-i18n="dict.myDictSub">Words you've encountered on your runs</span></div>
     <div class="dict-tabs" id="title-dict-tabs">
@@ -148,7 +150,7 @@
   <div id="settings-modal-inner">
     <div id="settings-header">
       <span><span data-i18n="options.gameOptions">⚙️ Game Options</span></span>
-      <button id="settings-close" onclick="document.getElementById('settings-modal').classList.add('off')">✕</button>
+      <button id="settings-close" onclick="document.getElementById('settings-modal').classList.add('off')"><span class="icon-close"></span></button>
     </div>
     <div class="settings-content">
       <div class="gopts-grid">
@@ -237,7 +239,7 @@
 <!-- ── DONATE MODAL ────────────────────────────────────────── -->
 <div id="donate-modal" class="off">
   <div id="donate-modal-inner">
-    <button id="donate-close">✕</button>
+    <button id="donate-close"><span class="icon-close"></span></button>
     <div class="modal-big-emoji">🥺</div>
     <p id="donate-title" data-i18n="donate.enjoyingIt"></p>
     <p id="donate-msg"></p>
@@ -251,7 +253,7 @@
 <!-- ── TTS WARNING MODAL ───────────────────────────────────── -->
 <div id="tts-modal" class="off">
   <div id="tts-modal-inner">
-    <button id="tts-modal-close">✕</button>
+    <button id="tts-modal-close"><span class="icon-close"></span></button>
     <div class="modal-big-emoji">🔇</div>
     <p id="tts-modal-msg" data-i18n="ttsWarning.body"></p>
   </div>
@@ -362,7 +364,7 @@
 
 <!-- ── TUTORIAL BOX ───────────────────────────────────────── -->
 <div id="tutorial-box" class="off">
-  <button id="tutorial-close" onclick="window._hideTutorial(true)">✕</button>
+  <button id="tutorial-close" onclick="window._hideTutorial(true)"><span class="icon-close"></span></button>
   <span id="tutorial-emoji"></span>
   <span id="tutorial-text"></span>
 </div>
@@ -570,7 +572,7 @@
 <div id="cheat-menu">
   <div id="cheat-title">
     ⚡ Cheat Menu
-    <span id="cheat-close" onclick="closeCheatMenu()">✕</span>
+    <span id="cheat-close" onclick="closeCheatMenu()"><span class="icon-close"></span></span>
   </div>
   <div class="cheat-row">
     <label>God Mode</label>
@@ -695,12 +697,12 @@
     <img src="assets/img/icon.svg" alt="EZRA" width="13" height="13">
     <span>EZRA 타자</span>
   </div>
-  <button id="mtb-exit-fs" title="Exit fullscreen">🗖</button>
+  <button id="mtb-exit-fs" title="Exit fullscreen"><span class="icon-fs-exit"></span></button>
 </div>
 
 <!-- ── FULLSCREEN REQUEST OVERLAY ─────────────────────────── -->
 <div id="fs-overlay" class="off">
-  <button id="fs-btn">⛶</button>
+  <button id="fs-btn"><span class="icon-fs-enter"></span></button>
   <p id="fs-prompt"></p>
 </div>
 
