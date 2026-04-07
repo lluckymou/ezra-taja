@@ -59,8 +59,9 @@ export function initMap(containerEl) {
       el.addEventListener('click', () => {
         if (!G.dungeon) return;
         const cell = getCell(c, r);
-        // Teleportable if visited OR map revealed (masterkey / crystal_ball)
-        const canTeleport = cell && (cell.visited || G.run?.mapRevealed);
+        // Teleportable if visited OR map revealed (masterkey / crystal_ball), but not current room
+        const isCurrent = G.currentRoom && c === G.currentRoom.col && r === G.currentRoom.row;
+        const canTeleport = cell && (cell.visited || G.run?.mapRevealed) && !isCurrent;
         if (!canTeleport) return;
         if (typeof window !== 'undefined' && window._worldRef?.enterRoom) {
           // Revoke masterkey reveal after teleport, but keep it if crystal_ball is owned

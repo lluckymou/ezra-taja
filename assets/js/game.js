@@ -592,6 +592,12 @@ function runStartupAnimation(onPrepare, onDone) {
     // Increment launch counter (persists until user resets progress)
     const _lc = parseInt(localStorage.getItem('krr_launchCount') || '0') + 1;
     localStorage.setItem('krr_launchCount', String(_lc));
+    // On mobile without fullscreen: hide everything until fullscreen is entered
+    const needsFs = window.innerHeight < 500 && !(document.fullscreenElement || document.webkitFullscreenElement);
+    const _gameEls = needsFs
+      ? ['scr-title','gc','wx-canvas','dn-canvas'].map(id => document.getElementById(id)).filter(Boolean)
+      : [];
+    _gameEls.forEach(el => { el.style.visibility = 'hidden'; });
     // Prepare content (language, title screen) while overlay is still visible so there's no flash
     onPrepare?.();
     overlay.classList.add('fade-out');
@@ -600,7 +606,14 @@ function runStartupAnimation(onPrepare, onDone) {
       // Fade in weather canvases now that the overlay is fully gone
       if (_wxEl) { _wxEl.style.transition = 'opacity 0.6s ease'; _wxEl.style.opacity = '1'; }
       if (_dnEl) { _dnEl.style.transition = 'opacity 0.6s ease'; _dnEl.style.opacity = '1'; }
-      onDone?.();
+      if (needsFs) {
+        window._showFsOverlay?.(() => {
+          _gameEls.forEach(el => { el.style.visibility = ''; });
+          onDone?.();
+        });
+      } else {
+        onDone?.();
+      }
     }, 650);
   }
 
@@ -743,6 +756,47 @@ export function init() {
     console.error('Failed to load languages:', err);
     runStartupAnimation(null, null);
   });
+
+  // ── Fullscreen overlay manager (mobile only) ─────────────────
+  let _fsOverlayCallback = null;
+  // Cycling timer for #fs-prompt text
+  let _fsPromptTimer = null;
+  function _startFsPromptCycle() {
+    const promptEl = document.getElementById('fs-prompt');
+    if (!promptEl) return;
+    if (_fsPromptTimer) return; // already running
+    const langs = getAvailableLanguages();
+    if (!langs.length) {
+      promptEl.textContent = 'EZRA 타자 runs in full-screen on mobile. Tap above to go full-screen.';
+      return;
+    }
+    let _idx = 0;
+    function showNext() {
+      const meta = getLangMeta(langs[_idx % langs.length].code);
+      promptEl.textContent = meta.fullscreenPrompt || 'EZRA 타자 runs in full-screen on mobile.';
+      _idx++;
+    }
+    showNext();
+    _fsPromptTimer = setInterval(showNext, 2000);
+  }
+
+  window._showFsOverlay = function(cb) {
+    _fsOverlayCallback = cb || null;
+    _syncMobileFs(); // let _syncMobileFs decide visibility based on current state
+    // If not mobile anymore, just call cb immediately
+    if (window.innerHeight >= 500) { const c = _fsOverlayCallback; _fsOverlayCallback = null; c?.(); return; }
+    _startFsPromptCycle();
+  };
+  document.getElementById('fs-btn')?.addEventListener('click', () => {
+    const cb = _fsOverlayCallback;
+    _fsOverlayCallback = null;
+    _enterMobileFullscreen(() => { _syncMobileFs(); cb?.(); });
+  });
+  document.getElementById('mtb-exit-fs')?.addEventListener('click', () => {
+    const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exitFs) exitFs.call(document).catch(() => {});
+  });
+  // ─────────────────────────────────────────────────────────────
 
   initRenderer(canvas, wxCanvas, dnCanvas);
   _applyTouchZoom();
@@ -1349,9 +1403,11 @@ function runLoreAnimation(onComplete) {
   const hudEl = document.getElementById('hud');
   if (hudEl) { hudEl.style.display = 'flex'; hudEl.style.zIndex = '6000'; }
 
-  // Hide wave card during cutscene
-  const hcardWave = document.getElementById('hcard-wave');
+  // Hide wave card during cutscene (and score card on mobile)
+  const hcardWave  = document.getElementById('hcard-wave');
+  const hcardScore = document.getElementById('hcard-score');
   if (hcardWave) hcardWave.style.opacity = '0';
+  if (hcardScore && window.innerHeight < 500) hcardScore.style.opacity = '0';
 
   // Hide title screen behind overlay
   const titleScr = document.getElementById('scr-title');
@@ -1473,7 +1529,8 @@ function runLoreAnimation(onComplete) {
   }
 
   // ── Text letter-by-letter appearance ─────────────────────────
-  const LETTER_INTERVAL = 0.07; // 70ms per letter
+  const _loreSpeechRate = Number(getLangMeta()?.loreSpeechRate) || 1;
+  const LETTER_INTERVAL = 0.07 / _loreSpeechRate; // 70ms per letter, scaled by speech rate
   let   letterTimer      = 0;
 
   function tickTextAppear(dt) {
@@ -1515,7 +1572,7 @@ function runLoreAnimation(onComplete) {
   }
 
   // ── Sad speaking: letters fly from head ──────────────────────
-  const SAD_LETTER_INTERVAL = 0.10;
+  const SAD_LETTER_INTERVAL = 0.10 / _loreSpeechRate;
   let   sadLetterIdx         = 0;
   let   sadLetterTimer       = 0;
   let   speak2Active         = false; // true when emitting speak2Phrase instead of lorePhrase
@@ -1615,6 +1672,7 @@ function runLoreAnimation(onComplete) {
     overlay.style.display = 'none';
     if (hudEl) { hudEl.style.display = 'none'; hudEl.style.zIndex = ''; }
     if (hcardWave) hcardWave.style.opacity = '';
+    if (hcardScore) hcardScore.style.opacity = '';
   }
 
   function _cleanup() {
@@ -1630,8 +1688,10 @@ function runLoreAnimation(onComplete) {
     playerInner.classList.remove('lore-walking');
     if (villainSpeechEl) { villainSpeechEl.remove(); villainSpeechEl = null; }
     if (villainLaughEl)  { villainLaughEl.remove();  villainLaughEl  = null; }
+    if (_skipBtn) { _skipBtn.remove(); _skipBtn = null; }
     if (hudEl) hudEl.style.zIndex = '';
     if (hcardWave) hcardWave.style.opacity = '';
+    if (hcardScore) hcardScore.style.opacity = '';
     _loreCancel = null;
   }
 
@@ -1668,6 +1728,17 @@ function runLoreAnimation(onComplete) {
   // Hidden skip: pressing Enter while lore is actively playing jumps straight to gameplay.
   function onSkipKey(e) { if (e.key === 'Enter' && G.phase === 'lore') { e.preventDefault(); finish(); } }
   window.addEventListener('keydown', onSkipKey);
+
+  // Visible skip button — shown from 2nd play onwards
+  let _skipBtn = null;
+  const _launchCount = parseInt(localStorage.getItem('krr_launchCount') || '0');
+  if (_launchCount > 0) {
+    _skipBtn = document.createElement('button');
+    _skipBtn.id = 'lore-skip-btn';
+    _skipBtn.textContent = i18n('lore.skip');
+    _skipBtn.addEventListener('click', () => finish());
+    document.getElementById('lore-overlay')?.appendChild(_skipBtn);
+  }
 
   // ── Main RAF loop ─────────────────────────────────────────────
   function loop(ts) {
@@ -2056,9 +2127,8 @@ function buildTitleScreen() {
   const elHanjaMon = document.getElementById('chk-hanja-monsters');
   if (elHanjaMon) elHanjaMon.checked = G.showHanjaOnMonsters;
 
-  // Start button — request fullscreen immediately, show lore, then play world-entry cinematic
+  // Start button — show lore then play world-entry cinematic
   document.getElementById('btn-play')?.addEventListener('click', () => {
-    requestGameFullscreen();
     runLoreAnimation(() => triggerMenuPlayTransition());
   });
 
@@ -2193,9 +2263,26 @@ function buildTitleScreen() {
     document.getElementById('settings-modal')?.classList.remove('off');
   });
 
-  document.getElementById('title-reset-btn')?.addEventListener('click', () => {
-    if (confirm(i18n('misc.confirmReset'))) { localStorage.clear(); location.reload(); }
-  });
+  (function() {
+    const btn = document.getElementById('title-reset-btn');
+    if (!btn) return;
+    let _resetPending = false;
+    let _resetTimer = null;
+    btn.addEventListener('click', () => {
+      if (_resetPending) {
+        localStorage.clear(); location.reload();
+      } else {
+        _resetPending = true;
+        btn.textContent = i18n('misc.confirmResetConfirm');
+        btn.style.color = '#e74c3c';
+        _resetTimer = setTimeout(() => {
+          _resetPending = false;
+          btn.textContent = '↺ ' + i18n('misc.confirmReset');
+          btn.style.color = '';
+        }, 4000);
+      }
+    });
+  })();
 
   // inv-slot click
   document.getElementById('inv-use-hover')?.addEventListener('click', () => {
@@ -2318,6 +2405,15 @@ function showTitleScreen() {
   G.phase = 'title';
   document.body.classList.add('phase-title');
   G.gameTime = 210; // reset to midday so menu is always bright
+  // Mobile (height < 500px): always enable touch mode and clickable doors
+  if (window.innerHeight < 500) {
+    G.touchMode = true;
+    G.clickableDoors = true;
+    const chkTouch = document.getElementById('chk-touch');
+    if (chkTouch) chkTouch.checked = true;
+    const chkDoors = document.getElementById('chk-clickable-doors');
+    if (chkDoors) chkDoors.checked = true;
+  }
   _applyMenuZoom();
   // Initialize background room preview if not already set
   if (!G.menuPreview) _initMenuPreview();
@@ -2745,11 +2841,6 @@ window.pauseGame = function() {
   if (G.phase !== 'run') return;
   if (G.ctrlPanelOpen) closeCtrlPanel();
   G.phase = 'paused';
-  // Exit fullscreen when pausing
-  const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
-  if (exitFs && (document.fullscreenElement || document.webkitFullscreenElement)) {
-    exitFs.call(document).catch(() => {});
-  }
   screenOn('scr-pause');
   _renderPauseStats();
   _syncPauseToggles();
@@ -2788,15 +2879,16 @@ function _syncPauseToggles() {
   if (ph) ph.checked = G.showHanjaOnMonsters;
 }
 
-// Request fullscreen + landscape lock for in-game play (mobile)
-function requestGameFullscreen() {
+// Enter fullscreen + lock landscape (mobile only, called from ⛶ overlay button)
+function _enterMobileFullscreen(cb) {
   const el = document.documentElement;
   const req = el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen;
-  if (req) req.call(el).catch(() => {});
-  // Lock orientation to landscape if supported
-  try {
-    screen.orientation?.lock('landscape').catch(() => {});
-  } catch (_) {}
+  try { screen.orientation?.lock('landscape').catch(() => {}); } catch (_) {}
+  if (req) {
+    req.call(el).catch(() => {}).finally(() => cb?.());
+  } else {
+    cb?.();
+  }
 }
 
 function resumeGame() {
@@ -2810,8 +2902,6 @@ function resumeGame() {
   if (G.phase !== 'paused') return;
   G.phase = 'run';
   screenOff('scr-pause');
-  // Use timeout so the browser doesn't block requestFullscreen triggered by ESC
-  setTimeout(requestGameFullscreen, 150);
   typingEl?.focus();
 }
 
@@ -2819,11 +2909,6 @@ function goToMenu() {
   if (_loreCancel) { _loreCancel(); }
   window._hideTutorial?.(true);
   G.phase = 'title';
-  // Exit fullscreen when returning to menu from any state.
-  const exitFs = document.exitFullscreen || document.webkitExitFullscreen;
-  if (exitFs && (document.fullscreenElement || document.webkitFullscreenElement)) {
-    exitFs.call(document).catch(() => {});
-  }
   // Reset IME to off (normal title screen state), then clean up DOM
   if (_imeEnabled) _imeToggle();
   // Always clear typing field so old characters don't bleed into the next run
@@ -3475,28 +3560,8 @@ function _buildTouchExtras() {
   document.getElementById('kb-touch-backspace')?.closest('.kb-key-wrap')?.remove();
   document.getElementById('kb-touch-enter')?.closest('.kb-key-wrap')?.remove();
 
-  // ── Number row (prepend to each panel) ──
-  const NUM_LEFT  = ['1','2','3','4','5'];
-  const NUM_RIGHT = ['6','7','8','9','0'];
-  for (const [panel, digits] of [[lp, NUM_LEFT], [rp, NUM_RIGHT]]) {
-    const numRow = document.createElement('div');
-    numRow.className = 'kb-row kb-num-row';
-    for (const d of digits) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'kb-touch-special kb-num-btn';
-      btn.textContent = d;
-      btn.addEventListener('pointerdown', e => { e.preventDefault(); _touchNumPress(d); });
-      const wrap = document.createElement('div');
-      wrap.className = 'kb-key-wrap';
-      wrap.appendChild(btn);
-      numRow.appendChild(wrap);
-    }
-    panel.insertBefore(numRow, panel.firstChild);
-  }
-
-  const lRows = lp.querySelectorAll('.kb-row:not(.kb-num-row)');
-  const rRows = rp.querySelectorAll('.kb-row:not(.kb-num-row)');
+  const lRows = lp.querySelectorAll('.kb-row');
+  const rRows = rp.querySelectorAll('.kb-row');
 
   // ── Shift (left of Z, prepend to kb-left row 2) ──
   const shiftBtn = _makeTouchKey('kb-touch-shift', '⇧');
@@ -3693,26 +3758,47 @@ function applyTouchMode() {
   setTimeout(_applyTouchZoom, 250);
 }
 
-// Pause the game when fullscreen is exited unexpectedly (mobile enforcement)
-// Use a short delay to distinguish intentional (pauseGame) from accidental exit
-let _fsExitTimer = null;
-document.addEventListener('fullscreenchange', () => {
-  if (!document.fullscreenElement) {
-    clearTimeout(_fsExitTimer);
-    _fsExitTimer = setTimeout(() => { if (G.phase === 'run' || G.phase === 'lore') window.pauseGame(); }, 200);
+// Sync body.mobile-fs class and fs-overlay visibility
+function _syncMobileFs() {
+  const isMobile = window.innerHeight < 500;
+  const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.body.classList.toggle('mobile-fs', isMobile && inFs);
+  const fsOverlay = document.getElementById('fs-overlay');
+  if (fsOverlay) {
+    if (!isMobile) {
+      // Screen large enough: hide overlay unconditionally
+      fsOverlay.classList.add('off');
+    } else if (!inFs) {
+      // Mobile but not in fullscreen: request fullscreen
+      fsOverlay.classList.remove('off');
+    } else {
+      fsOverlay.classList.add('off');
+    }
   }
-});
-document.addEventListener('webkitfullscreenchange', () => {
-  if (!document.webkitFullscreenElement) {
-    clearTimeout(_fsExitTimer);
-    _fsExitTimer = setTimeout(() => { if (G.phase === 'run' || G.phase === 'lore') window.pauseGame(); }, 200);
+}
+
+function _onFullscreenChange() {
+  const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  _syncMobileFs();
+  // Update G.vH to account for titlebar after fullscreen state change
+  G.vH = Math.floor(window.visualViewport?.height ?? window.innerHeight);
+  if (document.body.classList.contains('mobile-fs')) G.vH -= 20;
+  resizeCanvas();
+  if (!inFs && window.innerHeight < 500) {
+    // Mobile exited fullscreen unexpectedly
+    if (G.phase === 'run' || G.phase === 'lore') window.pauseGame();
   }
-});
+}
+document.addEventListener('fullscreenchange', _onFullscreenChange);
+document.addEventListener('webkitfullscreenchange', _onFullscreenChange);
 
 // Re-apply zoom on orientation change / resize; update screen-size globals
 window.addEventListener('resize', () => {
+  _syncMobileFs();
   G.W  = Math.floor(window.innerWidth);
   G.vH = Math.floor(window.visualViewport?.height ?? window.innerHeight);
+  // Subtract titlebar height from game viewport when mobile fullscreen is active
+  if (document.body.classList.contains('mobile-fs')) G.vH -= 20;
   G.hangulSize = window.innerWidth < 768 ? 29 : window.innerWidth >= 1600 ? 42 : 32;
   resizeCanvas();
   _applyTouchZoom();
@@ -4104,10 +4190,6 @@ document.addEventListener('keydown', e => {
     if (G.phase === 'lore_paused') { resumeGame(); return; }
     if (G.phase === 'run') { pauseGame(); return; }
     if (G.phase === 'paused') {
-      if (!document.fullscreenElement && !_recentUserGesture) {
-        flashAnnounce(i18n('announce.windowNotFocused') || '🔒 The game window is not focused', '#ffcc00');
-        return;
-      }
       resumeGame();
       return;
     }
@@ -4618,6 +4700,40 @@ function screenOff(id) {
   }
 
   window._updateRotateOverlayText = updateRotateOverlayText;
+
+  // ── Unsupported browser overlay lang cycling ──────────────
+  (function() {
+    const titleEl = document.getElementById('unsup-title');
+    const descEl  = document.getElementById('unsup-desc');
+    if (!titleEl || !descEl) return;
+
+    let _unsupTimer = null;
+    let _unsupIndex = 0;
+
+    function updateUnsupText() {
+      const langs = getAvailableLanguages();
+      if (!langs.length) return; // translations not loaded yet
+
+      if (_unsupTimer) { clearInterval(_unsupTimer); _unsupTimer = null; }
+
+      function showNext() {
+        const lang = langs[_unsupIndex % langs.length];
+        const meta = getLangMeta(lang.code);
+        titleEl.textContent = meta.unsupportedTitle || 'Browser not supported';
+        descEl.textContent  = meta.unsupportedDesc  || 'EZRA Taja does not run on Safari. Please open it in Chrome, Firefox, or Edge.';
+        _unsupIndex++;
+      }
+      showNext();
+      _unsupTimer = setInterval(showNext, 2000);
+    }
+
+    // Run once languages are loaded (same hook as rotate)
+    const _origUpdateRotate = window._updateRotateOverlayText;
+    window._updateRotateOverlayText = function() {
+      _origUpdateRotate?.();
+      updateUnsupText();
+    };
+  })();
 
   // Export function to set the startup animation callback
   window._registerStartupAnimation = function(fn) {

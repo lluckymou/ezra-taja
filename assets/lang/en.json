@@ -3,7 +3,10 @@
     "name": "English",
     "icon": "🇺🇸",
     "select": "Choose your language",
-    "rotateDevice": "Rotate your device"
+    "rotateDevice": "Rotate your device",
+    "loreSpeechRate": 1,
+    "unsupportedTitle": "Browser not supported",
+    "unsupportedDesc": "EZRA Taja does not run on Safari. Please open it in Chrome, Firefox, or Edge."
   },
   "title": {
     "playBtn": "▶ Start Game!",
@@ -15,7 +18,8 @@
     "wordsDisappearing": "the words are disappearing...",
     "villainSpeech": "now they only communicate if I allow it, mwahahaha!",
     "playerSpeech2": "I will take the words back from you",
-    "villainLaugh": "mwahahaha!"
+    "villainLaugh": "mwahahaha!",
+    "skip": "Skip"
   },
   "options": {
     "heroTitle": "Choose your hero",
@@ -91,7 +95,9 @@
     "title": "Choose your language"
   },
   "misc": {
-    "confirmReset": "Reset all progress?"
+    "confirmReset": "Reset all progress?",
+    "confirmResetConfirm": "Sure? Click again to confirm.",
+    "fullscreenPrompt": "EZRA 타자 runs in full-screen on mobile. Tap above to go full-screen."
   },
   "number": {
     "sino": "Sino",

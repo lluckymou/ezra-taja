@@ -222,6 +222,9 @@ export function renderShopScreen(cell) {
 ================================================================ */
 function _inlineMarkdown(text) {
   return text
+    // Images must come before links (![...] vs [...])
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener"><img class="md-img" alt="$1" src="$2"></a>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a class="md-link" href="$2" target="_blank" rel="noopener">$1</a>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>');

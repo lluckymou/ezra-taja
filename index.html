@@ -4,9 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>EZRA Taja - 타자</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⌨️</text></svg>">
+<link rel="icon" href="assets/img/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/icon.svg">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#030d1a">
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<script>
+(function(){
+  var ua = navigator.userAgent;
+  var isSafari = /Safari/i.test(ua) && !/Chrome|CriOS|FxiOS|EdgA|OPT\/|SamsungBrowser/i.test(ua);
+  if (isSafari) document.documentElement.classList.add('browser-unsupported');
+})();
+</script>
 </head>
 <body>
 
@@ -679,6 +689,33 @@
   <div id="lore-particles"></div>
 </div>
 
+<!-- ── MOBILE TITLE BAR ────────────────────────────────────── -->
+<div id="mobile-titlebar">
+  <div class="mtb-left">
+    <img src="assets/img/icon.svg" alt="EZRA" width="13" height="13">
+    <span>EZRA 타자</span>
+  </div>
+  <button id="mtb-exit-fs" title="Exit fullscreen">🗖</button>
+</div>
+
+<!-- ── FULLSCREEN REQUEST OVERLAY ─────────────────────────── -->
+<div id="fs-overlay" class="off">
+  <button id="fs-btn">⛶</button>
+  <p id="fs-prompt"></p>
+</div>
+
+<!-- ── UNSUPPORTED BROWSER OVERLAY ────────────────────────── -->
+<div id="unsupported-overlay">
+  <div class="unsup-icon">🚫</div>
+  <h2 id="unsup-title">Browser not supported</h2>
+  <p id="unsup-desc">EZRA Taja does not run on Safari. Please open it in Chrome, Firefox, or Edge.</p>
+  <div class="unsup-browsers">
+    <span>Chrome ✓</span>
+    <span>Firefox ✓</span>
+    <span>Edge ✓</span>
+  </div>
+</div>
+
 <!-- ── ROTATE OVERLAY (portrait mode) ─────────────────────── -->
 <div id="rotate-overlay">
   <div id="rotate-content">
@@ -692,6 +729,9 @@
 <script type="module" src="assets/js/game.js"></script>
 <script>
   document.addEventListener('contextmenu', e => e.preventDefault());
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
   document.addEventListener('dragstart',   e => e.preventDefault());
 </script>
 </body>

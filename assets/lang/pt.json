@@ -3,7 +3,10 @@
     "name": "Português",
     "icon": "🇧🇷",
     "select": "Escolha seu idioma",
-    "rotateDevice": "Gire seu dispositivo"
+    "rotateDevice": "Gire seu dispositivo",
+    "loreSpeechRate": 1,
+    "unsupportedTitle": "Navegador não suportado",
+    "unsupportedDesc": "EZRA Taja não funciona no Safari. Por favor, abra no Chrome, Firefox ou Edge."
   },
   "title": {
     "playBtn": "▶ Jogar!",
@@ -15,7 +18,8 @@
     "wordsDisappearing": "as palavras estão sumindo...",
     "villainSpeech": "agora só se comunicam se eu permitir, mwahahaha!",
     "playerSpeech2": "vou pegar as palavras de volta de você",
-    "villainLaugh": "mwahahaha!"
+    "villainLaugh": "mwahahaha!",
+    "skip": "Pular"
   },
   "options": {
     "heroTitle": "Escolha seu herói",
@@ -91,7 +95,9 @@
     "title": "Escolha seu idioma"
   },
   "misc": {
-    "confirmReset": "Resetar todo o progresso?"
+    "confirmReset": "Resetar todo o progresso?",
+    "confirmResetConfirm": "Tem certeza? Clique de novo para confirmar.",
+    "fullscreenPrompt": "EZRA 타자 é jogado em tela cheia no celular. Toque acima para entrar em tela cheia."
   },
   "number": {
     "sino": "Sino-Coreano",

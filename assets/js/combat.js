@@ -1407,7 +1407,7 @@ export function tickMonsters(dt) {
 
       // Tutorial first monster: cap progress so it stops just before hitting
       if (m._tutorialStop) {
-        const stopProgress = Math.max(0, (totalDist - hitR - m.size * 1.0) / totalDist);
+        const stopProgress = Math.max(0, totalDist * 0.65) / totalDist;
         if (m.progress >= stopProgress) m.progress = stopProgress;
       }
 

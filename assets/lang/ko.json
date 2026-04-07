@@ -3,7 +3,10 @@
     "name": "한국어",
     "icon": "🇰🇷",
     "select": "언어를 선택하세요",
-    "rotateDevice": "기기를 회전하세요"
+    "rotateDevice": "기기를 회전하세요",
+    "loreSpeechRate": 0.8,
+    "unsupportedTitle": "지원하지 않는 브라우저",
+    "unsupportedDesc": "EZRA Taja는 Safari에서 실행되지 않습니다. Chrome, Firefox 또는 Edge에서 열어주세요."
   },
   "title": {
     "playBtn": "▶ 시작!",
@@ -15,7 +18,8 @@
     "wordsDisappearing": "단어들이 사라지고 있어...",
     "villainSpeech": "이제 내가 허락해야만 소통할 수 있어, 크하하하!",
     "playerSpeech2": "네게서 단어들을 되찾겠어",
-    "villainLaugh": "크하하하하!"
+    "villainLaugh": "크하하하하!",
+    "skip": "건너뛰기"
   },
   "options": {
     "heroTitle": "영웅 선택",
@@ -91,7 +95,9 @@
     "title": "언어를 선택하세요"
   },
   "misc": {
-    "confirmReset": "모든 진행 상황을 초기화할까요?"
+    "confirmReset": "모든 진행 상황을 초기화할까요?",
+    "confirmResetConfirm": "정말요? 다시 클릭하면 확인됩니다.",
+    "fullscreenPrompt": "EZRA 타자는 모바일에서 전체 화면으로 플레이됩니다. 위를 탭하여 전체 화면으로 전환하세요."
   },
   "number": {
     "sino": "한자어",

@@ -10,7 +10,23 @@
   --accent-color: #3b82f6;
   --accent-light: rgba(14,17,58,.12);
   --accent-border: rgba(14,17,58,.35);
+  --tb-h: 0px;
 }
+body.mobile-fs { --tb-h: 20px; }
+
+/* ── Mobile fullscreen: shift game content below titlebar ── */
+body.mobile-fs .screen,
+body.mobile-fs #gc,
+body.mobile-fs #wx-canvas,
+body.mobile-fs #dn-canvas,
+body.mobile-fs #ctrl-panel,
+body.mobile-fs #ground-items,
+body.mobile-fs #cfx,
+body.mobile-fs #door-overlay,
+body.mobile-fs #announce,
+body.mobile-fs #freeze-overlay { top: var(--tb-h); }
+body.mobile-fs #hud  { top: calc(8px + var(--tb-h)); }
+body.mobile-fs #btn-map { top: calc(8px + var(--tb-h)); }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 button, input, select, textarea { font-family: inherit; }
 input, textarea { user-select: text; -webkit-user-select: text; }
@@ -910,7 +926,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   cursor: pointer;
 }
 .map-cell-hero {
-  position: absolute; bottom: 0;
+  position: absolute; bottom: 0; right: 0;
   pointer-events: none; user-select: none;
 }
 
@@ -943,19 +959,22 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   box-shadow: 0 0 6px rgba(255,70,70,.85) !important;
   animation: map-pulse-red 1s ease-in-out infinite;
 }
-/* Teacher room — light gray */
+/* Teacher room — near-white */
 .map-cell.teacher-room {
-  background: rgba(245,245,245,.9);
-  color: rgba(80,90,100,.95);
+  background: rgba(235,237,240,.55);
+  color: rgba(50,60,70,.95);
   cursor: default;
 }
-.map-cell.teacher-room.current {
-  background: rgba(230,235,240,.95) !important;
-  box-shadow: 0 0 8px rgba(190,200,215,.85) !important;
-  animation: map-pulse-green 1s ease-in-out infinite;
-}
 .map-cell.teacher-room.can-teleport { cursor: pointer; }
-.map-cell.teacher-room:hover { background: rgba(235,240,245,.9); }
+.map-cell.teacher-room:hover {
+  background: rgba(215,220,228,.75);
+}
+.map-cell.teacher-room.current {
+  background: rgba(220,225,232,.82) !important;
+  box-shadow: 0 0 8px rgba(170,185,205,.75) !important;
+  animation: map-pulse-teacher 1s ease-in-out infinite;
+}
+@keyframes map-pulse-teacher { 0%,100% { opacity:1; } 50% { opacity:.6; } }
 /* Shop room — always yellow */
 .map-cell.shop-room {
   background: rgba(140,110,10,.45);
@@ -1188,7 +1207,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
 /* SVG avatar in door-walk ghost — sized via inline width/height on parent */
 #pl-door-ghost svg { width: 100%; height: 100%; display: block; }
 /* SVG avatar on minimap hero cell */
-.map-cell-hero svg { width: 2rem; display: block; }
+.map-cell-hero svg { width: 1rem; display: block; }
 #spell-ico {
   position: absolute;
   bottom: -2px; right: -6px;
@@ -1374,6 +1393,9 @@ body.touch-mode .map-next-world-row .mnw-name  {
   pointer-events: none; z-index: 50; /* low z-index: behind blur of ctrl-panel */
 }
 body.phase-title #announce { visibility: hidden; }
+body:has(#ctrl-panel:not(.off)) #announce,
+body:has(#map-panel:not(.off)) #announce,
+body:has(#book-panel:not(.off)) #announce { visibility: hidden; }
 body.phase-title #player-area,
 body.phase-title #map-panel,
 body.phase-title #book-panel { visibility: hidden !important; }
@@ -1894,6 +1916,15 @@ body.touch-mode.book-open #hud *,
 body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 
 /* ===== LORE ANIMATION OVERLAY ===== */
+#lore-skip-btn {
+  position: absolute; bottom: 14px; right: 16px;
+  background: none; border: none; cursor: pointer;
+  font-size: .72rem; color: rgba(255,255,255,.28);
+  font-family: 'Pretendard', sans-serif; letter-spacing: .4px;
+  padding: 4px 6px; z-index: 10;
+  transition: color .2s;
+}
+#lore-skip-btn:hover { color: rgba(255,255,255,.65); }
 #lore-overlay {
   position: fixed; inset: 0; z-index: 5000;
   background: #000;
@@ -2044,6 +2075,9 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 }
 .md-table thead th { background: rgba(14,17,58,.25); color: #dde; font-weight: 600; }
 .md-table tbody tr:nth-child(even) { background: rgba(255,255,255,.04); }
+.md-img { display: block; width: 100%; height: auto; }
+.md-link { color: #7db4ff; text-decoration: underline; }
+.md-link:hover { color: #aad0ff; }
 
 /* inline word card */
 .md-word-entry {
@@ -2087,7 +2121,7 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 }
 
 /* ── Non-touch mode: book panel height constraint ── */
-body:not(.touch-mode) #book-panel { max-height: min(600px, 85vh); }
+body:not(.touch-mode) #book-panel { max-height: min(600px, 85vh);  height: min(600px, 85vh); }
 
 /* ── Touch mode: map panel layout mode ── */
 body.touch-mode #map-panel:not(.off) {
@@ -2120,6 +2154,8 @@ body.touch-mode #map-panel:not(.off) {
    Right 60%: avatar editor → play button
 ================================================================ */
 @media (max-height: 500px) {
+  .map-cell-hero svg { width: 1.5rem !important; }
+
   /* Switch menu-wrap to a 2-col grid */
   #btn-play { font-size: 1.5rem !important; }
   #ava-edit-label1, #ava-edit-label2, #ava-edit-label3 { font-weight: 400 !important; font-size: 1.1rem !important; }
@@ -2420,6 +2456,65 @@ body.touch-mode #map-panel:not(.off) {
 .item-choice-card.disabled { opacity: 0.4; filter: grayscale(1); cursor: not-allowed; pointer-events: none; }
 #rotate-overlay.visible { display: flex; }
 
+/* ===== MOBILE TITLE BAR ===== */
+#mobile-titlebar {
+  display: none;
+  position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+  height: 20px;
+  background: rgba(3, 13, 26, 0.72);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  padding: 0 8px 0 6px;
+  align-items: center; justify-content: space-between;
+  font-size: 0.6rem; color: rgba(255,255,255,.38);
+  letter-spacing: .4px; pointer-events: auto;
+}
+body.mobile-fs #mobile-titlebar { display: flex; }
+.mtb-left { display: flex; align-items: center; gap: 5px; }
+.mtb-left img { opacity: 0.4; filter: invert(1); flex-shrink: 0; }
+#mtb-exit-fs {
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,.38); font-size: 0.85rem; line-height: 1;
+  padding: 0; width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+}
+#mtb-exit-fs:hover { color: rgba(255,255,255,.7); }
+
+/* ===== FULLSCREEN REQUEST OVERLAY ===== */
+#fs-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: #030d1a;
+  flex-direction: column;
+  display: flex; align-items: center; justify-content: center;
+}
+#fs-overlay.off { display: none; }
+#fs-btn {
+  font-size: 5rem; background: none; border: none;
+  color: rgba(255,255,255,.6); cursor: pointer; line-height: 1;
+  transition: transform .15s, color .15s;
+}
+#fs-btn:hover, #fs-btn:active { transform: scale(1.12); color: #fff; }
+#fs-prompt {
+  margin-top: 16px; font-size: .78rem; color: rgba(255,255,255,.4);
+  max-width: 280px; text-align: center; line-height: 1.5;
+  letter-spacing: .3px;
+}
+
+/* ===== UNSUPPORTED BROWSER OVERLAY ===== */
+#unsupported-overlay {
+  display: none;
+  position: fixed; inset: 0; z-index: 999999;
+  background: #08080f;
+  flex-direction: column; align-items: center; justify-content: center;
+  color: #e0e0ff; text-align: center; padding: 24px;
+  font-family: 'Pretendard', sans-serif; letter-spacing: .4px;
+  gap: 20px;
+}
+html.browser-unsupported #unsupported-overlay { display: flex; }
+#unsupported-overlay .unsup-icon { font-size: 3.5rem; }
+#unsupported-overlay h2 { font-size: 1.3rem; font-weight: 700; margin: 0; color: #fff; transition: opacity .3s; }
+#unsupported-overlay p { font-size: .9rem; opacity: .75; max-width: 320px; line-height: 1.6; margin: 0; transition: opacity .3s; }
+#unsupported-overlay .unsup-browsers { display: flex; gap: 24px; justify-content: center; font-size: .85rem; opacity: .45; }
+
 /* ── Touch mode: slightly larger quiz font & monster emoji ── */
 body.touch-mode .test-big-word { font-size: 2.7rem; }
 body.touch-mode .test-big-emoji { font-size: 4rem; }
@@ -2588,10 +2683,13 @@ body.touch-mode #map-panel:not(.off) {
   border-radius: 0 !important;
   z-index: 180;
 }
+body.touch-mode.mobile-fs #book-panel:not(.off),
+body.touch-mode.mobile-fs #map-panel:not(.off) {
+  top: var(--tb-h) !important;
+}
 
 /* ===== NON-TOUCH MODE: FIXED BOOK PANEL HEIGHT ===== */
 #book-panel {
-  height: min(600px, 85vh);
   max-height: min(600px, 85vh);
 }
 #book-panel.book-expanded {
