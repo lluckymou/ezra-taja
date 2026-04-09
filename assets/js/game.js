@@ -45,6 +45,16 @@ import { WORD_DICT } from '../data/words.js';
 import { POWERUP_DEFS, formatKoreanNumber } from '../data/items.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 
+// Parse lesson word string, handling disambiguation like 'text:emoji'
+function parseLessonWord(str) {
+  if (str.includes(':')) {
+    const [text, emoji] = str.split(':');
+    return { text, emoji };
+  } else {
+    return { text: str, emoji: null };
+  }
+}
+
 /* ================================================================
    AVATAAARS CREATOR
 ================================================================ */
@@ -667,6 +677,9 @@ function runStartupAnimation(onPrepare, onDone) {
         const lang = btn.dataset.lang;
         if (_langTitleTimer) clearInterval(_langTitleTimer);
         localStorage.setItem('krr_lang', lang);
+        if (lang === 'ko' && localStorage.getItem('krr_dict_prog') === null) {
+          localStorage.setItem('krr_dict_prog', '1');
+        }
         finishOverlay();
       });
     });
@@ -677,6 +690,9 @@ function runStartupAnimation(onPrepare, onDone) {
       const lang = btn.dataset.lang;
       if (_langTitleTimer) clearInterval(_langTitleTimer);
       localStorage.setItem('krr_lang', lang);
+      if (lang === 'ko' && localStorage.getItem('krr_dict_prog') === null) {
+        localStorage.setItem('krr_dict_prog', '1');
+      }
       finishOverlay();
     });
   }
@@ -2017,6 +2033,7 @@ function buildTitleScreen() {
     try { _avaOpts = { ...AVA_DEFAULTS, ...JSON.parse(savedAvatar) }; } catch(e) { _avaOpts = { ...AVA_DEFAULTS }; }
   } else {
     _avaOpts = { ...AVA_DEFAULTS };
+    _avaRandomize();
   }
   G.avatar = { ..._avaOpts };
 
@@ -2126,6 +2143,17 @@ function buildTitleScreen() {
   G.showHanjaOnMonsters = savedHanjaMon !== null ? savedHanjaMon === '1' : false;
   const elHanjaMon = document.getElementById('chk-hanja-monsters');
   if (elHanjaMon) elHanjaMon.checked = G.showHanjaOnMonsters;
+
+  const savedDictProg = localStorage.getItem('krr_dict_prog');
+  G.dictProgressionDisabled = savedDictProg === '1';
+  const elDictProg = document.getElementById('chk-dict-prog');
+  if (elDictProg) elDictProg.checked = G.dictProgressionDisabled;
+  document.getElementById('chk-dict-prog')?.addEventListener('change', e => {
+    G.dictProgressionDisabled = e.target.checked;
+    localStorage.setItem('krr_dict_prog', e.target.checked ? '1' : '0');
+    buildTitleDict();
+    updateBook();
+  });
 
   // Start button — show lore then play world-entry cinematic
   document.getElementById('btn-play')?.addEventListener('click', () => {
@@ -2481,7 +2509,11 @@ function buildTitleDict(filter) {
   const searchWrap = document.getElementById('title-dict-search-wrap');
   if (!container) return;
 
-  // ── Add lesson tabs dynamically for completed lessons ─────────
+  // Hide dict-panel-sub if dict progression is disabled
+  const subEl = document.querySelector('.dict-panel-sub');
+  if (subEl) subEl.style.display = G.dictProgressionDisabled ? 'none' : '';
+
+  // ── Add lesson tabs dynamically for all lessons (visual) ─────────
   const titleTabContainer = document.getElementById('title-dict-tabs');
   if (titleTabContainer) {
     const existingLessonTabs = new Set(
@@ -2489,8 +2521,7 @@ function buildTitleDict(filter) {
         .filter(b => /^\d/.test(b.dataset.cat))
         .map(b => b.dataset.cat)
     );
-    (G.completedLessons || []).forEach(id => {
-      if (existingLessonTabs.has(id)) return;
+    (G.dictProgressionDisabled ? LESSONS_BASE.map(l => l.id) : (G.completedLessons || [])).forEach(id => {      if (existingLessonTabs.has(id)) return;
       const lesson = LESSONS_BASE.find(l => l.id === id);
       if (!lesson) return;
       const btn = document.createElement('button');
@@ -2505,6 +2536,10 @@ function buildTitleDict(filter) {
       });
       titleTabContainer.appendChild(btn);
     });
+
+    // Remove tabs that shouldn't be there
+    const allowedIds = new Set(G.dictProgressionDisabled ? LESSONS_BASE.map(l => l.id) : (G.completedLessons || []));
+    [...titleTabContainer.querySelectorAll('[data-cat]')].filter(b => /^\d/.test(b.dataset.cat) && !allowedIds.has(b.dataset.cat)).forEach(b => b.remove());
   }
 
   // ── Lesson tab: show markdown content ─────────────────────────
@@ -2531,21 +2566,23 @@ function buildTitleDict(filter) {
 
   // Show placeholder if fewer than 3 learned words
   const learned = G.learnedWords || [];
-  if (learned.length < 3) {
+  if (!G.dictProgressionDisabled && learned.length < 3) {
     container.innerHTML = `<div style="padding:24px 12px;text-align:center;color:rgba(255,255,255,.4);font-size:.85rem;">${i18n('dict.myDictEmpty')}</div>`;
     return;
   }
 
   // Resolve learned words to WORD_DICT entries
-  let words = learned.map(lw =>
-    WORD_DICT.find(d => d.text === lw.text && d.emoji === lw.emoji) ||
-    WORD_DICT.find(d => d.text === lw.text) ||
-    lw
-  );
+  let words = G.dictProgressionDisabled
+    ? WORD_DICT.slice()
+    : learned.map(lw =>
+        WORD_DICT.find(d => d.text === lw.text && d.emoji === lw.emoji) ||
+        WORD_DICT.find(d => d.text === lw.text) ||
+        lw
+      );
 
   if (_titleDictCat && _titleDictCat !== 'all') {
     if (_titleDictCat === 'noun') {
-      words = words.filter(w => w.category !== 'verb' && w.category !== 'adjective');
+      words = words.filter(w => w.category !== 'verb' && w.category !== 'adjective' && w.category !== 'adverb');
     } else {
       words = words.filter(w => w.category === _titleDictCat);
     }
@@ -2557,14 +2594,22 @@ function buildTitleDict(filter) {
   }
 
   const q = (filter || '').toLowerCase().trim();
-  if (q) {
+  const showAll = q === '*';
+  if (q && q !== '*') {
     words = words.filter(w =>
       w.text.includes(q) ||
       wordTr(w.text).toLowerCase().includes(q)
     );
   }
 
-  container.innerHTML = words.map(w => renderDictEntry(w)).join('');
+  // Limit to 50 entries if not showing all and not searching
+  let truncated = false;
+  if (!showAll && words.length > 50) {
+    words = words.slice(0, 50);
+    truncated = true;
+  }
+
+  container.innerHTML = words.map(w => renderDictEntry(w)).join('') + (truncated ? `<div style="padding:24px 12px;text-align:center;color:rgba(255,255,255,.4);font-size:.85rem;">${i18n('dict.listTooLarge')}</div>` : '');
 }
 
 /* ================================================================
@@ -2803,13 +2848,19 @@ function renderDictEntry(w) {
   }
 
   const tooltipAttr = killHtml ? ` data-tooltip="${killHtml.replace(/"/g, '&quot;')}"` : '';
+  const secondaryEmojiHtml = fullEntry?.secondaryEmoji
+    ? `<div style="position: relative; display: flex; align-items: flex-start;">
+         <span class="dict-emoji">${w.emoji || fullEntry.emoji || ''}</span>
+         <span class="dict-secondary-emoji">${fullEntry.secondaryEmoji}</span>
+       </div>`
+    : `<span class="dict-emoji">${w.emoji || fullEntry.emoji || ''}</span>`;
   return `<div class="dict-entry${untouched ? ' dict-untouched' : ''}"${tooltipAttr}>
     <div class="dict-entry-main">
-      <span class="dict-emoji">${w.emoji || fullEntry.emoji || ''}</span>
+      ${secondaryEmojiHtml}
       <span class="dict-text">${w.text}</span>
       ${altsHtml}
       ${hanjaHtml}
-      ${translation ? `<span class="dict-en">${translation}</span>` : ''}
+      <span class="dict-en">${translation}</span>
       <a class="dict-link" href="${naverUrl}" target="_blank">🔗</a>
     </div>
   </div>`;
@@ -3245,6 +3296,10 @@ document.getElementById('book-expand-btn')?.addEventListener('click', () => {
   panel?.classList.toggle('book-expanded');
 });
 
+document.getElementById('my-dict-expand-btn')?.addEventListener('click', () => {
+  document.getElementById('my-dict-modal')?.classList.toggle('dict-expanded');
+});
+
 window.toggleBook = function() {
   const panel = document.getElementById('book-panel');
   if (!panel) return;
@@ -3278,7 +3333,7 @@ function updateBook() {
         .filter(b => /^\d/.test(b.dataset.cat))
         .map(b => b.dataset.cat)
     );
-    (G.completedLessons || []).forEach(id => {
+    (G.dictProgressionDisabled ? LESSONS_BASE.map(l => l.id) : (G.completedLessons || [])).forEach(id => {
       if (existingLessonTabs.has(id)) return;
       const lesson = LESSONS_BASE.find(l => l.id === id);
       if (!lesson) return;
@@ -3293,6 +3348,9 @@ function updateBook() {
       });
       tabContainer.appendChild(btn);
     });
+    // Remove tabs that shouldn't be there
+    const allowedIds = new Set(G.dictProgressionDisabled ? LESSONS_BASE.map(l => l.id) : (G.completedLessons || []));
+    [...tabContainer.querySelectorAll('[data-cat]')].filter(b => /^\d/.test(b.dataset.cat) && !allowedIds.has(b.dataset.cat)).forEach(b => b.remove());
 
     // Wire static tabs once
     if (!tabContainer.dataset.wired) {
@@ -3330,13 +3388,13 @@ function updateBook() {
   const searchEl = document.getElementById('book-dict-search');
   const q = (searchEl?.value || '').toLowerCase().trim();
 
-  const learned = G.learnedWords || [];
-  let words = learned.map(lw =>
+  const learned = G.dictProgressionDisabled ? WORD_DICT : (G.learnedWords || []);
+  let words = (G.dictProgressionDisabled ? WORD_DICT : learned.map(lw =>
     WORD_DICT.find(d => d.text === lw.text && d.emoji === lw.emoji) ||
     WORD_DICT.find(d => d.text === lw.text) ||
     lw
-  ).filter(w => {
-    if (category === 'noun') return w.category !== 'verb' && w.category !== 'adjective';
+  )).filter(w => {
+    if (category === 'noun') return w.category !== 'verb' && w.category !== 'adjective' && w.category !== 'adverb';
     return w.category === category;
   });
 
@@ -3347,7 +3405,15 @@ function updateBook() {
     );
   }
 
-  listEl.innerHTML = words.map(w => renderDictEntry(w)).join('');
+  // Limit to 50 entries if not showing all and not searching
+  const showAll = q === '*';
+  let truncated = false;
+  if (!showAll && words.length > 50) {
+    words = words.slice(0, 50);
+    truncated = true;
+  }
+
+  listEl.innerHTML = words.map(w => renderDictEntry(w)).join('') + (truncated ? `<div style="padding:24px 12px;text-align:center;color:rgba(255,255,255,.4);font-size:.85rem;">${i18n('dict.listTooLarge')}</div>` : '');
 }
 
 /* ================================================================
@@ -4495,9 +4561,15 @@ window.cheatUnlockLessons = function() {
   G.hasipsiocheUnlocked = true;
   LESSONS_BASE.forEach(lesson => {
     lesson.unlockedWords.forEach(w => {
-      if (!G.learnedWords.find(lw => lw.text === w)) {
-        const wordDef = WORD_DICT.find(d => d.text === w);
-        G.learnedWords.push({ text: w, emoji: wordDef?.emoji || '🎓' });
+      const { text, emoji } = parseLessonWord(w);
+      if (!G.learnedWords.find(lw => lw.text === text)) {
+        let wordDef;
+        if (emoji) {
+          wordDef = WORD_DICT.find(d => d.text === text && d.emoji === emoji);
+        } else {
+          wordDef = WORD_DICT.find(d => d.text === text);
+        }
+        G.learnedWords.push({ text, emoji: wordDef?.emoji || '🎓' });
       }
     });
   });

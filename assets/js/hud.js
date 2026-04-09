@@ -11,6 +11,16 @@ import { addToInventory, flashAnnounce } from './combat.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { WORD_DICT } from '../data/words.js';
 
+// Parse lesson word string, handling disambiguation like 'text:emoji'
+function parseLessonWord(str) {
+  if (str.includes(':')) {
+    const [text, emoji] = str.split(':');
+    return { text, emoji };
+  } else {
+    return { text: str, emoji: null };
+  }
+}
+
 /* ================================================================
    LIVE HUD UPDATE
 ================================================================ */
@@ -290,6 +300,9 @@ export function parseLessonMarkdown(md) {
     }
     if (line.startsWith('> ')) {
       out.push(`<blockquote class="md-quote">${_inlineMarkdown(line.slice(2))}</blockquote>`); continue;
+    }
+    if (line === '---' || line === '***' || line === '___') {
+      out.push('<hr class="md-hr">'); continue;
     }
 
     out.push(`<p class="md-p">${_inlineMarkdown(line)}</p>`);
@@ -665,9 +678,15 @@ function showLessonContent(container, lesson, cell) {
       // Add lesson's words to learnedWords pool (cross-run)
       if (!G.learnedWords) G.learnedWords = [];
       lesson.unlockedWords.forEach(w => {
-        if (!G.learnedWords.find(lw => lw.text === w)) {
-          const wordDef = WORD_DICT.find(d => d.text === w);
-          G.learnedWords.push({ text: w, emoji: wordDef?.emoji || '🎓' });
+        const { text, emoji } = parseLessonWord(w);
+        if (!G.learnedWords.find(lw => lw.text === text)) {
+          let wordDef;
+          if (emoji) {
+            wordDef = WORD_DICT.find(d => d.text === text && d.emoji === emoji);
+          } else {
+            wordDef = WORD_DICT.find(d => d.text === text);
+          }
+          G.learnedWords.push({ text, emoji: wordDef?.emoji || '🎓' });
         }
       });
       // Lower vocab threshold by 5 per lesson (floor 0)
@@ -994,9 +1013,15 @@ export function initCheatMenu() {
     if (!G.learnedWords) G.learnedWords = [];
     LESSONS_BASE.forEach(lesson => {
       lesson.unlockedWords.forEach(w => {
-        if (!G.learnedWords.find(lw => lw.text === w)) {
-          const wordDef = WORD_DICT.find(d => d.text === w);
-          G.learnedWords.push({ text: w, emoji: wordDef?.emoji || '🎓' });
+        const { text, emoji } = parseLessonWord(w);
+        if (!G.learnedWords.find(lw => lw.text === text)) {
+          let wordDef;
+          if (emoji) {
+            wordDef = WORD_DICT.find(d => d.text === text && d.emoji === emoji);
+          } else {
+            wordDef = WORD_DICT.find(d => d.text === text);
+          }
+          G.learnedWords.push({ text, emoji: wordDef?.emoji || '🎓' });
         }
       });
     });

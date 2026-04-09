@@ -797,7 +797,7 @@ function onRoomCleared(cell) {
       const n = tut.world0CombatCleared;
       if (n === 1 && !tut.firstRoomClearShown) {
         tut.firstRoomClearShown = true;
-        window._showTutorial?.('🧭', 'tutorial.typeToNavigate', null, { autoClose: 20 });
+        window._showTutorial?.('🧭', G.clickableDoors ? 'tutorial.touchToNavigate' : 'tutorial.typeToNavigate', null, { autoClose: 20 });
       } else if (n === 2 && !tut.mapHintShown) {
         tut.mapHintShown = true;
         window._showTutorial?.('🗺️', 'tutorial.pressMap', null, { autoClose: 25 });

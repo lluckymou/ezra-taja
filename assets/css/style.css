@@ -33,6 +33,7 @@ body.mobile-fs #btn-map { top: calc(8px + var(--tb-h)); }
 .icon-close, .icon-fs-enter, .icon-fs-exit {
   display: inline-block;
   width: 1em; height: 1em;
+  vertical-align: middle;
   -webkit-mask-size: contain; mask-size: contain;
   -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
   -webkit-mask-position: center; mask-position: center;
@@ -347,7 +348,7 @@ body {
   color: rgba(255,255,255,.88);
   border: 1px solid rgba(255,255,255,.1);
 }
-#settings-modal-inner { height: min(88vh, 680px); }
+#settings-modal-inner { height: min(88vh, 730px); }
 #settings-modal {
   position: fixed; inset: 0; z-index: 500;
   background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
@@ -362,13 +363,25 @@ body {
   color: rgba(255,255,255,.35); padding: 4px 8px; border-radius: 6px; font-family: inherit;
 }
 #my-dict-close:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); }
+#my-dict-expand-btn {
+  margin-left: auto; margin-right: 5px;
+  background: none; border: none; font-size: 1.1rem; cursor: pointer;
+  color: rgba(255,255,255,.35); padding: 4px 8px; border-radius: 6px; font-family: inherit;
+}
+#my-dict-expand-btn:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); }
+#my-dict-expand-btn .icon-fs-enter,
+#my-dict-expand-btn .icon-fs-exit { width: 14px; height: 14px; }
+#my-dict-expand-btn .icon-fs-exit { display: none; }
+#my-dict-modal.dict-expanded #my-dict-expand-btn .icon-fs-enter { display: none; }
+#my-dict-modal.dict-expanded #my-dict-expand-btn .icon-fs-exit  { display: inline-block; }
+@media (max-height: 500px) { #my-dict-expand-btn { display: none; } }
 #settings-header {
   display: flex; align-items: center; justify-content: space-between;
 }
 #settings-header > span { font-size: 1.1rem; font-weight: 700; color: #7db4ff; }
 #settings-close {
   background: none; border: none; font-size: 1.1rem; cursor: pointer;
-  color: rgba(255,255,255,.35); padding: 4px 8px; border-radius: 6px; font-family: inherit;
+  color: rgba(255,255,255,.35); padding: 8px; border-radius: 6px; font-family: inherit;
 }
 #settings-close:hover { color: rgba(255,255,255,.8); background: rgba(255,255,255,.08); }
 .dict-panel-sub { font-size: .95rem; color: rgba(255,255,255,.38); }
@@ -394,6 +407,7 @@ body {
   max-height: 55vh;
   flex: 1;
 }
+.dict-expanded #dict-list { max-height: none; }
 .dict-entry {
   display: flex;
   flex-direction: column;
@@ -413,7 +427,8 @@ body {
   display: flex; align-items: center; gap: 8px;
 }
 .dict-emoji { font-size: 1.35rem; min-width: 1.8rem; text-align: center; }
-.dict-text { font-size: 1.15rem; font-weight: 700; color: #fff; }
+.dict-secondary-emoji { font-size: 0.65rem; position: absolute; top: 50%; transform: translateY(-50%); right: -20px; }
+.dict-text { font-size: 1.15rem; font-weight: 700; color: #fff; margin-left: 1.25rem; }
 .dict-alts { color: #5d598b; font-size: .8rem; opacity: .85; margin: 0 4px; }
 .dict-hanja { color: #ffc855; font-size: 1rem; font-family: 'Song Myung', 'Noto Color Emoji', serif; margin: 0 4px; opacity: .9; }
 .dict-en { color: rgba(255,255,255,.5); font-size: .88rem; margin-left: auto; }
@@ -922,6 +937,11 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 }
 .map-esc-btn:hover { color: #fff; background: rgba(255,255,255,.2); }
 #book-expand-btn { margin-left: auto; margin-right: 5px; }
+#book-expand-btn .icon-fs-enter,
+#book-expand-btn .icon-fs-exit { width: 10px; height: 10px; }
+#book-expand-btn .icon-fs-exit { display: none; }
+#book-panel.book-expanded #book-expand-btn .icon-fs-enter { display: none; }
+#book-panel.book-expanded #book-expand-btn .icon-fs-exit  { display: inline-block; }
 #minimap-grid {
   display: grid;
   gap: 2px;
@@ -2062,6 +2082,7 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 .lesson-viewer {
   width: 100%; overflow-y: auto;
   padding: 4px 2px;
+  zoom: 1.25;
 }
 .lesson-viewer-inner { display: flex; flex-direction: column; gap: 4px; }
 .md-h3 { color: #f1c40f; font-size: 1.05rem; margin: 14px 0 6px; font-weight: 600; }
@@ -2069,6 +2090,9 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 .md-p  { font-size: .9rem; line-height: 1.5; margin: 2px 0; }
 .md-li { font-size: .9rem; line-height: 1.5; margin-left: 16px; list-style: disc; }
 .md-br { height: 6px; }
+.md-hr {
+  border: none; border-top: 1px solid rgba(255,255,255,.18); margin: 12px 0;
+}
 .md-quote {
   border-left: 3px solid #0e113a; padding: 4px 10px;
   background: rgba(14,17,58,.08); border-radius: 0 6px 6px 0;
@@ -2599,7 +2623,6 @@ body.touch-mode .test-big-emoji { font-size: 4rem; }
   font-size: 3rem; color: #fff; letter-spacing: 0.05em;
   opacity: 0; transition: opacity 0.3s ease;
   min-height: 1.4em;
-  margin-left: 8px;
   margin-top: 12px;
 }
 #startup-text.visible { opacity: 1; }
@@ -2656,6 +2679,18 @@ body.touch-mode .test-big-emoji { font-size: 4rem; }
   width: min(90vw, 960px) !important;
 }
 
+/* ===== DICT MODAL: EXPANDED (PC fullscreen button) ===== */
+#my-dict-modal.dict-expanded {
+  align-items: stretch;
+  justify-content: stretch;
+}
+#my-dict-modal.dict-expanded #my-dict-modal-inner {
+  width: 100% !important;
+  max-height: 100% !important;
+  height: 100% !important;
+  border-radius: 0 !important;
+}
+
 /* ===== SMALL SCREEN: MY DICT MODAL = FULLSCREEN ===== */
 @media (max-height: 600px) {
   #my-dict-modal-inner {
@@ -2668,6 +2703,21 @@ body.touch-mode .test-big-emoji { font-size: 4rem; }
   #my-dict-modal {
     align-items: stretch;
     justify-content: stretch;
+  }
+}
+
+/* ===== MOBILE TITLEBAR: offset fullscreen dict modal ===== */
+body.mobile-fs #my-dict-modal.dict-expanded #my-dict-modal-inner {
+  padding-top: 44px !important; /* 24px original + 20px titlebar */
+}
+@media (max-height: 600px) {
+  body.mobile-fs #my-dict-modal-inner {
+    padding-top: 36px !important; /* 16px + 20px titlebar */
+  }
+}
+@media (max-height: 500px) {
+  body.mobile-fs #my-dict-modal-inner {
+    padding-top: 28px !important; /* 8px + 20px titlebar */
   }
 }
 /* ===== VERY SMALL HEIGHT (mobile landscape): ultra-compact dict ===== */
@@ -2684,6 +2734,14 @@ body.touch-mode .test-big-emoji { font-size: 4rem; }
   .dict-entry-main { gap: 5px !important; }
   #dict-list { gap: 3px !important; }
   #title-reset-btn { font-size: .65rem !important; }
+}
+/* ===== DESKTOP MODE: INCREASED FONT SIZES (min-height: 500px) ===== */
+@media (min-height: 500px) {
+  .dict-emoji { font-size: 1.5rem !important; }
+  .dict-secondary-emoji { font-size: 0.75rem !important; }
+  .dict-text { font-size: 1.25rem !important; }
+  .dict-en { font-size: 0.95rem !important; }
+  .dict-entry { font-size: 1.1rem !important; }
 }
 /* In touch mode, alts are always visible (no expand available) */
 body.touch-mode .dict-alts { display: inline !important; }

@@ -127,12 +127,14 @@
   <div id="my-dict-modal-inner">
     <div id="my-dict-header">
       <span>📖 <span data-i18n="dict.myDict">My Dictionary</span></span>
+      <button id="my-dict-expand-btn" title="Expand"><span class="icon-fs-enter"></span><span class="icon-fs-exit"></span></button>
       <button id="my-dict-close" onclick="document.getElementById('my-dict-modal').classList.add('off')"><span class="icon-close"></span></button>
     </div>
     <div class="dict-panel-sub"><span data-i18n="dict.myDictSub">Words you've encountered on your runs</span></div>
     <div class="dict-tabs" id="title-dict-tabs">
       <button class="dict-tab active" data-cat="all" data-i18n="dict.tabAll">All</button>
       <button class="dict-tab" data-cat="noun" data-i18n="dict.tabNoun">Nouns</button>
+      <button class="dict-tab" data-cat="adverb" data-i18n="dict.tabAdverb">⏳ Adv.</button>
       <button class="dict-tab" data-cat="verb" data-i18n="dict.tabVerb">Verbs</button>
       <button class="dict-tab" data-cat="adjective" data-i18n="dict.tabAdj">Adj.</button>
     </div>
@@ -157,11 +159,11 @@
         <div class="gopt-card">
           <div class="gopt-label" data-i18n="options.difficulty">⚔️ Difficulty</div>
           <select id="sel-difficulty" class="gopt-select">
-            <option value="baby">🍼 Baby: 50❤️</option>
-            <option value="easy">😊 Easy: 20❤️</option>
-            <option value="normal">⚔️ Normal: 10❤️</option>
-            <option value="hard">💪 Hard: 5❤️</option>
-            <option value="hardcore">💀 Hardcore: 1❤️</option>
+            <option value="baby">🍼 Baby: 50 ❤️</option>
+            <option value="easy">😊 Easy: 20 ❤️</option>
+            <option value="normal">⚔️ Normal: 10 ❤️</option>
+            <option value="hard">💪 Hard: 5 ❤️</option>
+            <option value="hardcore">💀 Hardcore: 1 ❤️</option>
           </select>
         </div>
         <div class="gopt-card">
@@ -225,6 +227,13 @@
           <div class="gopt-label" data-i18n="options.touchControls">📱 Touch Controls</div>
           <label class="gopt-toggle">
             <input type="checkbox" id="chk-touch">
+            <span class="gopt-track"><span class="gopt-thumb"></span></span>
+          </label>
+        </div>
+        <div class="gopt-card">
+          <div class="gopt-label" data-i18n="options.dictProgression">🔓 Disable Dict. Progression</div>
+          <label class="gopt-toggle">
+            <input type="checkbox" id="chk-dict-prog">
             <span class="gopt-track"><span class="gopt-thumb"></span></span>
           </label>
         </div>
@@ -464,12 +473,13 @@
 <div id="book-panel" class="off">
   <div id="book-panel-header">
     <span>📖 <span data-i18n="dict.myDict">My Dictionary</span></span>
-    <button class="map-esc-btn no-touch" id="book-expand-btn" title="Expand">⛶</button>
+    <button class="map-esc-btn no-touch" id="book-expand-btn" title="Expand"><span class="icon-fs-enter"></span><span class="icon-fs-exit"></span></button>
     <button class="map-esc-btn" onclick="toggleBook()"><span>🗙</span></button>
   </div>
   <div id="book-content">
     <div class="dict-tabs">
       <button class="dict-tab active" data-cat="noun" data-i18n="dict.tabNoun">🍓 Noun</button>
+      <button class="dict-tab" data-cat="adverb" data-i18n="dict.tabAdverb">⏳ Adv.</button>
       <button class="dict-tab" data-cat="verb" data-i18n="dict.tabVerb">✅ Verb</button>
       <button class="dict-tab" data-cat="adjective" data-i18n="dict.tabAdj">📌 Adj.</button>
     </div>

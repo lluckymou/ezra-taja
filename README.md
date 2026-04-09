@@ -91,7 +91,7 @@ No build step required - this is plain ES6 modules. You just need a local HTTP s
 
 *Inspired by **[Hancom Taja](https://taja.hancom.com)** and **[The Binding of Isaac](https://en.wikipedia.org/wiki/The_Binding_of_Isaac_(video_game))**.*
 
-> 🇰🇷🫰 A special thanks for Roh HaYoung and [KIT](https://kitsign.co.kr/) for showing me Korean culture and language, I'm eternally grateful to all of you. You have changed my life forever. I hope this project inspires more people to study your language and connect to your beautiful and inspiring culture.
+> 🇰🇷🫰 A special thanks for Roh HaYoung and [KIT Design Lab](https://kitsign.co.kr/) for showing me Korean culture and language, I'm eternally grateful to all of you. You have changed my life forever. I hope this project inspires more people to study your language and connect to your beautiful and inspiring culture.
 
 ---
 

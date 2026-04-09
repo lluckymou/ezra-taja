@@ -12,6 +12,17 @@ import { WORD_DICT } from '../data/words.js';
 import { get as i18n, wordTr } from './i18n.js';
 import { genSinoNumber, genNativeNumber, sinoSpelling, nativeSpelling } from '../data/numbers.js';
 
+
+// Parse lesson word string, handling disambiguation like 'text:emoji'
+function parseLessonWord(str) {
+  if (str.includes(':')) {
+    const [text, emoji] = str.split(':');
+    return { text, emoji };
+  } else {
+    return { text: str, emoji: null };
+  }
+}
+
 /* ================================================================
    JAMO UTILITIES (verbatim from typing-game.html)
 ================================================================ */
@@ -98,7 +109,10 @@ function pickWordsForRoom(waveNum, count, opts = {}) {
   const unlockedSet = new Set();
   (G.completedLessons || []).forEach(id => {
     const lesson = LESSONS_BASE.find(l => l.id === id);
-    lesson?.unlockedWords?.forEach(w => unlockedSet.add(w));
+    lesson?.unlockedWords?.forEach(w => {
+      const { text } = parseLessonWord(w);
+      unlockedSet.add(text);
+    });
   });
 
   const vaOk = w => !(noVerbAdj && (w.category === 'verb' || w.category === 'adjective'));
@@ -651,7 +665,10 @@ function genNumericTemplate() {
   const knownSet = new Set((G.learnedWords || []).map(lw => lw.text));
   (G.completedLessons || []).forEach(id => {
     const lesson = LESSONS_BASE.find(l => l.id === id);
-    lesson?.unlockedWords?.forEach(w => knownSet.add(w));
+    lesson?.unlockedWords?.forEach(w => {
+      const { text } = parseLessonWord(w);
+      knownSet.add(text);
+    });
   });
 
   const sinoN   = genSinoNumber(knownSet);
