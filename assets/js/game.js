@@ -298,6 +298,31 @@ function _avaCloseTab() {
   document.getElementById('menu-main')?.classList.remove('edit-open');
 }
 
+function _avaToggleEditMode() {
+  const tabs = document.querySelectorAll('.ava-tabs');
+  const isVisible = tabs.length > 0 && tabs[0].style.visibility === 'visible';
+  if (isVisible) {
+    _avaCloseEditMode();
+    _avaCloseTab();
+  } else {
+    _avaOpenEditMode();
+  }
+}
+
+function _avaOpenEditMode() {
+  document.querySelectorAll('.ava-tabs').forEach(tab => {
+    tab.style.visibility = 'visible';
+    tab.style.opacity = '1';
+  });
+}
+
+function _avaCloseEditMode() {
+  document.querySelectorAll('.ava-tabs').forEach(tab => {
+    tab.style.opacity = '0';
+    setTimeout(() => tab.style.visibility = 'hidden', 300);
+  });
+}
+
 function _avaStepEditRow(delta, rowN) {
   const tab = _AVA_TABS.find(t => t.id === _avaActiveTab);
   if (!tab) return;
@@ -2047,6 +2072,7 @@ function buildTitleScreen() {
     btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
     _avaRandomize();
   });
+  document.getElementById('ava-edit')?.addEventListener('click', _avaToggleEditMode);
   document.getElementById('ava-edit-close')?.addEventListener('click', _avaCloseTab);
   document.getElementById('ava-edit-prev1')?.addEventListener('click', () => _avaStepEditRow(-1, 1));
   document.getElementById('ava-edit-next1')?.addEventListener('click', () => _avaStepEditRow(1, 1));

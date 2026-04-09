@@ -163,8 +163,9 @@ body {
 }
 .ava-tabs {
   display: flex; flex-direction: column;
-  justify-content: center;
+  justify-content: center; opacity: 0%; visibility: hidden;
   gap: 16px; height: 100%; padding: 4px 0;
+  transition: opacity 0.3s ease;
 }
 #ava-tabs-left { align-items: flex-start; }
 #ava-tabs-right { align-items: flex-end; }
@@ -208,17 +209,19 @@ body {
   transition: transform .25s ease;
 }
 #menu-main.edit-open #ava-preview-wrap { transform: scale(.86); }
-#ava-randomize {
-  position: absolute; top: 2px; right: 2px; z-index: 1;
+#ava-randomize, #ava-edit {
+  position: absolute;  z-index: 1;
   font-size: 2.25rem; background: none; border: none;
   cursor: pointer; padding: 3px 5px; border-radius: 6px;
   opacity: .55; transition: opacity .15s; line-height: 1;
   color: rgba(255,255,255,.5);
 }
+#ava-randomize { top: 2px; right: 2px; }
+#ava-edit { top: 2px; left: 2px; }
 @media (max-width: 600px), (max-height: 500px) {
-  #ava-randomize { font-size: 1.5rem; }
+  #ava-randomize, #ava-edit { font-size: 1.5rem; }
 }
-#ava-randomize:hover { opacity: 1; }
+#ava-randomize:hover, #ava-edit:hover { opacity: 1; }
 #ava-randomize.spinning {
   opacity: 1;
   animation: dice-spin .55s cubic-bezier(.36,.07,.19,.97) forwards;
@@ -1887,6 +1890,7 @@ body.touch-mode #cheat-title { cursor: default; }
   font-family: inherit;
   cursor: pointer;
   color: rgba(255,255,255,.85);
+  text-align: end;
 }
 .gopt-select option {
   color: #1a1a2e;
@@ -2275,8 +2279,8 @@ body.touch-mode #map-panel:not(.off) {
   .ava-tabs { justify-content: space-between; }
   .ava-tab { width: 100% !important; height: auto !important; aspect-ratio: 1/1; font-size: 1.6rem !important; }
   #ava-preview-wrap {
-    width: min(200px, calc(60vw - 80px)) !important;
-    height: min(200px, calc(100vh - 80px)) !important;
+    width: min(250px, calc(60vw - 80px)) !important;
+    height: min(250px, calc(100vh - 80px)) !important;
     margin: auto 0 !important;
   }
   #ava-center { justify-content: space-between !important; }
