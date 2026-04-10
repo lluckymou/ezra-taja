@@ -93,6 +93,11 @@ export const G = {
   // ── Transition ───────────────────────────────────────────────
   transition:       null,  // null | {phase:'out'|'in', t:0, dur:0.4, cb}
   worldTransition:  null,  // null | world-change cinematic state
+
+  // ── Hangul Dojang (cross-run, localStorage) ──────────────────
+  // dojangStats: null | { jamoProgress, globalThreshold, unlockedGuides, ... }
+  // Loaded by loadPersistentState(); saved by DojangManager.exit()
+  dojangStats: null,
 };
 
 export function resetRunState() {
@@ -277,6 +282,12 @@ export function loadPersistentState() {
   const savedAvatar = localStorage.getItem('krr_avatar');
   if (savedAvatar) {
     try { G.avatar = JSON.parse(savedAvatar); } catch(e) { G.avatar = null; }
+  }
+
+  // Load Hangul Dojang progress
+  const savedDojang = localStorage.getItem('krr_dojang');
+  if (savedDojang) {
+    try { G.dojangStats = JSON.parse(savedDojang); } catch(e) { G.dojangStats = null; }
   }
 }
 

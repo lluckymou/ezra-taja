@@ -124,13 +124,13 @@
     "autoshootOff": "오토슈팅 OFF"
   },
   "weather": {
-    "clear":   "맑음",
-    "foggy":   "안개",
+    "clear": "맑음",
+    "foggy": "안개",
     "drizzle": "이슬비",
     "raining": "비",
     "snowing": "눈",
-    "blizzard":"눈보라",
-    "fall":    "단풍",
+    "blizzard": "눈보라",
+    "fall": "단풍",
     "blossom": "꽃비"
   },
   "treasure": {
@@ -156,9 +156,18 @@
     "title": "카지노",
     "spinHint": "슬롯을 돌려라 - 멈춰라!",
     "acceptBtn": "✅ 수락",
-    "clean_start": { "name": "새 출발", "desc": "모든 소모품 삭제" },
-    "tragedy":     { "name": "비극",    "desc": "모든 강화 삭제" },
-    "abduction":   { "name": "납치",    "desc": "5세계 즉시 건너뜀" }
+    "clean_start": {
+      "name": "새 출발",
+      "desc": "모든 소모품 삭제"
+    },
+    "tragedy": {
+      "name": "비극",
+      "desc": "모든 강화 삭제"
+    },
+    "abduction": {
+      "name": "납치",
+      "desc": "5세계 즉시 건너뜀"
+    }
   },
   "map": {
     "title": "던전 지도",
@@ -231,20 +240,20 @@
     "emojiTooltipHint": "이모지를 눌러 번역을 확인하세요"
   },
   "tutorial": {
-    "typeToKill":    "단어를 입력해서 몬스터를 물리치세요",
-    "typeToNavigate":"방향을 입력해서 다음 방으로 이동하세요",
-    "touchToNavigate":"문을 탭해서 다음 방으로 이동하세요",
-    "typeToOpen":    "단어를 입력해서 {{room}}을 여세요",
-    "typeToTalk":    "단어를 입력해서 {{room}}에게 말을 걸어보세요",
-    "typeToBuy":     "단어를 입력해서 {{room}}에서 구매하세요",
-    "pressMap":      "M 키를 눌러 지도와 현재 위치를 확인하세요",
-    "findBoss":      "보스 방을 찾아 도전 난이도를 높여보세요",
-    "buyTent":       "상점에서 텐트를 사면 이 밤을 넘길 수 있어요",
-    "pickHangul":    "동전의 음절을 입력해서 아이템을 집으세요",
-    "pickHanja":     "한자의 음절을 입력해서 아이템을 집거나, 사전 아이템으로 읽기를 해제하세요",
+    "typeToKill": "단어를 입력해서 몬스터를 물리치세요",
+    "typeToNavigate": "방향을 입력해서 다음 방으로 이동하세요",
+    "touchToNavigate": "문을 탭해서 다음 방으로 이동하세요",
+    "typeToOpen": "단어를 입력해서 {{room}}을 여세요",
+    "typeToTalk": "단어를 입력해서 {{room}}에게 말을 걸어보세요",
+    "typeToBuy": "단어를 입력해서 {{room}}에서 구매하세요",
+    "pressMap": "M 키를 눌러 지도와 현재 위치를 확인하세요",
+    "findBoss": "보스 방을 찾아 도전 난이도를 높여보세요",
+    "buyTent": "상점에서 텐트를 사면 이 밤을 넘길 수 있어요",
+    "pickHangul": "동전의 음절을 입력해서 아이템을 집으세요",
+    "pickHanja": "한자의 음절을 입력해서 아이템을 집거나, 사전 아이템으로 읽기를 해제하세요",
     "typeToAdvance": "단어를 입력해서 다음 세계로 넘어가세요",
-    "findTeacher":   "선생님을 찾으면 수업을 들을 수 있고 도전 난이도가 높아져요",
-    "casinoLuck":    "모든 것을 걸고 운을 시험해 보는 건 어떨까요?"
+    "findTeacher": "선생님을 찾으면 수업을 들을 수 있고 도전 난이도가 높아져요",
+    "casinoLuck": "모든 것을 걸고 운을 시험해 보는 건 어떨까요?"
   },
   "gameOver": {
     "victory": "🏆 클리어!",
@@ -286,57 +295,189 @@
     "mapPlaceholder": "한국어 또는 방 코드 입력..."
   },
   "items": {
-    "heal":         { "name": "치유",         "desc": "+2 생명력" },
-    "maxheal":      { "name": "황금 하트",    "desc": "최대 HP +1" },
-    "stun":         { "name": "기절",         "desc": "기절 버블 - 가장 가까운 적 기절" },
-    "crit":         { "name": "치명타",       "desc": "×2 데미지 5발" },
-    "slow":         { "name": "감속",         "desc": "속도 -40% 20초" },
-    "autokill":     { "name": "즉사",         "desc": "즉사 버블 - 범위 내 다음 적 즉사" },
-    "freeze":       { "name": "시간 정지",    "desc": "모든 적 5초 동결" },
-    "double":       { "name": "2배 원",       "desc": "코인 2배 30초" },
-    "mystery":      { "name": "미스터리",     "desc": "랜덤 효과!" },
-    "cleave":       { "name": "참격",         "desc": "방 안의 모든 적 처치" },
-    "bomb":         { "name": "폭탄",         "desc": "모든 적에게 3 데미지" },
-    "shield":       { "name": "방패",         "desc": "다음 피격 차단" },
-    "dictionary":   { "name": "사전",         "desc": "한자 오브가 한글 읽기를 표시" },
-    "masterkey":    { "name": "마스터 키",    "desc": "지하 지도의 모든 방 공개" },
-    "worldskip":    { "name": "세계 도약",    "desc": "다음 세계로 즉시 이동" },
-    "noise":        { "name": "소음 차단",    "desc": "이 방의 모든 음악가 침묵" },
-    "greedy":       { "name": "탐욕의 눈",    "desc": "30초 동안 코인 3배" },
-    "wormhole":     { "name": "웜홀",         "desc": "방문 안 한 랜덤 방으로 텔레포트" },
-    "tent":         { "name": "텐트",         "desc": "깨끗한 전투 방에서 사용. 수면 시 +2 생명력 회복 (쿨다운 2분)." },
-    "worldguide":   { "name": "세계 안내서",  "desc": "전투 방 외 모든 방 위치 공개 (이동 불가)." },
-    "block":        { "name": "방어",         "desc": "20% 확률로 피격 차단." },
-    "lucky":        { "name": "행운",         "desc": "아이템 드롭율 2배." },
-    "thorn_armor":  { "name": "가시 갑옷",    "desc": "모든 피격 절반 피해. 1 피해 공격 33% 완전 차단." },
-    "treasure":     { "name": "보물",         "desc": "피격당 30–100% 추가 원 획득 (랜덤)." },
-    "double_shot":  { "name": "이중 사격",    "desc": "단어마다 다른 적에게 두 번째 화살 발사." },
-    "ancient_scroll":{"name": "고대 두루마리","desc": "각 방 50% 확률로 소모품 대기 (사전 결정)." },
-    "sloth":        { "name": "나태",         "desc": "모든 적 40% 느리게." },
-    "phoenix_heart":{ "name": "불사조의 심장","desc": "각 새 세계 진입 시 +1 생명력." },
-    "magnet":       { "name": "자석",         "desc": "피격당 원 3배." },
-    "dummy_turtle": { "name": "더미 거북이",  "desc": "세계 1–5에서 50% 적게 피해 받음." },
-    "god_run":      { "name": "신의 가호",    "desc": "적이 3배 빠르지만 원 5배 드롭." },
-    "crystal_ball": { "name": "수정 구슬",    "desc": "지도의 모든 방 영구 공개." },
-    "wall_breaker": { "name": "벽 파괴자",    "desc": "던전의 모든 방 연결 개방." },
-    "punching_glove":{"name": "펀칭 글러브",  "desc": "피격 시 2배 넉백. 20% 치명타 확률 (2배 데미지)." }
+    "heal": {
+      "name": "치유",
+      "desc": "+2 생명력"
+    },
+    "maxheal": {
+      "name": "황금 하트",
+      "desc": "최대 HP +1"
+    },
+    "stun": {
+      "name": "기절",
+      "desc": "기절 버블 - 가장 가까운 적 기절"
+    },
+    "crit": {
+      "name": "치명타",
+      "desc": "×2 데미지 5발"
+    },
+    "slow": {
+      "name": "감속",
+      "desc": "속도 -40% 20초"
+    },
+    "autokill": {
+      "name": "즉사",
+      "desc": "즉사 버블 - 범위 내 다음 적 즉사"
+    },
+    "freeze": {
+      "name": "시간 정지",
+      "desc": "모든 적 5초 동결"
+    },
+    "double": {
+      "name": "2배 원",
+      "desc": "코인 2배 30초"
+    },
+    "mystery": {
+      "name": "미스터리",
+      "desc": "랜덤 효과!"
+    },
+    "cleave": {
+      "name": "참격",
+      "desc": "방 안의 모든 적 처치"
+    },
+    "bomb": {
+      "name": "폭탄",
+      "desc": "모든 적에게 3 데미지"
+    },
+    "shield": {
+      "name": "방패",
+      "desc": "다음 피격 차단"
+    },
+    "dictionary": {
+      "name": "사전",
+      "desc": "한자 오브가 한글 읽기를 표시"
+    },
+    "masterkey": {
+      "name": "마스터 키",
+      "desc": "지하 지도의 모든 방 공개"
+    },
+    "worldskip": {
+      "name": "세계 도약",
+      "desc": "다음 세계로 즉시 이동"
+    },
+    "noise": {
+      "name": "소음 차단",
+      "desc": "이 방의 모든 음악가 침묵"
+    },
+    "greedy": {
+      "name": "탐욕의 눈",
+      "desc": "30초 동안 코인 3배"
+    },
+    "wormhole": {
+      "name": "웜홀",
+      "desc": "방문 안 한 랜덤 방으로 텔레포트"
+    },
+    "tent": {
+      "name": "텐트",
+      "desc": "깨끗한 전투 방에서 사용. 수면 시 +2 생명력 회복 (쿨다운 2분)."
+    },
+    "worldguide": {
+      "name": "세계 안내서",
+      "desc": "전투 방 외 모든 방 위치 공개 (이동 불가)."
+    },
+    "block": {
+      "name": "방어",
+      "desc": "20% 확률로 피격 차단."
+    },
+    "lucky": {
+      "name": "행운",
+      "desc": "아이템 드롭율 2배."
+    },
+    "thorn_armor": {
+      "name": "가시 갑옷",
+      "desc": "모든 피격 절반 피해. 1 피해 공격 33% 완전 차단."
+    },
+    "treasure": {
+      "name": "보물",
+      "desc": "피격당 30–100% 추가 원 획득 (랜덤)."
+    },
+    "double_shot": {
+      "name": "이중 사격",
+      "desc": "단어마다 다른 적에게 두 번째 화살 발사."
+    },
+    "ancient_scroll": {
+      "name": "고대 두루마리",
+      "desc": "각 방 50% 확률로 소모품 대기 (사전 결정)."
+    },
+    "sloth": {
+      "name": "나태",
+      "desc": "모든 적 40% 느리게."
+    },
+    "phoenix_heart": {
+      "name": "불사조의 심장",
+      "desc": "각 새 세계 진입 시 +1 생명력."
+    },
+    "magnet": {
+      "name": "자석",
+      "desc": "피격당 원 3배."
+    },
+    "dummy_turtle": {
+      "name": "더미 거북이",
+      "desc": "세계 1–5에서 50% 적게 피해 받음."
+    },
+    "god_run": {
+      "name": "신의 가호",
+      "desc": "적이 3배 빠르지만 원 5배 드롭."
+    },
+    "crystal_ball": {
+      "name": "수정 구슬",
+      "desc": "지도의 모든 방 영구 공개."
+    },
+    "wall_breaker": {
+      "name": "벽 파괴자",
+      "desc": "던전의 모든 방 연결 개방."
+    },
+    "punching_glove": {
+      "name": "펀칭 글러브",
+      "desc": "피격 시 2배 넉백. 20% 치명타 확률 (2배 데미지)."
+    }
   },
   "worlds": {
-    "palace":     { "name": "경복궁" },
-    "jeju":       { "name": "제주도" },
-    "haeundae":   { "name": "해운대" },
-    "myeongdong": { "name": "명동" },
-    "seoraksan":  { "name": "설악산" },
-    "baekdu":     { "name": "백두산" },
-    "insadong":   { "name": "인사동" },
-    "eastsea":    { "name": "동해" },
-    "jeonju":     { "name": "전주 한옥마을" },
-    "gyeongju":   { "name": "경주" },
-    "yeouido":    { "name": "여의도 벚꽃" },
-    "dokdo":      { "name": "독도" },
-    "gangnam":    { "name": "강남" },
-    "yonggoong":  { "name": "용궁" },
-    "cosmos":     { "name": "우주" }
+    "palace": {
+      "name": "경복궁"
+    },
+    "jeju": {
+      "name": "제주도"
+    },
+    "haeundae": {
+      "name": "해운대"
+    },
+    "myeongdong": {
+      "name": "명동"
+    },
+    "seoraksan": {
+      "name": "설악산"
+    },
+    "baekdu": {
+      "name": "백두산"
+    },
+    "insadong": {
+      "name": "인사동"
+    },
+    "eastsea": {
+      "name": "동해"
+    },
+    "jeonju": {
+      "name": "전주 한옥마을"
+    },
+    "gyeongju": {
+      "name": "경주"
+    },
+    "yeouido": {
+      "name": "여의도 벚꽃"
+    },
+    "dokdo": {
+      "name": "독도"
+    },
+    "gangnam": {
+      "name": "강남"
+    },
+    "yonggoong": {
+      "name": "용궁"
+    },
+    "cosmos": {
+      "name": "우주"
+    }
   },
   "lesson": {
     "hangulBasic": {
@@ -635,5 +776,179 @@
   "credits": {
     "byLine": "🫰 Lucas Nascimento (모 루카) 제작",
     "thanks": "한국 문화와 언어를 알려주신 Roh HaYoung과 KIT에 특별한 감사를 드립니다. 여러분 모두에게 영원히 감사드립니다. 여러분은 제 인생을 영원히 바꾸셨습니다. 이 프로젝트가 더 많은 분들이 한국어를 공부하고 아름답고 영감 넘치는 문화와 연결되는 계기가 되길 바랍니다."
+  },
+  "dojang": {
+    "entryTitle": "준비됐나요, 용사여?",
+    "entrySub": "모험을 시작하기 전에 한글 도장에서 훈련하시겠어요?",
+    "btnDojang": "한글 도장",
+    "btnDojangSub": "한글 쓰기 배우기",
+    "btnAdventure": "모험 시작",
+    "btnAdventureSub": "바로 게임 시작",
+    "paused": "일시 정지",
+    "resume": "▶ 계속하기",
+    "backMenu": "메인 메뉴",
+    "startAdventure": "⚔️ 모험 시작",
+    "bookTitle": "📖 연습 기록",
+    "inspectorTitle": "🔎 획순 안내",
+    "drawJamo": "{j} 쓰기",
+    "drawSyllable": "{s} 쓰기  ·  현재: {j}",
+    "great": "훌륭해요!",
+    "lastTry": "마지막 기회!",
+    "resetJamo": "획 순서가 틀렸어요 — 다시 시도",
+    "newGuide": "책에 새 내용이 해금되었어요!",
+    "phaseUp2": "복합 모음과 경음 해금!",
+    "phaseUpCV": "CV 음절 해금! 자음과 모음을 조합하세요!",
+    "phaseUp3": "받침 해금! 종성 자음!",
+    "phaseUp4": "한글 마스터! 모험이 기다립니다!",
+    "jamoUnlocked": "{j} 일지에 해금!",
+    "totalStrokes": "총 획수",
+    "strokeCountTip": "획수 · 획의 수",
+    "timesWritten": "쓴 횟수",
+    "globalProgress": "전체 진도",
+    "masterTitle": "한글의 달인",
+    "phase1": "1단계 · 기본 자모",
+    "phase2": "2단계 · 복합 자모",
+    "phaseCV": "3단계 · CV 음절",
+    "phase3": "4단계 · 받침",
+    "phase4": "5단계 · 단어"
+  },
+  "jamo_desc": {
+    "ㄱ": {
+      "base": "**기역** · 연구개 평음\n\n초성에서 부드러운 'g' 소리 — <speak='가'>, <speak='기다리다'>. 기식 없음.\n\n한국어의 **삼지 대립**:\n\n- **ㄱ** · 평음 — <speak='가'>\n- **ㅋ** · 격음 — <speak='카'>\n- **ㄲ** · 경음 — <speak='까'>\n\n자주 쓰는 단어: <speak='가방'> · <speak='고기'> · <speak='학교'>",
+      "batchim": "종성 ㄱ은 불파음. 성문이 닫히지만 기식 없음.\n\n모음 앞에서 연음: <speak='학이'> [하기] · <speak='국어'> [구거]\n\nㅎ 앞에서 ㅋ으로 격음화: <speak='착하다'> [차카다]"
+    },
+    "ㄴ": {
+      "base": "**니은** · 치조 비음 'n'\n\n<speak='나'>, <speak='누나'>, <speak='나라'>. 모든 위치에서 안정적인 비음.\n\n자주 쓰는 단어: <speak='나'> · <speak='노래'> · <speak='나라'> · <speak='눈'>",
+      "batchim": "종성 'n'. 모음 앞 연음: <speak='눈이'> [누니]. ㄹ 앞에서 ㄹ로 동화: <speak='신라'> [실라]."
+    },
+    "ㄷ": {
+      "base": "**디귿** · 치조 평음\n\n<speak='다'>. ㅌ의 비기식 짝. ㄷ/ㅌ/ㄸ = 평음/격음/경음.\n\n구개음화: ㄷ + ㅣ → ㅈ. <speak='굳이'> [구지]. <speak='같이'> [가치].",
+      "batchim": "종성 ㄷ 불파음. 연음: <speak='믿어'> [미더]. ㅎ 앞 격음화: <speak='좋다'> [조타]. ㅣ계 앞 구개음화: <speak='굳이'> [구지]."
+    },
+    "ㄹ": {
+      "base": "**리을** · 한국어에서 가장 독특한 자음!\n\n초성: 탄음 r/l — <speak='라'>. 모음 사이: 탄음 — <speak='사람'>. 겹받침: 'l' — <speak='달리다'>.\n\n팁: 억지로 'r'이나 'l'을 만들지 말고 자연스럽게 발음하세요.",
+      "batchim": "종성 'l': <speak='달'>, <speak='말'>. 연음 시 탄음: <speak='달이'> [다리]. ㄴ 앞에서 ㄹ로 동화: <speak='일년'> [일련]."
+    },
+    "ㅁ": {
+      "base": "**미음** · 양순 비음 'm'\n\n<speak='마'>. 모든 위치에서 안정적. 쉬운 자음!\n\n자주 쓰는 단어: <speak='마음'> · <speak='나무'> · <speak='모두'>",
+      "batchim": "종성 'm'. <speak='밤'>, <speak='봄'>, <speak='이름'>. 연음: <speak='이름이'> [이르미]."
+    },
+    "ㅂ": {
+      "base": "**비읍** · 양순 평음\n\n<speak='바'>. ㅍ의 비기식 짝. ㅂ/ㅍ/ㅃ = 평음/격음/경음.\n\n어두: 'p'에 가깝게. 어중: 'b'에 가깝게. 엄밀히는 중간 어딘가.",
+      "batchim": "종성 ㅂ 불파음. <speak='밥'>, <speak='입'>. 연음: <speak='밥이'> [바비]. ㅎ 앞 격음화: <speak='잡히다'> [자피다]."
+    },
+    "ㅅ": {
+      "base": "**시옷** · 마찰음 's'\n\n<speak='사'>. ㅣ계 모음 앞에서 'sh': <speak='시작'> [시장], <speak='샤워'>. 자동적 구개음화.",
+      "batchim": "종성 ㅅ = ㄷ류 불파음. 연음 시 's': <speak='옷이'> [오시], <speak='맛이'> [마시]."
+    },
+    "ㅇ": {
+      "base": "**이응** · 가장 특별한 자음!\n\n초성: **무음** — <speak='아'>, <speak='이'>, <speak='오'>.\n\n종성: **연구개 비음 'ng'** — <speak='강'>, <speak='방'>, <speak='공'>.\n\n같은 글자, 완전히 다른 소리!",
+      "batchim": "종성 'ng': <speak='강'>, <speak='방'>. 모음 앞 연음: <speak='방이'> [바이]."
+    },
+    "ㅈ": {
+      "base": "**지읒** · 파찰음 'j', 평음\n\n<speak='자'>. ㅊ의 비기식 짝. ㅈ/ㅊ/ㅉ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='저'> · <speak='자다'> · <speak='진짜'>",
+      "batchim": "종성 ㅈ = ㄷ류. 연음: <speak='낮이'> [나지]."
+    },
+    "ㅊ": {
+      "base": "**치읓** · 기식 파찰음 'ch'\n\n<speak='차'>. ㅈ의 기식 짝. 강한 기식 필수!\n\n자주 쓰는 단어: <speak='차'> · <speak='책'> · <speak='친구'>",
+      "batchim": "종성 ㅊ = ㄷ류. 연음: <speak='꽃이'> [꼬치]."
+    },
+    "ㅋ": {
+      "base": "**키읔** · 기식 연구개음 'k'\n\n<speak='카'>. ㄱ의 기식 짝. ㄱ/ㅋ/ㄲ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='커피'> · <speak='코'> · <speak='크다'>",
+      "batchim": "종성 ㄱ류. 연음: <speak='부엌이'> [부어키]."
+    },
+    "ㅌ": {
+      "base": "**티읕** · 기식 치조음 't'\n\n<speak='타'>. ㄷ의 기식 짝. 구개음화: ㅌ + ㅣ → ㅊ. <speak='같이'> [가치].",
+      "batchim": "종성 ㄷ류. ㅣ계 앞 구개음화: <speak='밭이'> [바치]."
+    },
+    "ㅍ": {
+      "base": "**피읖** · 기식 양순음 'p'\n\n<speak='파'>. ㅂ의 기식 짝. ㅂ/ㅍ/ㅃ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='파'> · <speak='피'> · <speak='피자'>",
+      "batchim": "종성 ㅂ류. 연음: <speak='앞이'> [아피]."
+    },
+    "ㅎ": {
+      "base": "**히읗** · 성문 마찰음 'h'\n\n<speak='하'>. 단순하지만 특별한 행동!\n\n1. 모음 사이에서 약화: <speak='많이'> [마니]\n2. ㄱ/ㄷ/ㅂ/ㅈ와 만나 격음화: <speak='좋다'> [조타], <speak='입학'> [이팍]",
+      "batchim": "받침 ㅎ: 모음 앞 탈락. <speak='놓아'> [노아]. 기식음화는 위 참고."
+    },
+    "ㄲ": {
+      "base": "**쌍기역** · 경음 ㄱ\n\n<speak='까'>. 성문 긴장, 기식 없음. ㄱ/ㅋ/ㄲ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='끝'> · <speak='꿈'>",
+      "batchim": "받침으로 ㄱ과 동일."
+    },
+    "ㄸ": {
+      "base": "**쌍디귿** · 경음 ㄷ\n\n<speak='따'>. ㄷ/ㅌ/ㄸ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='또'> · <speak='땅'>",
+      "batchim": "받침으로 ㄷ과 동일."
+    },
+    "ㅃ": {
+      "base": "**쌍비읍** · 경음 ㅂ\n\n<speak='빠'>. ㅂ/ㅍ/ㅃ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='빠르다'> · <speak='빵'>"
+    },
+    "ㅆ": {
+      "base": "**쌍시옷** · 경음 ㅅ\n\n<speak='싸'>. 매우 자주 쓰임!\n\n<speak='있다'> [이따] · <speak='없다'> [업따] · <speak='씩'>",
+      "batchim": "받침으로 ㅅ과 동일 (ㄷ류)."
+    },
+    "ㅉ": {
+      "base": "**쌍지읒** · 경음 ㅈ\n\n<speak='짜'>. ㅈ/ㅊ/ㅉ = 평음/격음/경음.\n\n자주 쓰는 단어: <speak='짜다'> · <speak='짜증'>"
+    },
+    "ㅏ": {
+      "base": "**아** · 개모음 'a'\n\n<speak='아'>. 가장 쉬운 모음! 입을 크게 벌리고 발음.\n\n자주 쓰는 단어: <speak='아버지'> · <speak='사랑'> · <speak='가다'>"
+    },
+    "ㅑ": {
+      "base": "**야** · 이중모음 'ya'\n\n<speak='야'>. 반모음 y + ㅏ.\n\n자주 쓰는 단어: <speak='야구'> · <speak='야채'>"
+    },
+    "ㅓ": {
+      "base": "**어** · 중후설 비원순모음 'eo'\n\n<speak='어'>. 입술 둥글지 않게! ㅗ와 비교: <speak='오'> vs <speak='어'>.\n\n자주 쓰는 단어: <speak='어머니'> · <speak='저'> · <speak='뭐'>"
+    },
+    "ㅕ": {
+      "base": "**여** · 이중모음 'yeo'\n\n<speak='여'>. 반모음 y + ㅓ.\n\n자주 쓰는 단어: <speak='여자'> · <speak='여기'> · <speak='여행'>"
+    },
+    "ㅗ": {
+      "base": "**오** · 원순 후모음 'o'\n\n<speak='오'>. 입술 동그랗게.\n\n자주 쓰는 단어: <speak='오다'> · <speak='오늘'> · <speak='소'>"
+    },
+    "ㅛ": {
+      "base": "**요** · 이중모음 'yo'\n\n<speak='요'>. 반모음 y + ㅗ.\n\n자주 쓰는 단어: <speak='요즘'> · <speak='요리'> · <speak='요일'>"
+    },
+    "ㅜ": {
+      "base": "**우** · 원순 후모음 'u'\n\n<speak='우'>. 입술 앞으로.\n\n자주 쓰는 단어: <speak='우리'> · <speak='우유'> · <speak='물'>"
+    },
+    "ㅠ": {
+      "base": "**유** · 이중모음 'yu'\n\n<speak='유'>. 반모음 y + ㅜ.\n\n자주 쓰는 단어: <speak='유명하다'> · <speak='이유'>"
+    },
+    "ㅡ": {
+      "base": "**으** · 중앙 비원순모음 'eu'\n\n<speak='으'>. 입술 펴고, 혀 높이 위치. 동사 기본형에 자주 등장!\n\n비교: <speak='우'> (원순) vs <speak='으'> (비원순).\n\n자주 쓰는 단어: <speak='크다'> · <speak='쓰다'> · <speak='예쁘다'>"
+    },
+    "ㅣ": {
+      "base": "**이** · 전설 고모음 'i'\n\n<speak='이'>. 가장 쉬운 모음!\n\n자주 쓰는 단어: <speak='이름'> · <speak='기쁘다'>"
+    },
+    "ㅐ": {
+      "base": "**애** · 전설 중모음 'ae'\n\n현대에 ㅔ와 발음 동일 — <speak='애'>. 쓰기에서만 구분됨.\n\n자주 쓰는 단어: <speak='사랑해'> · <speak='애기'>"
+    },
+    "ㅒ": {
+      "base": "**얘** · 이중모음 'yae'\n\n<speak='얘'>. 현대에 ㅖ와 발음 동일. 자주 쓰는 단어: <speak='얘기'>."
+    },
+    "ㅔ": {
+      "base": "**에** · 전설 중모음 'e'\n\n현대에 ㅐ와 발음 동일 — <speak='에'>. 문법 조사로 자주 쓰임.\n\n자주 쓰는 단어: <speak='에서'> · <speak='세'> · <speak='게임'>"
+    },
+    "ㅖ": {
+      "base": "**예** · 이중모음 'ye'\n\n<speak='예'>. 매우 자주 쓰임!\n\n자주 쓰는 단어: <speak='예'> · <speak='예쁘다'> · <speak='예약'>"
+    },
+    "ㅘ": {
+      "base": "**와** · 이중모음 'wa' (ㅗ+ㅏ)\n\n<speak='와'>. '와!' 등 자주 쓰임.\n\n자주 쓰는 단어: <speak='와인'> · <speak='과일'> · <speak='봐요'>"
+    },
+    "ㅙ": {
+      "base": "**왜** · 이중모음 'wae'\n\n<speak='왜'>. 현대에 ㅚ, ㅞ와 발음 동일.\n\n가장 중요한 단어: <speak='왜'> (왜?)"
+    },
+    "ㅚ": {
+      "base": "**외** · 이중모음 'oe'\n\n현대에 ㅙ, ㅞ와 발음 동일 — <speak='외'>.\n\n자주 쓰는 단어: <speak='외국'> · <speak='최고'>"
+    },
+    "ㅝ": {
+      "base": "**워** · 이중모음 'wo' (ㅜ+ㅓ)\n\n<speak='워'>. 자주 쓰는 단어: <speak='뭐'> · <speak='봐요'>"
+    },
+    "ㅞ": {
+      "base": "**웨** · 이중모음 'we'\n\n현대에 ㅙ, ㅚ와 발음 동일 — <speak='웨'>. 외래어에 주로 사용."
+    },
+    "ㅟ": {
+      "base": "**위** · 이중모음 'wi' (ㅜ+ㅣ)\n\n역사적 'ü', 현대 'wi' — <speak='위'>.\n\n자주 쓰는 단어: <speak='위'> · <speak='귀'> · <speak='쉬다'>"
+    },
+    "ㅢ": {
+      "base": "**의** · 가장 복잡한 모음!\n\n세 가지 발음:\n1. 어두: 'ui' — <speak='의사'> [의사]\n2. 비어두: 'i' — <speak='회의'> [회이]\n3. 조사 의: 'e' — <speak='나의'> [나에]\n\n자주 쓰는 단어: <speak='의사'> · <speak='의자'> · <speak='나의'>"
+    }
   }
 }

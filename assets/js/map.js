@@ -13,7 +13,7 @@ const TYPE_ICONS = {
   modifier: '✨',
   treasure: '💰',
   tent:     '⛺',
-  teacher:  '🎓',
+  teacher:  '🧑‍🏫',
 };
 // Boss icon is dynamic - comes from the current world's bossEmoji
 function bossIcon() {
@@ -161,7 +161,7 @@ export function updateMap() {
           el.style.borderRight  = cell.connections.has('E') ? 'none' : `2px solid ${gc}`;
           el.style.borderLeft   = cell.connections.has('W') ? 'none' : `2px solid ${gc}`;
         }
-        el.textContent = '🎓';
+        el.textContent = '🧑‍🏫';
         continue;
       }
 
@@ -196,6 +196,8 @@ export function updateMap() {
   if (curCol >= 0 && curRow >= 0) {
     const curEl = _cellEls[curRow * COLS + curCol];
     if (curEl && !curEl.classList.contains('fog')) {
+      // Hide the room emoji so only the hero shows in the current cell
+      curEl.textContent = '';
       const heroEl = document.createElement('span');
       heroEl.className = 'map-cell-hero';
       if (G.avatar && typeof Avataaars !== 'undefined') {

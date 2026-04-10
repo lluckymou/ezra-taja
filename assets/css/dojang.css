@@ -1,0 +1,667 @@
+/* ================================================================
+   HANGUL DOJANG - Styles
+================================================================ */
+
+/* ── Entry Modal ─────────────────────────────────────────────── */
+#dojang-entry-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 26, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  transition: opacity .3s;
+}
+#dojang-entry-modal.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#dojang-entry-inner {
+  background: #0d1428;
+  border: 1px solid rgba(80, 140, 255, 0.2);
+  border-radius: 20px;
+  padding: 36px 32px 28px;
+  width: min(520px, 94vw);
+  text-align: center;
+  color: #e8eaf6;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+#dojang-entry-inner h2 {
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #f0f4ff;
+}
+#dojang-entry-inner p {
+  font-size: clamp(.8rem, 2vw, .95rem);
+  color: rgba(200,210,240,.7);
+  margin-bottom: 28px;
+}
+#dojang-entry-btns {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.dj-entry-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 14px;
+  padding: 18px 22px;
+  min-width: 150px;
+  cursor: pointer;
+  transition: background .2s, transform .15s, border-color .2s;
+  color: #e8eaf6;
+}
+.dj-entry-btn:hover {
+  background: rgba(255,255,255,.1);
+  border-color: rgba(255,255,255,.35);
+  transform: translateY(-2px);
+}
+.dj-entry-btn .dj-btn-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+.dj-entry-btn .dj-btn-main {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #fff;
+}
+.dj-entry-btn .dj-btn-sub {
+  font-size: .72rem;
+  color: rgba(200,210,240,.6);
+}
+.dj-entry-btn.dj-btn-primary {
+  border-color: rgba(100,180,255,.4);
+  background: rgba(40,80,160,.25);
+}
+.dj-entry-btn.dj-btn-primary:hover {
+  background: rgba(40,80,160,.45);
+  border-color: rgba(100,180,255,.7);
+}
+
+/* ── Dojang Stroke Canvas ────────────────────────────────────── */
+#dojang-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  touch-action: none;
+  cursor: crosshair;
+}
+body:not(.phase-dojang) #dojang-canvas {
+  display: none;
+  pointer-events: none;
+}
+
+/* ── Dojang Screen Overlay (HUD + modals) ────────────────────── */
+#scr-dojang {
+  z-index: 160;
+  pointer-events: none; /* let drawing canvas receive events */
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+#scr-dojang > * {
+  pointer-events: all; /* re-enable for interactive children */
+}
+/* Drawing area must NOT intercept (it's on a separate canvas layer) */
+#scr-dojang.off {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Dojang HUD ──────────────────────────────────────────────── */
+#dojang-hud {
+  position: fixed;
+  top: 10px;
+  left: 0;
+  right: 0;
+  z-index: 161;
+  pointer-events: none; /* transparent — children opt back in */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+/* All direct HUD children receive pointer events */
+#dojang-hud > * { pointer-events: all; }
+#dojang-hud-left, #dojang-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Progress ring + label — fixed to true viewport center, not HUD center */
+#dojang-ring-wrap {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 162;
+  pointer-events: all;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+/* Mobile: adiciona espaço para mobile titlebar */
+body.mobile-fs #dojang-ring-wrap {
+  top: calc(10px + var(--tb-h));
+}
+#dojang-ring-svg {
+  transform: rotate(-90deg);
+}
+#dojang-ring-bg { fill: none; stroke: rgba(255,255,255,.12); }
+#dojang-ring-fg {
+  fill: none;
+  stroke: rgba(80,180,255,.8);
+  stroke-linecap: round;
+  stroke-dasharray: 138.2; /* 2π×22 */
+  stroke-dashoffset: 138.2;
+  transition: stroke-dashoffset .4s ease;
+}
+#dojang-threshold {
+  font-size: .7rem;
+  color: rgba(255,255,255,.6);
+  font-variant-numeric: tabular-nums;
+}
+#dojang-phase-label {
+  font-size: .6rem;
+  color: rgba(150,190,255,.6);
+  white-space: nowrap;
+}
+
+/* HUD icon buttons */
+.dj-hud-btn {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 8px;
+  color: rgba(255,255,255,.75);
+  font-size: 1.1rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .15s;
+}
+.dj-hud-btn:hover { background: rgba(255,255,255,.18); }
+
+/* Pause icon via SVG mask (matches style.css icon pattern) */
+.icon-pause {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  background-color: rgba(255,255,255,.75);
+  -webkit-mask-image: url(../img/pause.svg);
+          mask-image: url(../img/pause.svg);
+  -webkit-mask-size: contain;
+          mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+          mask-position: center;
+}
+.dj-hud-btn:hover .icon-pause { background-color: rgba(255,255,255,.95); }
+
+/* ── Dojang Player Sprite ────────────────────────────────────── */
+#dojang-player {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 162;
+  pointer-events: none;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 10px;
+}
+/* Mobile: posiciona no inferior-esquerdo, sprite à esquerda */
+body.mobile-fs #dojang-player {
+  left: 14px;
+  transform: none;
+  flex-direction: row-reverse;
+}
+#dojang-player-sprite {
+  width: 84px;
+  height: 84px;
+  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#dojang-player-sprite svg {
+  width: 84px;
+  height: 84px;
+}
+
+/* Player action buttons: 🔊 and ♻️ */
+.dj-player-btn {
+  background: rgba(255,255,255,.1);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: .95rem;
+  pointer-events: all;
+  margin-bottom: 22px; /* align to mid-height of sprite */
+  transition: background .15s;
+}
+.dj-player-btn:hover { background: rgba(255,255,255,.22); }
+
+/* ── Announce — at body level, above everything ──────────────── */
+#dojang-announce {
+  position: fixed;
+  left: 50%;
+  top: 26%;
+  transform: translateX(-50%);
+  z-index: 400;
+  pointer-events: none;
+  background: rgba(10,20,50,.8);
+  border: 1px solid rgba(80,160,255,.3);
+  border-radius: 10px;
+  padding: 8px 18px;
+  color: rgba(200,220,255,.9);
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity .3s;
+}
+#dojang-announce.on { opacity: 1; }
+
+/* ── Pause Overlay ───────────────────────────────────────────── */
+#dojang-pause-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 26, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .25s;
+}
+#dojang-pause-overlay.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#dojang-pause-panel {
+  background: #0d1428;
+  border: 1px solid rgba(80,140,255,.2);
+  border-radius: 18px;
+  padding: 32px 28px;
+  width: min(340px, 90vw);
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  color: #e8eaf6;
+}
+#dojang-pause-panel h2 {
+  font-size: 1.3rem;
+  margin-bottom: 22px;
+  color: #f0f4ff;
+}
+.dj-pause-btn {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  color: #e8eaf6;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.dj-pause-btn:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.3);
+}
+.dj-pause-btn.dj-pause-primary {
+  background: rgba(40,100,200,.3);
+  border-color: rgba(80,160,255,.4);
+  color: #a8d4ff;
+}
+.dj-pause-btn.dj-pause-primary:hover {
+  background: rgba(40,100,200,.5);
+  border-color: rgba(80,160,255,.7);
+}
+
+/* ── Book Modal ──────────────────────────────────────────────── */
+#dojang-book-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 26, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .25s;
+}
+#dojang-book-modal.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#dojang-book-inner {
+  background: #0d1428;
+  border: 1px solid rgba(80,140,255,.2);
+  border-radius: 18px;
+  width: min(520px, 94vw);
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+#dojang-book-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: #f0f4ff;
+  font-size: 1rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+#dojang-book-close {
+  background: none;
+  border: none;
+  color: rgba(200,210,240,.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+#dojang-book-body {
+  overflow-y: auto;
+  padding: 16px 18px;
+  flex: 1;
+}
+.dj-book-header {
+  display: flex;
+  gap: 18px;
+  margin-bottom: 16px;
+  justify-content: center;
+}
+.dj-book-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255,255,255,.05);
+  border-radius: 10px;
+  padding: 10px 18px;
+  min-width: 90px;
+}
+.dj-book-stat-val {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: rgba(120,200,255,.9);
+}
+.dj-book-stat-lbl {
+  font-size: .68rem;
+  color: rgba(200,210,240,.55);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.dj-book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dj-book-row {
+  display: flex;
+  flex-direction: column;
+  border-radius: 7px;
+  background: rgba(255,255,255,.03);
+  font-size: .8rem;
+  overflow: hidden;
+}
+.dj-book-row-main {
+  border: 1px solid transparent;
+  display: grid;
+  grid-template-columns: 2rem 4.5rem 3rem 1fr 2.5rem 2rem 1.4rem;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 6px;
+  border-radius: 7px;
+}
+.dj-book-row.has-desc .dj-book-row-main:hover {
+  border-color: rgba(120,200,255,.9); 
+}
+.dj-book-jamo {
+  font-size: 1.3rem;
+  text-align: center;
+  color: #e8eaf6;
+}
+.dj-book-name {
+  color: rgba(200,215,240,.8);
+  font-size: .78rem;
+}
+.dj-book-rom {
+  color: rgba(120,180,255,.7);
+  font-size: .72rem;
+  font-style: italic;
+}
+.dj-book-bar-wrap {
+  height: 5px;
+  background: rgba(255,255,255,.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.dj-book-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4a9eff, #80d4ff);
+  border-radius: 3px;
+  transition: width .3s ease;
+}
+.dj-book-count {
+  color: rgba(200,215,240,.6);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-size: .75rem;
+  cursor: default;
+}
+.dj-book-strokes {
+  color: rgba(150,170,200,.45);
+  font-size: .68rem;
+  text-align: right;
+  cursor: default;
+}
+.dj-book-expand-btn {
+  background: none;
+  border: none;
+  color: rgba(150,180,220,.55);
+  font-size: .65rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .2s ease, color .15s;
+}
+.dj-book-row.expanded .dj-book-expand-btn {
+  transform: rotate(180deg);
+  color: rgba(120,200,255,.9);
+}
+.dj-book-desc {
+  padding: 5px 10px 8px;
+  font-size: .76rem;
+  color: rgba(190,210,240,.65);
+  border-top: 1px solid rgba(255,255,255,.05);
+  line-height: 1.45;
+}
+.dj-book-desc.off { display: none; }
+
+/* ── Stroke Inspector Modal ──────────────────────────────────── */
+#dojang-inspector-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 26, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .25s;
+}
+#dojang-inspector-modal.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#dojang-inspector-inner {
+  background: #0d1428;
+  border: 1px solid rgba(80,140,255,.2);
+  border-radius: 18px;
+  width: min(360px, 92vw);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+}
+#dojang-inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  color: #f0f4ff;
+  font-size: .95rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+#dojang-inspector-header button {
+  background: none;
+  border: none;
+  color: rgba(200,210,240,.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+#dojang-inspector-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px 12px;
+  display: flex;
+  justify-content: center;
+}
+.dj-insp-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.dj-insp-char {
+  font-size: clamp(3.5rem, 20vw, 5rem);
+  color: rgba(255,255,255,.88);
+  line-height: 1.1;
+  font-family: "Nanum Myeongjo", "SongMyung", serif;
+}
+.dj-insp-name {
+  font-size: .8rem;
+  color: rgba(150,190,255,.7);
+  font-style: italic;
+}
+.dj-insp-strokes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 8px;
+}
+.dj-insp-stroke-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  min-width: 52px;
+}
+.dj-insp-num {
+  font-size: .78rem;
+  color: rgba(120,190,255,.8);
+  font-weight: 700;
+}
+.dj-insp-arrow {
+  font-size: 1.4rem;
+  color: rgba(255,255,255,.85);
+  line-height: 1;
+}
+#dojang-inspector-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  padding: 12px 16px 16px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+.dj-insp-dot {
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 8px;
+  color: rgba(200,215,240,.7);
+  font-size: 1.1rem;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.dj-insp-dot:hover {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.3);
+}
+.dj-insp-dot-active {
+  background: rgba(40,80,180,.3);
+  border-color: rgba(80,160,255,.5);
+  color: #a8d4ff;
+}
+.dj-insp-dot-current {
+  border-color: rgba(80,220,120,.6);
+}
+
+/* ── Mobile titlebar offset ──────────────────────────────────── */
+body.mobile-fs #dojang-hud { top: calc(10px + var(--tb-h)); }
+body.mobile-fs #dojang-announce { top: calc(26% + var(--tb-h)); }
+
+/* ── Larger player on desktop ────────────────────────────────── */
+@media (min-width: 768px) and (min-height: 500px) {
+  #dojang-player-sprite { width: 108px; height: 108px; }
+  #dojang-player-sprite svg { width: 108px; height: 108px; }
+  .dj-player-btn { width: 44px; height: 44px; font-size: 1.1rem; margin-bottom: 30px; }
+}
+
+/* ── Small screen adjustments ────────────────────────────────── */
+@media (max-height: 600px) {
+  #dojang-player-sprite { width: 60px; height: 60px; order: 1; }
+  #dojang-player-sprite svg { width: 60px; height: 60px; }
+  .dj-player-btn { width: 30px; height: 30px; font-size: .8rem; margin-bottom: 14px; }
+  #dojang-announce { top: 24%; }
+  #dojang-threshold { position: absolute; top: 18px; }
+}

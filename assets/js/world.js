@@ -700,7 +700,7 @@ export function enterRoom(col, row) {
       if (!cell.currentLesson) {
         cell.currentLesson = getNextLesson(G.completedLessons || []) || null;
       }
-      spawnRoomNpc('teacher', '🎓', cell);
+      spawnRoomNpc('teacher', '🧑‍🏫', cell);
       announce(i18n('world.teacherPrompt'), null);
       break;
 
@@ -726,7 +726,7 @@ export function enterRoom(col, row) {
       // World 0 special rooms (first visit) → interact hints - non-combat, auto-close 25s
       else if (wIdx === 0 && !cell.cleared) {
         if      (cell.type === 'shop')     window._showTutorial?.('🏪', 'tutorial.typeToBuy',  { room: i18n('map.legendShop') },     { autoClose: 25 });
-        else if (cell.type === 'teacher')  window._showTutorial?.('🎓', 'tutorial.typeToTalk', { room: i18n('map.legendTeacher') },   { autoClose: 25 });
+        else if (cell.type === 'teacher')  window._showTutorial?.('🧑‍🏫', 'tutorial.typeToTalk', { room: i18n('map.legendTeacher') },   { autoClose: 25 });
         else if (cell.type === 'treasure') window._showTutorial?.('💰', 'tutorial.typeToOpen', { room: i18n('map.legendTreasure') },  { autoClose: 25 });
         else if (cell.type === 'modifier') window._showTutorial?.('✨', 'tutorial.typeToOpen', { room: i18n('map.legendItem') },      { autoClose: 25 });
       }
@@ -813,7 +813,7 @@ function onRoomCleared(cell) {
         const onCd = cdTs !== undefined && (G.gameTime - cdTs) < 1860;
         if (hasTeacher && !tut.teacherInteractedThisWorld && !onCd) {
           tut.teacherHintShownWorld = wIdx;
-          window._showTutorial?.('🎓', 'tutorial.findTeacher', null, { autoClose: 30 });
+          window._showTutorial?.('🧑‍🏫', 'tutorial.findTeacher', null, { autoClose: 30 });
         }
       }
     }
@@ -1087,7 +1087,7 @@ function reopenSpecialRoom(cell) {
     spawnRoomNpc('casino', '🎰', cell);
   } else if (cell.type === 'teacher') {
     // Teacher always respawns - they never leave
-    spawnRoomNpc('teacher', '🎓', cell);
+    spawnRoomNpc('teacher', '🧑‍🏫', cell);
   } else if (cell.isTent) {
     spawnRoomNpc('tent', '⛺', cell);
   }

@@ -426,6 +426,10 @@ export function startTeacherChallenge(container, cell) {
   });
 
   _testState = { questions, cur: 0, hits: 0, prize: prizeMod, won: 0, wonPerHit, cell };
+  // Elevate kb-panels above scr-teacher only during the test
+  document.body.classList.add('teacher-test-active');
+  const pa = document.getElementById('player-area');
+  if (pa) pa.style.zIndex = '160';
 
   // Ensure Korean IME is on for written questions
   const toggle = document.getElementById('ime-toggle');
@@ -713,6 +717,10 @@ function finishTest() {
   const passed = _testState.hits >= 16; // 80% threshold
   const cell = _testState.cell;
   if (cell) cell.testDone = true; // always block re-take after completion
+  // Lower kb-panels back below teacher screen (results don't need typing)
+  document.body.classList.remove('teacher-test-active');
+  const pa = document.getElementById('player-area');
+  if (pa) pa.style.zIndex = '';
   // Clear touch routing / IME fallback handlers
   window._feedKeyToTestInput = null;
   window._backspaceTestInput = null;

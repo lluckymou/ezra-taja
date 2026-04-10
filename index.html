@@ -12,6 +12,7 @@
 <meta name="theme-color" content="#030d1a">
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/dojang.css">
 <script>
 (function(){
   var ua = navigator.userAgent;
@@ -143,9 +144,6 @@
       <input id="dict-search" type="text" placeholder="Search…" data-i18n-placeholder="dict.searchPlaceholder" autocomplete="off">
     </div>
     <div id="dict-list"></div>
-    <div style="text-align:center; margin-top: auto; padding-top: 12px;">
-      <button id="title-reset-btn" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">↺ Reset progress</button>
-    </div>
   </div>
 </div>
 <!-- ── SETTINGS MODAL ────────────────────────────────────── -->
@@ -242,6 +240,9 @@
       <div id="settings-credits">
         <div class="credits-by" data-i18n="credits.byLine">🫰 By Lucas Nascimento</div>
         <div class="credits-thanks" data-i18n="credits.thanks">Special thanks to Roh HaYoung and KIT for showing me Korean culture and language, I'm eternally grateful to all of you. You have changed my life forever. I hope this project inspires more people to study your language and connect to your beautiful and inspiring culture.</div>
+      </div>
+      <div style="text-align:center; margin-top: auto; padding-top: 12px;">
+        <button id="title-reset-btn" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">↺ Reset progress</button>
       </div>
     </div>
   </div>
@@ -367,7 +368,7 @@
 <!-- ── TEACHER SCREEN ──────────────────────────────────────── -->
 <div id="scr-teacher" class="screen off">
   <div class="menu-card">
-    <h2><span data-i18n="teacher.title">🎓 Teacher</span></h2>
+    <h2><span data-i18n="teacher.title">🧑‍🏫 Teacher</span></h2>
     <div id="teacher-content"></div>
   </div>
 </div>
@@ -462,7 +463,7 @@
     <span>💰 <span data-i18n="map.legendTreasure">Treasure</span></span>
     <span>🎰 <span data-i18n="map.legendCasino">Casino</span></span>
     <span>⛺ <span data-i18n="map.legendCamp">Camp</span></span>
-    <span>🎓 <span data-i18n="map.legendTeacher">Teacher</span></span>
+    <span>🧑‍🏫 <span data-i18n="map.legendTeacher">Teacher</span></span>
   </div>
   <div id="map-perms-row" style="margin-top:8px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
     <div style="font-size:.72rem;color:#888;margin-bottom:4px" data-i18n="map.nextWorlds">Next Worlds</div>
@@ -531,6 +532,96 @@
 <canvas id="wx-canvas"></canvas>
 <!-- ── DAY/NIGHT CANVAS (never opacity-animated) ─────────── -->
 <canvas id="dn-canvas"></canvas>
+
+<!-- ── DOJANG STROKE CANVAS (drawing input layer) ────────── -->
+<canvas id="dojang-canvas"></canvas>
+
+<!-- ── DOJANG ENTRY MODAL ─────────────────────────────────── -->
+<div id="dojang-entry-modal" class="off">
+  <div id="dojang-entry-inner">
+    <h2 data-i18n="dojang.entryTitle">Ready, warrior?</h2>
+    <p data-i18n="dojang.entrySub">Do you want to train in the Hangul Dojang before your adventure?</p>
+    <div id="dojang-entry-btns">
+      <button class="dj-entry-btn dj-btn-primary" id="dojang-entry-go">
+        <span class="dj-btn-icon">🥋</span>
+        <span class="dj-btn-main" data-i18n="dojang.btnDojang">Hangul Dojang</span>
+        <span class="dj-btn-sub" data-i18n="dojang.btnDojangSub">Learn to write Hangul</span>
+      </button>
+      <button class="dj-entry-btn" id="dojang-entry-skip">
+        <span class="dj-btn-icon">⚔️</span>
+        <span class="dj-btn-main" data-i18n="dojang.btnAdventure">Start Adventure</span>
+        <span class="dj-btn-sub" data-i18n="dojang.btnAdventureSub">Jump straight in</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DOJANG SCREEN (HUD overlay — pointer-events: none) ─── -->
+<div id="scr-dojang" class="screen off">
+  <!-- Top HUD bar: [inspector] [book]  [ring]  [pause] -->
+  <div id="dojang-hud">
+    <div id="dojang-hud-left">
+      <button class="dj-hud-btn" id="dojang-book-btn" title="Book">📖</button>
+      <button class="dj-hud-btn" id="dojang-inspector-btn" title="Stroke Guide">🔎</button>
+    </div>
+    <div id="dojang-ring-wrap">
+      <svg id="dojang-ring-svg" width="50" height="50" viewBox="0 0 50 50">
+        <circle id="dojang-ring-bg" cx="25" cy="25" r="22" stroke-width="4"/>
+        <circle id="dojang-ring-fg" cx="25" cy="25" r="22" stroke-width="4"/>
+      </svg>
+      <div id="dojang-threshold">0</div>
+      <div id="dojang-phase-label"></div>
+    </div>
+    <div id="dojang-hud-right">
+      <button class="dj-hud-btn" id="dojang-pause-btn" title="Pause">
+        <span class="icon-pause"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Player sprite + action buttons -->
+  <div id="dojang-player">
+    <button class="dj-player-btn" id="dojang-btn-speak" title="Speak again">🔊</button>
+    <div id="dojang-player-sprite"></div>
+    <button class="dj-player-btn" id="dojang-btn-restart" title="Restart">♻️</button>
+  </div>
+
+  <!-- Pause overlay (inside scr-dojang so it inherits pointer-events: all from .screen) -->
+  <div id="dojang-pause-overlay" class="off">
+    <div id="dojang-pause-panel">
+      <h2 data-i18n="dojang.paused">Paused</h2>
+      <button class="dj-pause-btn dj-pause-primary" id="dojang-btn-resume" data-i18n="dojang.resume">▶ Resume</button>
+      <button class="dj-pause-btn" id="dojang-btn-menu" data-i18n="dojang.backMenu">Main Menu</button>
+      <button class="dj-pause-btn off" id="dojang-btn-adventure" data-i18n="dojang.startAdventure">⚔️ Start Adventure</button>
+    </div>
+  </div>
+
+  <!-- Book modal -->
+  <div id="dojang-book-modal" class="off">
+    <div id="dojang-book-inner">
+      <div id="dojang-book-header">
+        <span data-i18n="dojang.bookTitle">📖 Practice Log</span>
+        <button id="dojang-book-close">✕</button>
+      </div>
+      <div id="dojang-book-body"></div>
+    </div>
+  </div>
+
+  <!-- Stroke inspector modal -->
+  <div id="dojang-inspector-modal" class="off">
+    <div id="dojang-inspector-inner">
+      <div id="dojang-inspector-header">
+        <span data-i18n="dojang.inspectorTitle">Stroke Guide</span>
+        <button id="dojang-inspector-close">✕</button>
+      </div>
+      <div id="dojang-inspector-body"></div>
+      <div id="dojang-inspector-nav"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Dojang floating announcement — outside scr-dojang to avoid stacking context -->
+<div id="dojang-announce"></div>
 
 <!-- ── CTRL QUICK-ACTION PANEL ────────────────────────────── -->
 <div id="ctrl-panel" class="off" onclick="if(event.target===this)closeCtrlPanel()">

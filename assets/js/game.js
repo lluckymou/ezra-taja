@@ -44,6 +44,8 @@ import { HangulComposer, QWERTY_TO_JAMO } from './hangul-input.js';
 import { WORD_DICT } from '../data/words.js';
 import { POWERUP_DEFS, formatKoreanNumber } from '../data/items.js';
 import { LESSONS_BASE } from '../data/lessons.js';
+import { dojangManager, loadDojangStats } from './dojang.js';
+import { computeHangulStage } from '../data/dojang-data.js';
 
 // Parse lesson word string, handling disambiguation like 'text:emoji'
 function parseLessonWord(str) {
@@ -915,15 +917,16 @@ export function init() {
     if (_tutCurrentKey === 'tutorial.pressMap') window._hideTutorial(true);
   };
 
-  // Called when teacher screen opens - dismiss teacher tip + float kb above teacher
+  // Called when teacher screen opens - dismiss tutorial tip + hide player sprite
   window._onTeacherOpen = () => {
     if (_tutCurrentKey === 'tutorial.typeToTalk' || _tutCurrentKey === 'tutorial.findTeacher') {
       window._hideTutorial(true);
     }
     const pi = document.getElementById('player-inner');
     if (pi) pi.style.visibility = 'hidden';
+    // kb-panels: only float above scr-teacher when test is active (set by hud.js)
     const pa = document.getElementById('player-area');
-    if (pa) { pa.style.zIndex = '160'; pa.style.padding = '15px'; }
+    if (pa) pa.style.padding = '15px';
   };
 
   // Wire global callbacks
@@ -1120,6 +1123,15 @@ function loop(ts) {
   const _dpr = window.devicePixelRatio || 1;
   ctx.setTransform(_dpr, 0, 0, _dpr, 0, 0);
   ctx.clearRect(0, 0, G.W, G.vH || window.innerHeight);
+
+  // ── Dojang phase ─────────────────────────────────────────────
+  if (G.phase === 'dojang') {
+    dojangManager.tick(dt);
+    dojangManager.draw(ctx);
+    dojangManager.resizeStrokeCanvas();
+    requestAnimationFrame(loop);
+    return;
+  }
 
   // Menu/title background: render a preview room
   if (G.phase === 'title' && G.menuPreview) {
@@ -2187,10 +2199,19 @@ function buildTitleScreen() {
     updateBook();
   });
 
-  // Start button - show lore then play world-entry cinematic
+  // Start button - show Dojang entry modal
   document.getElementById('btn-play')?.addEventListener('click', () => {
+    _showDojangEntryModal();
+  });
+
+  // Dojang entry modal buttons (wired once at startup)
+  document.getElementById('dojang-entry-go')?.addEventListener('click', _enterDojang);
+  document.getElementById('dojang-entry-skip')?.addEventListener('click', () => {
+    _hideDojangEntryModal();
     runLoreAnimation(() => triggerMenuPlayTransition());
   });
+
+  // Dojang in-session buttons (wired when entering dojang for first time)
 
   // In-run button: resume
   document.getElementById('btn-resume')?.addEventListener('click', resumeGame);
@@ -2716,6 +2737,7 @@ window.closeTeacherScreen = function() {
   if (pi) pi.style.visibility = '';
   const pa = document.getElementById('player-area');
   if (pa) { pa.style.zIndex = ''; pa.style.padding = ''; }
+  document.body.classList.remove('teacher-test-active');
   window._feedKeyToTestInput = null;
   window._backspaceTestInput = null;
   window._commitAndGetTestInput = null;
@@ -2829,6 +2851,129 @@ const DIFFICULTY = {
   hard:     { lives: 5,  coinMult: 1.0 },
   hardcore: { lives: 1,  coinMult: 1.0 },
 };
+
+/* ================================================================
+   HANGUL DOJANG - entry modal + phase management
+================================================================ */
+function _showDojangEntryModal() {
+  const modal = document.getElementById('dojang-entry-modal');
+  if (!modal) return;
+  modal.classList.remove('off');
+  // After stage 1 the player knows the ropes — demote the primary button style
+  const goBtn = document.getElementById('dojang-entry-go');
+  if (goBtn) {
+    const stats = loadDojangStats();
+    const stage = stats ? computeHangulStage(stats) : 0;
+    goBtn.classList.toggle('dj-btn-primary', stage < 1);
+  }
+  // Close on outside click (delegated, runs once per open)
+  const onOutside = (e) => {
+    if (!e.target.closest('#dojang-entry-inner')) {
+      _hideDojangEntryModal();
+      modal.removeEventListener('click', onOutside);
+    }
+  };
+  // Use setTimeout so the current click (that opened it) doesn't immediately close it
+  setTimeout(() => modal.addEventListener('click', onOutside), 0);
+}
+
+function _hideDojangEntryModal() {
+  const modal = document.getElementById('dojang-entry-modal');
+  if (modal) modal.classList.add('off');
+}
+
+function _enterDojang() {
+  _hideDojangEntryModal();
+  // Set up avatar in dojang before start() references it
+  if (!G.avatar) G.avatar = JSON.parse(localStorage.getItem('krr_avatar') || 'null') || AVA_DEFAULTS;
+  setPlayerContent(document.getElementById('pl-emoji'));
+
+  G.phase = 'dojang';
+  document.body.classList.remove('phase-title');
+  document.body.classList.add('phase-dojang');
+
+  // Show dojang screen, hide title
+  screenOff('scr-title');
+  const scrDojang = document.getElementById('scr-dojang');
+  if (scrDojang) scrDojang.classList.remove('off');
+
+  // Show stroke canvas
+  const dojangCanvas = document.getElementById('dojang-canvas');
+  if (dojangCanvas) dojangCanvas.style.display = 'block';
+
+  // Init manager if not done yet
+  if (!dojangManager.strokeCanvas) {
+    dojangManager.init(dojangCanvas);
+    dojangManager.onStartAdventure = _dojangStartAdventure;
+    dojangManager.onExitToMenu = _dojangExitToMenu;
+
+    // Wire up in-dojang UI buttons (once only)
+    document.getElementById('dojang-pause-btn')?.addEventListener('click', () => dojangManager.togglePause());
+    document.getElementById('dojang-book-btn')?.addEventListener('click', () => dojangManager.openBook());
+    document.getElementById('dojang-book-close')?.addEventListener('click', () => dojangManager.closeBook());
+    document.getElementById('dojang-inspector-btn')?.addEventListener('click', () => dojangManager.openInspector());
+    document.getElementById('dojang-inspector-close')?.addEventListener('click', () => dojangManager.closeInspector());
+    document.getElementById('dojang-btn-speak')?.addEventListener('click', () => dojangManager.speakCurrent());
+    document.getElementById('dojang-btn-restart')?.addEventListener('click', () => dojangManager.restartChallenge());
+    document.getElementById('dojang-btn-resume')?.addEventListener('click', () => dojangManager.togglePause());
+    document.getElementById('dojang-btn-menu')?.addEventListener('click', _dojangExitToMenu);
+    document.getElementById('dojang-btn-adventure')?.addEventListener('click', _dojangStartAdventure);
+  }
+
+  // Hide weather canvases and roguelite player-area while in dojang
+  wxCanvas.style.visibility = 'hidden';
+  const dnCanvasEl = document.getElementById('dn-canvas');
+  if (dnCanvasEl) dnCanvasEl.style.visibility = 'hidden';
+  if (paEl) paEl.style.display = 'none';
+
+  // Resize stroke canvas to current viewport
+  const dpr = window.devicePixelRatio || 1;
+  const w = Math.floor(window.innerWidth), h = Math.floor(G.vH || window.innerHeight);
+  dojangCanvas.width  = Math.floor(w * dpr);
+  dojangCanvas.height = Math.floor(h * dpr);
+  dojangCanvas.style.width  = w + 'px';
+  dojangCanvas.style.height = h + 'px';
+  const ctx2d = dojangCanvas.getContext('2d');
+  ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  dojangManager.start(G.dojangStats);
+}
+
+function _dojangExitToMenu() {
+  dojangManager.exit();
+  G.dojangStats = loadDojangStats();
+  G.phase = 'title';
+  document.body.classList.remove('phase-dojang');
+  document.body.classList.add('phase-title');
+  // Restore weather canvases and player-area
+  wxCanvas.style.visibility = '';
+  const dnCanvasEl2 = document.getElementById('dn-canvas');
+  if (dnCanvasEl2) dnCanvasEl2.style.visibility = '';
+  if (paEl) paEl.style.display = '';
+  const scrDojang = document.getElementById('scr-dojang');
+  if (scrDojang) scrDojang.classList.add('off');
+  const dojangCanvas = document.getElementById('dojang-canvas');
+  if (dojangCanvas) dojangCanvas.style.display = 'none';
+  screenOn('scr-title');
+}
+
+function _dojangStartAdventure() {
+  dojangManager.exit();
+  G.dojangStats = loadDojangStats();
+  G.phase = 'title';
+  document.body.classList.remove('phase-dojang');
+  // Restore weather canvases (player-area is managed by startNewRun)
+  wxCanvas.style.visibility = '';
+  const dnCanvasEl3 = document.getElementById('dn-canvas');
+  if (dnCanvasEl3) dnCanvasEl3.style.visibility = '';
+  if (paEl) paEl.style.display = '';
+  const scrDojang = document.getElementById('scr-dojang');
+  if (scrDojang) scrDojang.classList.add('off');
+  const dojangCanvas = document.getElementById('dojang-canvas');
+  if (dojangCanvas) dojangCanvas.style.display = 'none';
+  // Start run immediately without lore
+  triggerMenuPlayTransition();
+}
 
 function startNewRun() {
   resetRunState();
@@ -4400,8 +4545,8 @@ document.addEventListener('keydown', e => {
         document.activeElement?.closest('input, textarea, select');
       if (!inOtherInput && !teacherOpen) { e.preventDefault(); window.toggleBook(); }
     }
-    // M: toggle Map (skip if another input has focus, or teacher screen is open)
-    if (e.key === 'm' || e.key === 'M') {
+    // Ctrl+M: toggle Map (skip if another input has focus, or teacher screen is open)
+    if ((e.key === 'm' || e.key === 'M') && e.ctrlKey) {
       const inOtherInput = document.activeElement !== typingEl &&
         document.activeElement?.closest('input, textarea, select');
       if (!inOtherInput && !teacherOpen) { e.preventDefault(); window.toggleMap(); }
