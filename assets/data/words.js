@@ -8,7 +8,7 @@
      Lesson-unlocked words bypass the threshold entirely
 
    d: jamo keystroke count, computed at import time from countJamo(text)
-     Used to scale word difficulty by wave — short words appear early,
+     Used to scale word difficulty by wave - short words appear early,
      longer/harder syllable stacks appear later.
 
    secondaryEmoji: shown in the monster's offhand / wield slot for identification.
@@ -34,7 +34,7 @@ export const WORD_DICT_RAW = [
   { text:'동물원',  emoji:'🦓', secondaryEmoji:'🧱', category:'place',   hanja:'動物園', rel:70 },
   { text:'은행',    emoji:'🏦', category:'place',       hanja:'銀行', rel:80 },
   { text:'회사',    emoji:'🏢', secondaryEmoji:'💼', category:'place',     hanja:'會社', rel:80 },
-  { text:'호텔',    emoji:'🏨', category:'place',       rel:75 },
+  { text:'호텔',    emoji:'🏨', secondaryEmoji:'🧳', category:'place',       rel:75 },
   { text:'공항',    emoji:'🛫', secondaryEmoji:'🏢', category:'place',   hanja:'空港', rel:75 },
   { text:'역',      emoji:'🚉', category:'place',     hanja:'驛', rel:80 },
   { text:'학원',    emoji:'🎓', category:'place',    hanja:'學院', rel:70 },
@@ -308,7 +308,7 @@ export const WORD_DICT_RAW = [
   { text:'사람',    emoji:'🧑', secondaryEmoji:'👤', category:'person',      hanja:'人', rel:95 },
   { text:'아기',    emoji:'👶', secondaryEmoji:'🍼', category:'person', rel:90 },
   { text:'학생',    emoji:'🧑‍🎓', category:'person', hanja:'學生', rel:90 },
-  { text:'선생',    emoji:'🧑‍🏫', category:'person',   hanja:'先生', rel:85 },
+  { text:'선생님',  emoji:'🧑‍🏫', category:'person',   hanja:'先生님', rel:85 },
   { text:'의사',    emoji:'👨‍⚕️', category:'person',      hanja:'醫師', rel:85 },
   { text:'경찰',    emoji:'👮', category:'person',    hanja:'警察', rel:80 },
   { text:'요리사',  emoji:'👨‍🍳', category:'person',  hanja:'料理師', rel:75 },
@@ -396,7 +396,7 @@ export const WORD_DICT_RAW = [
   { text:'이',      emoji:'🦷', category:'body',       rel:80 },
   { text:'혀',      emoji:'👅', category:'body',      rel:75 },
   { text:'턱',      emoji:'🫦', category:'body', rel:65 },
-  { text:'목',      emoji:'🧣', category:'body', rel:80 },
+  { text:'목',      emoji:'🟫', secondaryEmoji: '🧣', category:'body', rel:80 },
   { text:'어깨',    emoji:'🤷', category:'body', rel:75 },
   { text:'팔',      emoji:'💪', category:'body', rel:85 },
   { text:'등',      emoji:'🧍', secondaryEmoji:'👤', category:'body', rel:75 },
@@ -568,6 +568,7 @@ export const WORD_DICT_RAW = [
   { text:'양말',   emoji:'🧦', category:'object',    hanja:'洋襪', rel:80 },
   { text:'장갑',   emoji:'🧤', category:'object',    hanja:'掌匣', rel:70 },
   { text:'코트',   emoji:'🧥', category:'object',   rel:75 },
+  { text:'목도리', emoji:'🧣', category:'object',   rel:55 },
   { text:'지갑',   emoji:'👛', category:'object', hanja:'紙匣', rel:80 },
   { text:'연필',   emoji:'✏️', category:'object',    hanja:'鉛筆', rel:80 },
   { text:'가위',   emoji:'✂️', category:'object',  rel:75 },
@@ -1323,16 +1324,16 @@ export const WORD_DICT_RAW = [
   { text:'공',  emoji:'0️⃣', secondaryEmoji:'#️⃣', category:'number', hanja:'空', rel:60 },
 
   // ── NUMBERS (Native Korean) ────────────────────────────────────
-  { text:'하나', emoji:'🔢', secondaryEmoji:'🥇', category:'number', rel:80 },
-  { text:'둘',  emoji:'🔢', secondaryEmoji:'✌️', category:'number', rel:80 },
-  { text:'셋',  emoji:'🔢', secondaryEmoji:'☘️', category:'number', rel:78 },
-  { text:'넷',  emoji:'🔢', secondaryEmoji:'🍀', category:'number', rel:78 },
-  { text:'다섯', emoji:'🔢', secondaryEmoji:'🖐️', category:'number', rel:75 },
-  { text:'여섯', emoji:'🔢', secondaryEmoji:'🎲', category:'number', rel:72 },
-  { text:'일곱', emoji:'🔢', secondaryEmoji:'🌈', category:'number', rel:72 },
-  { text:'여덟', emoji:'🔢', secondaryEmoji:'🎱', category:'number', rel:72 },
-  { text:'아홉', emoji:'🔢', secondaryEmoji:'🔮', category:'number', rel:72 },
-  { text:'열',  emoji:'🔢', secondaryEmoji:'🎯', category:'number', rel:78 },
+  { text:'하나', emoji:'1️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:80 },
+  { text:'둘',  emoji:'2️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:80 },
+  { text:'셋',  emoji:'3️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:78 },
+  { text:'넷',  emoji:'4️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:78 },
+  { text:'다섯', emoji:'5️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:75 },
+  { text:'여섯', emoji:'6️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:72 },
+  { text:'일곱', emoji:'7️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:72 },
+  { text:'여덟', emoji:'8️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:72 },
+  { text:'아홉', emoji:'9️⃣', secondaryEmoji:'🇰🇷', category:'number', rel:72 },
+  { text:'열',  emoji:'🔟', secondaryEmoji:'🇰🇷', category:'number', rel:78 },
   { text:'스물', emoji:'2️⃣', secondaryEmoji: '🔟', category:'number', rel:68 },
   { text:'서른', emoji:'3️⃣', secondaryEmoji: '🔟', category:'number', rel:65 },
   { text:'마흔', emoji:'4️⃣', secondaryEmoji: '🔟', category:'number', rel:65 },
@@ -1382,7 +1383,6 @@ export const WORD_DICT_RAW = [
   { text:'화장실', emoji:'🚽', secondaryEmoji:'🪥', category:'place',      hanja:'化粧室', rel:85 },
 
   // ── SCHOOL / SUPPLIES ───────────────────────────────────────────
-  { text:'선생님', emoji:'👩‍🏫', category:'person', rel:90 },
   { text:'강사님', emoji:'🧑‍🏫', secondaryEmoji:'🎒', category:'person', rel:60 },
   { text:'교수님', emoji:'🎓',   secondaryEmoji:'📐', category:'person', hanja:'敎授', rel:65 },
   { text:'스승님', emoji:'🙏',   secondaryEmoji:'📜', category:'person', rel:55 },

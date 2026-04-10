@@ -1,5 +1,5 @@
 /* ================================================================
-   KOREAN ROGUELITE — styles
+   KOREAN ROGUELITE - styles
    Ported from typing-game.html with dungeon additions
 ================================================================ */
 :root {
@@ -29,7 +29,7 @@ body.mobile-fs #hud  { top: calc(8px + var(--tb-h)); }
 body.mobile-fs #btn-map { top: calc(8px + var(--tb-h)); }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── SVG icon helper — inherits CSS color via mask ── */
+/* ── SVG icon helper - inherits CSS color via mask ── */
 .icon-close, .icon-fs-enter, .icon-fs-exit {
   display: inline-block;
   width: 1em; height: 1em;
@@ -81,7 +81,7 @@ body {
   background: #030d1a;
 }
 
-/* White content card — still used by in-run screens (shop, modifier, etc.) */
+/* White content card - still used by in-run screens (shop, modifier, etc.) */
 .menu-card {
   position: relative;
   background: #fff;
@@ -100,7 +100,7 @@ body {
 .menu-card h1, .menu-card h2, .menu-card h3,
 .screen h1, .screen h2, .screen h3 { font-weight: 400; }
 
-/* ===== TITLE SCREEN — new design ===== */
+/* ===== TITLE SCREEN - new design ===== */
 #scr-title {
   background: rgba(255,255,255,.45);
   backdrop-filter: blur(5px);
@@ -584,7 +584,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 }
 #btn-restart:hover { transform: translateY(-2px); }
 
-/* ===== PAUSE SCREEN — redesign ===== */
+/* ===== PAUSE SCREEN - redesign ===== */
 #scr-pause {
   background: rgba(3,0,24,.65);
   backdrop-filter: blur(6px);
@@ -983,7 +983,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   box-shadow: 0 0 5px rgba(40,200,80,.8) !important;
   animation: map-pulse-green 1s ease-in-out infinite;
 }
-/* Boss room — always red */
+/* Boss room - always red */
 .map-cell.boss-room {
   background: rgba(160,25,25,.45);
   color: rgba(255,110,110,.9);
@@ -996,7 +996,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   box-shadow: 0 0 6px rgba(255,70,70,.85) !important;
   animation: map-pulse-red 1s ease-in-out infinite;
 }
-/* Teacher room — near-white */
+/* Teacher room - near-white */
 .map-cell.teacher-room {
   background: rgba(235,237,240,.55);
   color: rgba(50,60,70,.95);
@@ -1012,7 +1012,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   animation: map-pulse-teacher 1s ease-in-out infinite;
 }
 @keyframes map-pulse-teacher { 0%,100% { opacity:1; } 50% { opacity:.6; } }
-/* Shop room — always yellow */
+/* Shop room - always yellow */
 .map-cell.shop-room {
   background: rgba(140,110,10,.45);
   color: rgba(255,225,80,.9);
@@ -1025,7 +1025,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   box-shadow: 0 0 6px rgba(255,215,50,.85) !important;
   animation: map-pulse-yellow 1s ease-in-out infinite;
 }
-/* Casino room — always purple */
+/* Casino room - always purple */
 .map-cell.casino-room {
   background: rgba(100,30,160,.45);
   color: rgba(220,160,255,.9);
@@ -1056,7 +1056,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   border-radius: 12px 12px 0 0; padding: 10px;
   z-index: 150;
   transition: opacity .2s;
-  width: 320px;
+  width: 400px;
   display: flex; flex-direction: column;
 }
 #book-panel.off { opacity: 0; pointer-events: none; }
@@ -1239,9 +1239,9 @@ body.touch-mode .map-next-world-row .mnw-name  {
   line-height: 1;
   user-select: none;
 }
-/* SVG avatar in player slot — sized by font-size via 1em */
+/* SVG avatar in player slot - sized by font-size via 1em */
 #pl-emoji svg { width: 1em; height: 1em; display: block; flex-shrink: 0; }
-/* SVG avatar in door-walk ghost — sized via inline width/height on parent */
+/* SVG avatar in door-walk ghost - sized via inline width/height on parent */
 #pl-door-ghost svg { width: 100%; height: 100%; display: block; }
 /* SVG avatar on minimap hero cell */
 .map-cell-hero svg { width: 1rem; display: block; }
@@ -1311,7 +1311,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
   overflow: hidden;
   transition: background .1s, border-color .1s;
 }
-/* Home-row bump keys (F/ㄹ and J/ㅓ) — 2× thicker bottom border */
+/* Home-row bump keys (F/ㄹ and J/ㅓ) - 2× thicker bottom border */
 .kb-key.kb-home {
   border-bottom: 3px solid rgba(255,255,255,.42);
 }
@@ -1319,7 +1319,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
   background: rgba(255,255,255,.38);
   border-color: rgba(255,255,255,.65);
 }
-/* Main jamo — top-left, large */
+/* Main jamo - top-left, large */
 .kb-main-char {
   position: absolute; top: 3px; left: 4px;
   font-size: 1.3rem; line-height: 1;
@@ -1327,7 +1327,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
   font-family: 'Pretendard', sans-serif;
   transition: color .1s, font-size .1s;
 }
-/* Shift jamo — top-right, small, transparent */
+/* Shift jamo - top-right, small, transparent */
 .kb-shift-char {
   position: absolute; top: 3px; right: 4px;
   font-size: .72rem; line-height: 1;
@@ -1335,7 +1335,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
   font-family: 'Pretendard', sans-serif;
   transition: color .1s, font-size .1s;
 }
-/* Latin letter — bottom-right, tiny, very transparent */
+/* Latin letter - bottom-right, tiny, very transparent */
 .kb-latin-char {
   position: absolute; bottom: 2px; right: 4px;
   font-size: .62rem; line-height: 1;
@@ -1368,7 +1368,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
 #pl-emoji.entering { animation: plEnter .45s ease-out forwards; }
 #pl-emoji.exiting  { animation: plExit  .3s  ease-in  forwards; }
 
-/* Door transition ghost — floats over canvas during door walk */
+/* Door transition ghost - floats over canvas during door walk */
 #pl-door-ghost {
   position: fixed;
   font-size: 4rem;
@@ -1427,7 +1427,7 @@ body.touch-mode .map-next-world-row .mnw-name  {
 #announce {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  pointer-events: none; z-index: 50; /* low z-index: behind blur of ctrl-panel */
+  pointer-events: none; z-index: 160; /* high z-index: above teacher screen */
 }
 body.phase-title #announce { visibility: hidden; }
 body:has(#ctrl-panel:not(.off)) #announce,
@@ -1732,7 +1732,7 @@ body.touch-mode .wave-ring-wrap { display: flex; }
 body.touch-mode #hcard-wave { justify-content: center; }
 /* #pl-emoji and #spell-ico sizes are screen-height responsive (clamp in base rule) */
 
-/* Key size: smaller on short screens (landscape mobile) — no touch-mode dependency */
+/* Key size: smaller on short screens (landscape mobile) - no touch-mode dependency */
 @media (max-height: 680px) {
   .kb-key, .kb-touch-special { width: 40px; height: 40px; }
 }
@@ -1743,7 +1743,7 @@ body.touch-mode #hcard-wave { justify-content: center; }
 /* 영 (latin) mode: lowercase (big) at top-left, uppercase (small) at top-right, no bottom */
 .kb-panel.latin-mode .kb-main-char  { visibility: hidden; }
 .kb-panel.latin-mode .kb-shift-char { visibility: hidden; }
-/* lowercase char becomes primary — move to top-left, enlarge */
+/* lowercase char becomes primary - move to top-left, enlarge */
 .kb-panel.latin-mode .kb-latin-char {
   bottom: auto; top: 3px; left: 4px; right: auto;
   font-size: 1.1rem; color: rgba(255,255,255,.75);
@@ -1751,7 +1751,7 @@ body.touch-mode #hcard-wave { justify-content: center; }
 }
 /* Shift in 영 mode: show latin char as uppercase */
 .kb-panel.latin-mode.shifted .kb-latin-char { text-transform: uppercase; }
-/* uppercase char becomes secondary — top-right, small */
+/* uppercase char becomes secondary - top-right, small */
 .kb-panel.latin-mode .kb-latin-upper {
   display: block;
   top: 3px; left: auto; right: 4px;
@@ -1784,7 +1784,7 @@ body.touch-mode .wave-body { justify-content: center; }
 /* Right HUD card: show only pause button, hide score values */
 body.touch-mode .score-vals { display: none; }
 body.touch-mode .score-body { justify-content: center; }
-/* Ring-arc area: clickable in both modes — cursor set globally in base rule */
+/* Ring-arc area: clickable in both modes - cursor set globally in base rule */
 
 /* ===== GROUND ITEMS ===== */
 #ground-items { position: fixed; inset: 0; pointer-events: none; z-index: 49; overflow: visible; }
@@ -1878,7 +1878,7 @@ body.touch-mode #cheat-title { cursor: default; }
 }
 
 /* ===== TITLE FOOTER ===== */
-/* #title-footer removed — replaced by #menu-footer inside #menu-body */
+/* #title-footer removed - replaced by #menu-footer inside #menu-body */
 
 /* ===== LANGUAGE / DIFFICULTY SELECT ===== */
 .gopt-select {
@@ -1936,7 +1936,7 @@ body.touch-mode #cheat-title { cursor: default; }
   to   { opacity:1; transform:translateX(-50%) translateY(0); }
 }
 
-/* ===== MAP / CHEAT OPEN — fade out HUD + player area (touch only: map fills screen) ===== */
+/* ===== MAP / CHEAT OPEN - fade out HUD + player area (touch only: map fills screen) ===== */
 body.touch-mode.map-open #hud,
 body.touch-mode.map-open #player-area,
 body.touch-mode.cheat-open #hud,
@@ -2143,7 +2143,7 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 .md-speak-word { font-weight: 700; color: #fff; }
 
 /* ================================================================
-   ADDITIONS / OVERRIDES — appended
+   ADDITIONS / OVERRIDES - appended
 ================================================================ */
 /* ── Difficulty hearts label ── */
 #difficulty-hearts-label {
@@ -2163,7 +2163,7 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
 }
 
 /* ── Non-touch mode: book panel height constraint ── */
-body:not(.touch-mode) #book-panel { max-height: min(600px, 85vh);  height: min(600px, 85vh); }
+body:not(.touch-mode) #book-panel { max-height: min(435px, 85vh);  height: min(435px, 85vh); }
 
 /* ── Touch mode: map panel layout mode ── */
 body.touch-mode #map-panel:not(.off) {
@@ -2183,7 +2183,7 @@ body.touch-mode #map-panel:not(.off) {
 }
 
 /* ================================================================
-   TITLE SCREEN — mobile portrait: hide toggle buttons (they live in settings)
+   TITLE SCREEN - mobile portrait: hide toggle buttons (they live in settings)
 ================================================================ */
 @media (max-width: 600px) and (orientation: portrait) {
   #mode-toggle-btn, #difficulty-toggle-btn { display: none !important; }
@@ -2191,7 +2191,7 @@ body.touch-mode #map-panel:not(.off) {
 }
 
 /* ================================================================
-   TITLE SCREEN — mobile landscape: 2-column layout
+   TITLE SCREEN - mobile landscape: 2-column layout
    Left 40%: logo → slogan → dict (pushes down) → settings
    Right 60%: avatar editor → play button
 ================================================================ */
@@ -2227,7 +2227,7 @@ body.touch-mode #map-panel:not(.off) {
     font-size: 0.9rem !important;
   }
 
-  /* Left column, row 2 (1fr): Meu Dicionário — align-self: start pushes settings to bottom */
+  /* Left column, row 2 (1fr): Meu Dicionário - align-self: start pushes settings to bottom */
   #btn-my-dict {
     grid-column: 1 !important;
     grid-row: 2 !important;
@@ -2287,7 +2287,7 @@ body.touch-mode #map-panel:not(.off) {
 }
 
 /* ================================================================
-   PAUSE SCREEN — mobile landscape: backdrop scrolls, panel compact
+   PAUSE SCREEN - mobile landscape: backdrop scrolls, panel compact
 ================================================================ */
 #scr-pause { justify-content: stretch; align-items: stretch; }
 #pause-backdrop {
@@ -2340,7 +2340,7 @@ body.touch-mode #map-panel:not(.off) {
   #btn-resume.pause-btn { height: 95px; }
 }
 
-/* ===== TEACHER SCREEN — dark theme ===== */
+/* ===== TEACHER SCREEN - dark theme ===== */
 #scr-teacher {
   background: rgba(4, 10, 22, 0.90);
   backdrop-filter: blur(8px);
@@ -2351,6 +2351,15 @@ body.touch-mode #map-panel:not(.off) {
   color: #c2d4e8;
   border: 1px solid rgba(70, 120, 180, 0.22);
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.75);
+  max-height: min(92vh, 100dvh - 40px);
+}
+@media (max-width: 600px) {
+  #scr-teacher .menu-card {
+    width: 92vw;
+    padding: 20px 16px;
+    max-height: min(80vh, 100dvh - 20px);
+    overflow-y: auto;
+  }
 }
 #scr-teacher .menu-card h2 {
   color: #9fbfe0;
@@ -2385,6 +2394,27 @@ body.touch-mode #map-panel:not(.off) {
   border-color: rgba(215, 168, 48, 0.68) !important;
   box-shadow: 0 8px 22px rgba(170, 130, 28, 0.20) !important;
 }
+.teacher-challenge-done { opacity: 0.55; }
+.teacher-challenge-done:hover {
+  transform: none !important;
+  border-color: rgba(170, 130, 28, 0.40) !important;
+  box-shadow: none !important;
+  cursor: default;
+}
+/* ── Stats tab ── */
+.dict-stats {
+  display: flex; flex-direction: row; flex-wrap: wrap;
+  justify-content: space-around; align-items: flex-start;
+  padding: 14px 4px; gap: 10px;
+}
+.dict-stats-ring {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  min-width: 88px;
+}
+.dict-stats-label {
+  color: rgba(255,255,255,.8); font-size: .78rem; text-align: center;
+  line-height: 1.2; max-width: 90px;
+}
 /* Lesson viewer text on dark bg */
 #scr-teacher .md-p,
 #scr-teacher .md-li { color: #b8ccdf; }
@@ -2399,7 +2429,7 @@ body.touch-mode #map-panel:not(.off) {
   background: rgba(200, 60, 60, 0.12); border-radius: 8px; padding: 6px 12px; margin-top: 6px;
   border: 1px solid rgba(200, 60, 60, 0.22);
 }
-/* Exit button — muted, not red */
+/* Exit button - muted, not red */
 .teacher-exit-btn {
   display: block !important; margin: 0 auto !important;
   background: rgba(70, 90, 120, 0.28) !important;
@@ -2431,21 +2461,25 @@ body.touch-mode #map-panel:not(.off) {
   font-size: .8rem; opacity: .7; margin-bottom: 12px;
   border-bottom: 1px solid rgba(255,255,255,.1); padding-bottom: 6px;
   flex-direction: column; gap: 4px;
+  width: 100%;
 }
 .test-dots {
-  display: flex; gap: 4px; flex-wrap: wrap; justify-content: center;
-  margin-bottom: 4px;
+  display: flex; gap: 4px; flex-wrap: wrap; justify-content: space-evenly; align-items: center;
+  margin-bottom: 8px; width: 100%;
 }
 .test-dot {
   width: 10px; height: 10px; border-radius: 50%;
   background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
   display: inline-block;
 }
-.test-dot.done { background: #27ae60; border-color: #27ae60; }
+.test-dot.correct { background: #27ae60; border-color: #27ae60; }
+.test-dot.incorrect { background: #e74c3c; border-color: #e74c3c; }
+.test-dot.done { background: #27ae60; border-color: #27ae60; } /* legacy alias */
 .test-dot.current { background: #f1c40f; border-color: #f1c40f; box-shadow: 0 0 4px #f1c40f; }
 .test-hits { font-size: .85rem; opacity: .8; }
+.test-hits.failed { color: #e74c3c; font-weight: bold; }
 .test-giveup-btn {
-  display: block; margin: 6px auto 0;
+  display: block; width: fit-content;
   background: rgba(231,76,60,.25) !important; border: 1px solid rgba(231,76,60,.4) !important;
   font-size: .75rem !important; padding: 4px 14px !important; border-radius: 20px !important;
   color: #ff9999 !important;
@@ -2461,7 +2495,23 @@ body.touch-mode #map-panel:not(.off) {
   color: #fff; letter-spacing: 2px;
 }
 .test-big-emoji {
-  font-size: 3.5rem; text-align: center; margin: 12px 0; line-height: 1;
+  font-size: 3.5rem; text-align: center; width: fit-content; margin: 12px auto; line-height: 1;
+  position: relative;
+}
+.emoji-primary {
+  position: relative;
+}
+.emoji-secondary {
+  position: absolute;
+  right: -6px; bottom: -3px;
+  font-size: 1.2rem;
+  z-index: 1;
+}
+.test-listen-buttons {
+  display: flex; gap: 8px; margin-bottom: 12px; width: 100%;
+}
+.test-listen-buttons .pause-btn {
+  flex: 1;
 }
 .test-prompt { text-align: center; opacity: .8; margin-bottom: 8px; }
 .test-grid-2 {
@@ -2477,6 +2527,15 @@ body.touch-mode #map-panel:not(.off) {
 .test-emoji-btn {
   padding: 8px 4px !important; font-size: 2rem !important;
   border-radius: 10px !important; line-height: 1;
+  position: relative;
+}
+.test-emoji-tr-hint {
+  font-size: .7rem; opacity: .38; text-align: center;
+  margin-top: 2px; margin-bottom: 10px; line-height: 1.2;
+}
+.test-won-indicator {
+  font-size: .75rem; color: #f1c40f; font-weight: 600;
+  letter-spacing: 0.5px; opacity: .9;
 }
 .test-listen-btn {
   display: block; margin: 0 auto 10px;

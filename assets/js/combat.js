@@ -100,7 +100,7 @@ function pickWordsForRoom(waveNum, count, opts = {}) {
   const maxD = maxDiffForWave(effectiveWave);
   const minD = minDiffForWave(effectiveWave);
 
-  // ── VOCABULARY DIFFICULTY — Decoupled from world/wave ────────
+  // ── VOCABULARY DIFFICULTY - Decoupled from world/wave ────────
   // Base pool: words with rel >= G.relThreshold (starts at 90, lowered by 5 per lesson)
   // Lesson pool: words explicitly unlocked by completed lessons (bypass threshold)
   const threshold = G.relThreshold ?? 90;
@@ -170,7 +170,7 @@ export function rollConjugation(entry) {
     return { isInfinitive: true, conjugatedText: entry.text };
   }
 
-  // Adjective modifier form — only after lesson 20
+  // Adjective modifier form - only after lesson 20
   const modifierUnlocked = G.modifierUnlocked || G.completedLessons?.includes('20');
   if (isAdj && modifierUnlocked && vars.modifier && Math.random() < 0.20) {
     return { isInfinitive: false, isModifier: true, conjugatedText: vars.modifier };
@@ -303,7 +303,7 @@ export function mkMonster(tmpl) {
     spawnNY = landNY;
     spawnAnim = { t: 0, dur: 0.9, landNY };
   } else if (tmpl.isProjectileMonster) {
-    // Projectile monsters spawn near their parent — keep current door logic
+    // Projectile monsters spawn near their parent - keep current door logic
     const doors = G.room?.openDoors;
     if (doors && doors.length > 0) {
       const door = doors[Math.floor(Math.random() * doors.length)];
@@ -321,16 +321,16 @@ export function mkMonster(tmpl) {
     function rollLandPos(edgeOverride) {
       const edge = edgeOverride ?? Math.random();
       if (edge < 0.25) {
-        // Top edge — just below ceiling (wallH ≈ 13%)
+        // Top edge - just below ceiling (wallH ≈ 13%)
         return { lx: 80 + Math.random() * (G.W - 160), ly: G.vH * (0.13 + Math.random() * 0.04) };
       } else if (edge < 0.5) {
-        // Right edge — far right, below ceiling
+        // Right edge - far right, below ceiling
         return { lx: G.W * (0.84 + Math.random() * 0.09), ly: G.vH * (0.13 + Math.random() * 0.18) };
       } else if (edge < 0.75) {
-        // Left edge — far left, below ceiling
+        // Left edge - far left, below ceiling
         return { lx: G.W * (0.07 + Math.random() * 0.09), ly: G.vH * (0.13 + Math.random() * 0.18) };
       } else {
-        // Upper-center — just below ceiling
+        // Upper-center - just below ceiling
         return { lx: 80 + Math.random() * (G.W - 160), ly: G.vH * (0.13 + Math.random() * 0.05) };
       }
     }
@@ -352,7 +352,7 @@ export function mkMonster(tmpl) {
     spawnAnim = { t: 0, dur: 0.65, landNY: landY / G.vH };
   }
 
-  // Wield icon — use secondaryEmoji from current word if available
+  // Wield icon - use secondaryEmoji from current word if available
   // (unless already provided in tmpl from saved state)
   let wieldIcon = tmpl.wieldIcon !== undefined ? tmpl.wieldIcon : null;
   if (wieldIcon === null) {
@@ -363,7 +363,7 @@ export function mkMonster(tmpl) {
     }
   }
 
-  // HP icon — based on special; if no special, use 📃
+  // HP icon - based on special; if no special, use 📃
   // (unless already provided in tmpl from saved state)
   let hpIcon = tmpl.hpIcon !== undefined ? tmpl.hpIcon : '📃';
   if (tmpl.hpIcon === undefined) {
@@ -400,7 +400,7 @@ export function mkMonster(tmpl) {
     special:  tmpl.special || null,
     emoji, wieldIcon, hpIcon, labelColor,
     x, y,
-    spawnNX, spawnNY,  // normalized spawn coords — survives resize
+    spawnNX, spawnNY,  // normalized spawn coords - survives resize
     progress: 0,       // 0 = at spawn, 1 = at player; screen-independent movement state
     hp: tmpl.hp, maxHp: tmpl.maxHp,
     words: [...tmpl.words], wi: 0,
@@ -474,7 +474,7 @@ function sendNextGroup() {
   const room = G.room; // capture reference so timeouts target THIS room, not a future room
   const wn = room.wave || 1;
   const n = groupSize(wn);
-  // Stagger between monsters in a group — longer pauses in early waves
+  // Stagger between monsters in a group - longer pauses in early waves
   const stagger = wn <= 4 ? 1000 : wn <= 8 ? 700 : wn <= 15 ? 500 : 350;
   for (let i = 0; i < n && room.wTemplates.length > 0; i++) {
     const tmpl = room.wTemplates.shift();
@@ -774,7 +774,7 @@ function genBoss(wn) {
   // Boss words: skip the hp-based reduction and boost waveNum for harder words
   const bossWn = wn + 10;
   const words = pickWordsForRoom(bossWn, hp);
-  // Every boss must have a special — no exceptions, not even in tutorial
+  // Every boss must have a special - no exceptions, not even in tutorial
   const bossSpecials = ['archer', 'ice', 'musician', 'warrior', 'eruptor', 'king'];
   const bossSpecial = bossSpecials[Math.floor(Math.random() * bossSpecials.length)];
   const world = G.dungeon?.worldDef;
@@ -933,7 +933,7 @@ export function hitMonster(m) {
     // Spawn coin particles from dead monster (1–3 coins)
     if (!m.isProjectileMonster) spawnCoins(m.x, m.y, 1 + Math.floor(Math.random() * 3));
 
-    // Track kill counts for memorization system (nouns only — not verbs/adjectives)
+    // Track kill counts for memorization system (nouns only - not verbs/adjectives)
     if (!m.isProjectileMonster && m.type !== 'boss') {
       for (const w of m.words) {
         const wordDef = WORD_DICT.find(d => d.text === w);
@@ -950,7 +950,7 @@ export function hitMonster(m) {
       }
     }
 
-    // Track learned words (only real vocabulary — not projectile monsters or numeric compounds)
+    // Track learned words (only real vocabulary - not projectile monsters or numeric compounds)
     if (!m.isProjectileMonster) {
       if (!G.learnedWords) G.learnedWords = [];
       let newWords = false;
@@ -1325,7 +1325,7 @@ export function tickMonsters(dt) {
   for (const m of G.room.monsters) {
     if (m.dead) continue;
 
-    // Flee animation — move upward, fade out, then remove
+    // Flee animation - move upward, fade out, then remove
     if (m.fleeing) {
       m.fleeAlpha = Math.max(0, (m.fleeAlpha ?? 1) - dt * 2.2);
       m.y += (m.fleeVY ?? -260) * dt;
@@ -1339,7 +1339,7 @@ export function tickMonsters(dt) {
     if (m.scl > 1.025) m.sclDir = -1;
     if (m.scl < 0.975) m.sclDir =  1;
 
-    // Spawn animation — freeze until landing is complete
+    // Spawn animation - freeze until landing is complete
     if (m.spawnAnim && m.spawnAnim.t < m.spawnAnim.dur) {
       m.spawnAnim.t += dt;
       const prog = Math.min(1, m.spawnAnim.t / m.spawnAnim.dur);
@@ -1355,7 +1355,7 @@ export function tickMonsters(dt) {
       continue; // skip normal movement & collision during spawn
     }
 
-    // Knockback — integrate velocity into a position offset (kbX/kbY) separate from
+    // Knockback - integrate velocity into a position offset (kbX/kbY) separate from
     // the progress path, so the path-based position stays correct after resize.
     if (m.kbVx || m.kbVy) {
       m.kbX = (m.kbX || 0) + m.kbVx * dt;
@@ -1365,7 +1365,7 @@ export function tickMonsters(dt) {
       m.kbVy *= decay;
       if (Math.abs(m.kbVx) < 0.5) m.kbVx = 0;
       if (Math.abs(m.kbVy) < 0.5) m.kbVy = 0;
-      // Clamp to spawn boundary — redirect upward force sideways
+      // Clamp to spawn boundary - redirect upward force sideways
       const minY = G.vH * 0.13;
       const pathY = m.spawnNY * G.vH + m.progress * (targetY - m.spawnNY * G.vH);
       if (pathY + m.kbY < minY && m.kbVy < 0) {
@@ -1443,7 +1443,7 @@ export function tickMonsters(dt) {
 
     if (m.flash > 0) m.flash -= dt * 5;
 
-    // Collision with player (tutorial monster is capped before hitR — no collision possible)
+    // Collision with player (tutorial monster is capped before hitR - no collision possible)
     if (Math.hypot(m.x - px, m.y - py) < hitR) {
       explode(m.x, m.y, m.size);
       m.dead = true;
@@ -1531,7 +1531,7 @@ export const HANJA_TO_HANGUL = {
 // Complex hangul syllable builder for non-hanja mode
 
 function buildComplexSyl() {
-  // Use direct Unicode indices — only simple codas to avoid IME cluster ambiguity
+  // Use direct Unicode indices - only simple codas to avoid IME cluster ambiguity
   // Onset 0-18, Vowel 0-20, Coda: simple single-consonant codas only
   const SIMPLE_CODA_IDX = [1,2,4,7,8,16,17,19,20,21,22,23,24,25,26,27];
   const oi = Math.floor(Math.random() * 19);  // 19 standard onsets
@@ -1549,7 +1549,7 @@ function pickHanjaForWave(wn) {
   }
   // Tier unlocks every 5 worlds. T1 always has 2× weight so easier hanjas dominate.
   const wi = G.run?.worldIdx || 0;
-  let pool = [...HANJA_T1, ...HANJA_T1]; // T1 at 2× weight — always the most common
+  let pool = [...HANJA_T1, ...HANJA_T1]; // T1 at 2× weight - always the most common
   if (wi >= 5)  pool = pool.concat(HANJA_T2);          // T2 at 1× from world 5
   if (wi >= 10) pool = pool.concat(HANJA_T2, HANJA_T3); // T2 gets 2×, T3 at 1× from world 10
   if (wi >= 15) pool = pool.concat(HANJA_T3, HANJA_T4); // T3 gets 2×, T4 at 1× from world 15
@@ -1613,7 +1613,7 @@ export function spawnGroundItem(x, y) {
   const entry = { id: ++G.room._groundId, x, y, keys, keyIdx:0, item, life, maxLife:life, el, isHanja: useHanja };
   G.room.groundItems.push(entry);
 
-  // Tutorial: item drop hints in world 0 (first time each type) — queued, shows after combat
+  // Tutorial: item drop hints in world 0 (first time each type) - queued, shows after combat
   if (G.run?.worldIdx === 0 && G.run?.tutorial && typeof window !== 'undefined') {
     const tut = G.run.tutorial;
     if (useHanja && !tut.hanjaDropShown) {
@@ -1920,31 +1920,31 @@ export function applyPowerup(item) {
       flashAnnounce(mapMsg, '#aaffff');
       break;
     case '🏯':
-      // World Skip — advance to next world via game.js hook
+      // World Skip - advance to next world via game.js hook
       if (typeof window !== 'undefined' && window._worldSkip) window._worldSkip();
       else flashAnnounce('🏯 World Skip!', '#ffd700');
       break;
     case '🔇':
-      // Noise Cancel — silence all musicians this room
+      // Noise Cancel - silence all musicians this room
       if (G.room) G.room.noiseCancelled = true;
       flashAnnounce('🔇 Musicians silenced!', '#ccccff');
       break;
     case '🤑':
-      // Greedy Eyes — triple coins for 30s
+      // Greedy Eyes - triple coins for 30s
       G.activeEffect = { type:'greedy', timer:30 };
       flashAnnounce('🤑 Triple coins 30s!', '#ffd700');
       break;
     case '🕳️':
-      // Wormhole — teleport to random unvisited room
+      // Wormhole - teleport to random unvisited room
       if (typeof window !== 'undefined' && window._wormhole) window._wormhole();
       else flashAnnounce('🕳️ Wormhole!', '#aa88ff');
       break;
     case '⛺':
-      // Tent — place camp in current cleared normal room
+      // Tent - place camp in current cleared normal room
       if (typeof window !== 'undefined' && window._placeTent) window._placeTent();
       break;
     case '📖': {
-      // World Guide — reveal all non-combat non-boss rooms (no teleport allowed)
+      // World Guide - reveal all non-combat non-boss rooms (no teleport allowed)
       const grid = G.dungeon?.grid;
       if (grid) {
         for (const cell of grid) {
@@ -2065,7 +2065,7 @@ export function refreshBubbleDisplay() {
 }
 
 function showBubble() {
-  if (G.inTransition) return; // deferred — will be shown by refreshBubbleDisplay after transition
+  if (G.inTransition) return; // deferred - will be shown by refreshBubbleDisplay after transition
   refreshBubbleDisplay();
 }
 
@@ -2160,7 +2160,7 @@ export function tickFreeze(dt) {
    SHOP (in-room)
 ================================================================ */
 /* ================================================================
-   DRAW FUNCTIONS — render monsters, projs, particles on main canvas
+   DRAW FUNCTIONS - render monsters, projs, particles on main canvas
 ================================================================ */
 function getCtx() {
   const c = document.getElementById('gc');
@@ -2274,7 +2274,7 @@ export function drawMonsters() {
       ctx.fillText(m.wieldIcon, drawSz * 0.38, drawSz * 0.4);
     }
 
-    // HP hearts — or VERB/ADJ conjugation label for verb/adjective monsters
+    // HP hearts - or VERB/ADJ conjugation label for verb/adjective monsters
     if (!m.isProjectileMonster) {
       const sz  = Math.max(8, 13 - m.maxHp * 0.5);
       const labelY = -(drawSz * 0.6 + 14);
@@ -2391,7 +2391,7 @@ export function drawMonsters() {
         ctx.shadowBlur = 0;
         ctx.fillText(word, 0, belowY);
       } else {
-        // Word is hidden — show placeholder to indicate there IS a word here
+        // Word is hidden - show placeholder to indicate there IS a word here
         ctx.strokeText('???', 0, belowY);
         ctx.shadowBlur = 0;
         ctx.fillText('???', 0, belowY);
@@ -2426,7 +2426,7 @@ export function drawMonsters() {
         }
       }
 
-      // Hanja — shown only when toggle on; below translation (or in translation spot if off)
+      // Hanja - shown only when toggle on; below translation (or in translation spot if off)
       if (G.showHanjaOnMonsters && entry?.hanja) {
         const hSz = Math.max(8, wordSz * 0.6);
         ctx.font = `${hSz}px 'Noto Color Emoji', serif`;
@@ -2482,7 +2482,7 @@ export function drawParts() {
 }
 
 /* ================================================================
-   COIN SYSTEM — fall from monsters, collect on clear, explode on flee
+   COIN SYSTEM - fall from monsters, collect on clear, explode on flee
 ================================================================ */
 function spawnCoins(x, y, count) {
   if (!G.room) return;
@@ -2622,4 +2622,4 @@ export function killAllEnemies() {
   onMonsterRemoved();
 }
 
-// renderShopRoom removed — shop rendering is handled by hud.js renderShopScreen
+// renderShopRoom removed - shop rendering is handled by hud.js renderShopScreen

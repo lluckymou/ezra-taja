@@ -1,5 +1,5 @@
 /* ================================================================
-   HANGUL INPUT — 2-beolsik (두벌식) Korean IME for QWERTY keyboards
+   HANGUL INPUT - 2-beolsik (두벌식) Korean IME for QWERTY keyboards
 ================================================================ */
 
 // Standard 2-beolsik QWERTY → Jamo mapping
@@ -11,11 +11,11 @@ export const QWERTY_TO_JAMO = {
   Q:'ㅃ', W:'ㅉ', E:'ㄸ', R:'ㄲ', T:'ㅆ', O:'ㅒ', P:'ㅖ',
 };
 
-// Initial consonants (초성) — 19 entries
+// Initial consonants (초성) - 19 entries
 const INITIAL = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
-// Vowels (중성) — 21 entries
+// Vowels (중성) - 21 entries
 const VOWEL  = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
-// Final consonants (종성) — 28 entries (index 0 = no final)
+// Final consonants (종성) - 28 entries (index 0 = no final)
 const FINAL  = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
 
 const INITIAL_IDX = Object.fromEntries(INITIAL.map((j, i) => [j, i]));
@@ -80,7 +80,7 @@ export class HangulComposer {
 
     if (isVowel) {
       if (this._v1 !== null && this._c2 === null) {
-        // Have initial+vowel — try compound vowel
+        // Have initial+vowel - try compound vowel
         const comp = COMP_VOWEL[this._v1 + '+' + jamo];
         if (comp) {
           this._v1 = comp;
@@ -89,7 +89,7 @@ export class HangulComposer {
           out = this._build(); this.reset(); this._v1 = jamo;
         }
       } else if (this._v1 !== null && this._c2 !== null) {
-        // Have initial+vowel+final — vowel steals the final as next initial
+        // Have initial+vowel+final - vowel steals the final as next initial
         if (this._c2b !== null) {
           // Compound final: c2 stays, c2b becomes next initial
           out = this._build(this._c1, this._v1, this._c2, null);
@@ -103,7 +103,7 @@ export class HangulComposer {
         // Have initial consonant only
         this._v1 = jamo;
       } else {
-        // Empty — bare vowel (will render with ㅇ placeholder)
+        // Empty - bare vowel (will render with ㅇ placeholder)
         this._v1 = jamo;
       }
     } else {
@@ -123,13 +123,13 @@ export class HangulComposer {
         if (FINAL_IDX[jamo] !== undefined) {
           this._c2 = jamo;
         } else {
-          // Not a valid final (ㄸ/ㅃ/ㅉ) — commit current, new syllable
+          // Not a valid final (ㄸ/ㅃ/ㅉ) - commit current, new syllable
           out = this._build();
           this.reset();
           this._c1 = jamo;
         }
       } else if (this._c1 !== null) {
-        // Consecutive consonants — commit first as bare jamo
+        // Consecutive consonants - commit first as bare jamo
         out = this._c1; this.reset(); this._c1 = jamo;
       } else {
         // Empty

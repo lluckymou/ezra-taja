@@ -1,5 +1,5 @@
 /* ================================================================
-   GAME — main RAF loop, title screen, input, mobile
+   GAME - main RAF loop, title screen, input, mobile
 ================================================================ */
 import { G, resetRunState, loadPersistentState, savePersistentState } from './state.js';
 import {
@@ -371,7 +371,7 @@ function _avaRandomize() {
   // 1. Male/female split (50/50)
   const isMale = Math.random() < 0.5;
 
-  // 2. Facial hair — moustaches 2× rarer than beards within the facial-hair pool
+  // 2. Facial hair - moustaches 2× rarer than beards within the facial-hair pool
   // moustaceFancy also forbidden on feminine hairs (resolved after hair is picked below)
   let facialHair;
   if (isMale) {
@@ -404,20 +404,20 @@ function _avaRandomize() {
   }
   const top = pick(hairPool);
 
-  // moustaceFancy forbidden on feminine hairs — reroll to none if needed
+  // moustaceFancy forbidden on feminine hairs - reroll to none if needed
   if (facialHair === 'moustaceFancy' && _FEMALE_HAIRS.has(top)) facialHair = 'none';
 
   // 4. Can character be read as a woman?
   const canBeWoman = _FEMALE_HAIRS.has(top) && facialHair === 'none';
 
-  // 5. Skin — 25% light, 25% brown, 50% spread across 5 rarer tones
+  // 5. Skin - 25% light, 25% brown, 50% spread across 5 rarer tones
   let skin;
   const sr = Math.random();
   if (sr < 0.25)      skin = 'light';
   else if (sr < 0.50) skin = 'brown';
   else                skin = pick(['tanned','yellow','pale','darkBrown','black']);
 
-  // 6. Hair color — 33% black, rest equal; pink only for feminine combos and 2× rarer
+  // 6. Hair color - 33% black, rest equal; pink only for feminine combos and 2× rarer
   //    dreads (short 1, short 2, long) cannot be pink
   const DREADS_TOPS = new Set(['dreads01','dreads02','dreads']);
   let hairColor;
@@ -438,7 +438,7 @@ function _avaRandomize() {
     hairColor = pick(hcPool);
   }
 
-  // 7. Eyes — xDizzy rare (weight 2); hearts rare and 2× rarer on males (weight 2 female / 1 male)
+  // 7. Eyes - xDizzy rare (weight 2); hearts rare and 2× rarer on males (weight 2 female / 1 male)
   //    base weight = 6 for normal eyes
   const eyesWeighted = [];
   for (const e of catVals('eyes')) {
@@ -450,7 +450,7 @@ function _avaRandomize() {
   }
   const eyes = pick(eyesWeighted);
 
-  // 8. Eyebrows — hearts eyes: only natural/default eyebrows; no unibrow for feminine combos
+  // 8. Eyebrows - hearts eyes: only natural/default eyebrows; no unibrow for feminine combos
   const HEARTS_EYEBROWS = new Set(['defaultNatural','frownNatural','raisedExcitedNatural','default']);
   let eyebrowsPool;
   if (eyes === 'hearts') {
@@ -462,7 +462,7 @@ function _avaRandomize() {
   }
   const eyebrows = pick(eyebrowsPool);
 
-  // 9. Mouth — vomit never generated; negative mouths (concerned/scream/sad) 6× rarer
+  // 9. Mouth - vomit never generated; negative mouths (concerned/scream/sad) 6× rarer
   //    hearts eyes: forbidden mouths grimace/sad/screamOpen/serious/concerned/disbelief
   const RARE_MOUTHS = new Set(['concerned','screamOpen','sad']);
   const HEARTS_FORBIDDEN_MOUTHS = new Set(['grimace','sad','screamOpen','serious','concerned','disbelief']);
@@ -474,13 +474,13 @@ function _avaRandomize() {
   }
   const mouth = pick(mouthWeighted);
 
-  // 10. Clothing — overall only for feminine combos (and not hijab)
+  // 10. Clothing - overall only for feminine combos (and not hijab)
   const clothingPool = (canBeWoman && top !== 'hijab')
     ? catVals('clothing')
     : catVals('clothing').filter(c => c !== 'overall');
   const clothing = pick(clothingPool);
 
-  // 11. Accessories — eyepatch forces none; kurt only for feminine combos; 40% chance of none
+  // 11. Accessories - eyepatch forces none; kurt only for feminine combos; 40% chance of none
   //     sunglasses and wayfarers 2× rarer; forbidden with hearts eyes
   const RARE_ACCESSORIES = new Set(['sunglasses','wayfarers']);
   let accessories;
@@ -722,7 +722,7 @@ function runStartupAnimation(onPrepare, onDone) {
     });
   }
 
-  // Phase 1: logo appears (200ms delay, perfectly centered — no text yet)
+  // Phase 1: logo appears (200ms delay, perfectly centered - no text yet)
   setTimeout(() => {
     logo.classList.add('visible');
 
@@ -774,7 +774,7 @@ export function init() {
     // Refresh rotate overlay text now that languages are loaded
     window._updateRotateOverlayText?.();
 
-    // Called while overlay is still fading — content builds underneath with no flash
+    // Called while overlay is still fading - content builds underneath with no flash
     function startupPrepare() {
       const saved = localStorage.getItem('krr_lang') || 'en';
       setLanguage(saved);
@@ -900,7 +900,7 @@ export function init() {
     _tutCurrentKey = null;
   };
 
-  // Called after room is cleared — flush any queued tip
+  // Called after room is cleared - flush any queued tip
   window._flushTutQueue = () => {
     if (_tutQueue.length > 0) {
       const { emoji, msgKey, vars, opts } = _tutQueue.shift();
@@ -910,16 +910,20 @@ export function init() {
     }
   };
 
-  // Called when map is opened — dismiss map-related tip
+  // Called when map is opened - dismiss map-related tip
   window._onMapOpen = () => {
     if (_tutCurrentKey === 'tutorial.pressMap') window._hideTutorial(true);
   };
 
-  // Called when teacher screen opens — dismiss teacher tip
+  // Called when teacher screen opens - dismiss teacher tip + float kb above teacher
   window._onTeacherOpen = () => {
     if (_tutCurrentKey === 'tutorial.typeToTalk' || _tutCurrentKey === 'tutorial.findTeacher') {
       window._hideTutorial(true);
     }
+    const pi = document.getElementById('player-inner');
+    if (pi) pi.style.visibility = 'hidden';
+    const pa = document.getElementById('player-area');
+    if (pa) { pa.style.zIndex = '160'; pa.style.padding = '15px'; }
   };
 
   // Wire global callbacks
@@ -1056,7 +1060,7 @@ function loop(ts) {
     _blurAmount    = 20;
     _hudFadeAlpha  = 0;
     _announceFadeAlpha = 0;
-    _panelFadeAlpha = 1; // instant — total trigger time = hold time (250ms)
+    _panelFadeAlpha = 1; // instant - total trigger time = hold time (250ms)
   } else if (_blurAmount > 0) {
     // Reverting after release/close
     _blurAmount   = Math.max(0, _blurAmount - dt * 80);
@@ -1075,7 +1079,7 @@ function loop(ts) {
     canvas.style.filter    = blurFilter;
     wxCanvas.style.filter  = blurFilter;
     if (dnCanvas) dnCanvas.style.filter = blurFilter;
-    // Fade overlay elements (player-area, bubbles) — but not during world/sleep transitions
+    // Fade overlay elements (player-area, bubbles) - but not during world/sleep transitions
     const fv = _blurAmount > 0.2 ? Math.max(0, 1 - _blurAmount / 20) : null;
     const fadeOp = fv !== null ? fv.toFixed(2) : '';
     if (!G.inTransition) {
@@ -1326,7 +1330,7 @@ function triggerWorldTransition(worldIdx) {
 window._triggerWorldTransition = triggerWorldTransition;
 
 /* ================================================================
-   LORE ANIMATION — plays once when user clicks Play, before world transition
+   LORE ANIMATION - plays once when user clicks Play, before world transition
 ================================================================ */
 function runLoreAnimation(onComplete) {
   // Cancel any in-progress lore animation before starting a fresh one.
@@ -1368,7 +1372,7 @@ function runLoreAnimation(onComplete) {
   let villainSpeechEl = null;
   let villainLaughEl  = null;
 
-  // Apply geometry-derived DOM styles — called on init and on every resize.
+  // Apply geometry-derived DOM styles - called on init and on every resize.
   function _applyLoreGeometry() {
     W            = window.innerWidth;
     H            = window.innerHeight;
@@ -1454,7 +1458,7 @@ function runLoreAnimation(onComplete) {
   const titleScr = document.getElementById('scr-title');
   if (titleScr) titleScr.classList.add('off');
 
-  // Character geometry helpers — recomputed from W/H/CHAR_SIZE which update on resize.
+  // Character geometry helpers - recomputed from W/H/CHAR_SIZE which update on resize.
   // playerOuter: bottom = -(CHAR_SIZE*0.28) → top of element = H + CHAR_SIZE*0.28 - (CHAR_SIZE+20) = H - CHAR_SIZE*0.72 - 20
   // Avataaars head occupies roughly top 30% of the SVG circle
   // villain: top = H*0.5 - CHAR_SIZE*0.5 (center anchored); 🦹 head at ~18% from top
@@ -1651,7 +1655,7 @@ function runLoreAnimation(onComplete) {
     }
   }
 
-  // ── Villain speech — static, fades in then out ───────────────
+  // ── Villain speech - static, fades in then out ───────────────
   const VILLAIN_SPEAK_DUR = 3.5; // total phase duration (s)
   function spawnVillainSpeech() {
     if (villainSpeechEl) villainSpeechEl.remove();
@@ -1753,7 +1757,7 @@ function runLoreAnimation(onComplete) {
     }
   }
 
-  // Called by goToMenu() — aborts lore and returns to title without triggering game start
+  // Called by goToMenu() - aborts lore and returns to title without triggering game start
   function cancel() {
     _cleanup();
     _hideOverlay();
@@ -1770,7 +1774,7 @@ function runLoreAnimation(onComplete) {
   function onSkipKey(e) { if (e.key === 'Enter' && G.phase === 'lore') { e.preventDefault(); finish(); } }
   window.addEventListener('keydown', onSkipKey);
 
-  // Visible skip button — shown from 2nd play onwards
+  // Visible skip button - shown from 2nd play onwards
   let _skipBtn = null;
   const _launchCount = parseInt(localStorage.getItem('krr_launchCount') || '0');
   if (_launchCount > 0) {
@@ -1893,7 +1897,7 @@ function runLoreAnimation(onComplete) {
       }
 
       case 'player_exit': {
-        // Walk right fast — 2s to exit off screen
+        // Walk right fast - 2s to exit off screen
         const t  = Math.min(phaseT / 2.0, 1);
         playerX  = PLAYER_WALK_TARGET + (W + CHAR_SIZE * 2 - PLAYER_WALK_TARGET) * easeIn(t);
         playerOuter.style.left = playerX + 'px';
@@ -2004,7 +2008,7 @@ function tickWorldTransition(dt) {
   if (wt.phase === 'wipe_in') {
     wt.wipeProgress = Math.min(1, wt.t / wt.wipeDur);
     if (wt.wipeProgress >= 1) {
-      // Screen fully black — run the "at black" action
+      // Screen fully black - run the "at black" action
       if (wt.onBlack) wt.onBlack();
       else startNewWorld(wt.pendingWorldIdx);
       wt.phase = 'emoji';
@@ -2174,14 +2178,16 @@ function buildTitleScreen() {
   G.dictProgressionDisabled = savedDictProg === '1';
   const elDictProg = document.getElementById('chk-dict-prog');
   if (elDictProg) elDictProg.checked = G.dictProgressionDisabled;
+  _syncDictTitles();
   document.getElementById('chk-dict-prog')?.addEventListener('change', e => {
     G.dictProgressionDisabled = e.target.checked;
     localStorage.setItem('krr_dict_prog', e.target.checked ? '1' : '0');
+    _syncDictTitles();
     buildTitleDict();
     updateBook();
   });
 
-  // Start button — show lore then play world-entry cinematic
+  // Start button - show lore then play world-entry cinematic
   document.getElementById('btn-play')?.addEventListener('click', () => {
     runLoreAnimation(() => triggerMenuPlayTransition());
   });
@@ -2212,12 +2218,12 @@ function buildTitleScreen() {
     });
   })();
 
-  // My Dictionary button — opens floating modal
+  // My Dictionary button - opens floating modal
   document.getElementById('btn-my-dict')?.addEventListener('click', () => {
     document.getElementById('my-dict-modal')?.classList.remove('off');
     buildTitleDict();
   });
-  // Settings button — opens settings modal (same behavior as My Dictionary)
+  // Settings button - opens settings modal (same behavior as My Dictionary)
   document.getElementById('btn-settings')?.addEventListener('click', () => {
     document.getElementById('settings-modal')?.classList.remove('off');
   });
@@ -2358,7 +2364,7 @@ function buildTitleScreen() {
     invNavigate(1); refreshInventoryUI();
   });
 
-  // HUD: ring-arc announces world name; clock announces weather — both modes
+  // HUD: ring-arc announces world name; clock announces weather - both modes
   document.querySelector('.wave-ring-wrap')?.addEventListener('pointerdown', e => {
     e.preventDefault();
     if (G.phase !== 'run' || !G.dungeon) return;
@@ -2367,7 +2373,7 @@ function buildTitleScreen() {
     const worldSuffix = i18n('hud.worldSuffix');
     const worldNum = (G.run?.worldIdx ?? 0) + 1;
     const worldLabel = G.lang === 'ko' ? `${worldNum}${worldSuffix}` : `${worldSuffix} ${worldNum}`;
-    flashAnnounce(`${world.emoji} ${worldLabel} — ${worldDisplayName}`, '#88ddff');
+    flashAnnounce(`${world.emoji} ${worldLabel} - ${worldDisplayName}`, '#88ddff');
   });
 
   {
@@ -2462,6 +2468,8 @@ function showTitleScreen() {
   if (G.ctrlPanelOpen || _ctrlState !== 'idle') closeCtrlPanel();
   screenOff('scr-over'); screenOff('scr-pause');
   screenOff('scr-modifier'); screenOff('scr-shop'); screenOff('scr-treasure');
+  screenOff('scr-teacher');
+  window._hideTutorial?.(true);
   screenOn('scr-title');
   if (hudEl) { hudEl.style.display = 'none'; hudEl.style.opacity = ''; }
   if (paEl) paEl.style.display = 'none';
@@ -2528,7 +2536,59 @@ function buildLangSelector() {
   });
 }
 
-let _titleDictCat = 'all';
+let _titleDictCat = 'stats';
+
+// ── Dict title: swap "My Dictionary" ↔ "Dictionary" based on progression setting ──
+function _syncDictTitles() {
+  const text = G.dictProgressionDisabled ? i18n('dict.title') : i18n('dict.myDict');
+  document.querySelectorAll('[data-i18n="dict.myDict"]').forEach(el => { el.textContent = text; });
+}
+
+// ── Stats tab content (shared by book panel and my-dict modal) ──────────────────
+function _renderStatsContent() {
+  const r = 42, circ = +(2 * Math.PI * r).toFixed(2);
+
+  function ring(pct, color, labelKey, count, total) {
+    const p = Math.min(1, Math.max(0, isNaN(pct) ? 0 : pct));
+    const offset = +(circ * (1 - p)).toFixed(2);
+    const pctStr = total > 0 ? Math.round(p * 100) + '%' : '0%';
+    return `
+      <div class="dict-stats-ring">
+        <svg viewBox="0 0 100 100" width="96" height="96" aria-hidden="true">
+          <circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="10"/>
+          <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="10"
+            stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+            stroke-linecap="round" transform="rotate(-90 50 50)"/>
+          <text x="50" y="46" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="inherit">${pctStr}</text>
+          <text x="50" y="63" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="inherit">${count}/${total}</text>
+        </svg>
+        <div class="dict-stats-label">${i18n(labelKey)}</div>
+      </div>`;
+  }
+
+  const totalLessons = LESSONS_BASE.length;
+  const doneLessons  = (G.completedLessons || []).length;
+
+  const totalWords   = WORD_DICT.length;
+  const learnedList  = G.dictProgressionDisabled ? WORD_DICT : (G.learnedWords || []);
+  const unlockedWords = learnedList.length;
+
+  const masteredCount = learnedList.filter(w => {
+    const d = WORD_DICT.find(e => e.text === w.text && e.emoji === w.emoji)
+           || WORD_DICT.find(e => e.text === w.text) || w;
+    if (d.category === 'verb' || d.category === 'adjective') {
+      const conjs = G.wordConjugationCounts?.[w.text] || {};
+      return Object.values(conjs).reduce((s, n) => s + n, 0) >= 10;
+    }
+    return G.wordHiddenStatus?.[w.text] === true;
+  }).length;
+
+  return `<div class="dict-stats">
+    ${ring(doneLessons / totalLessons, '#27ae60', 'dict.statsLessons', doneLessons, totalLessons)}
+    ${ring(unlockedWords / totalWords,  '#3498db', 'dict.statsWords',   unlockedWords, totalWords)}
+    ${ring(masteredCount / (unlockedWords || 1), '#9b59b6', 'dict.statsMastered', masteredCount, unlockedWords)}
+  </div>`;
+}
 
 function buildTitleDict(filter) {
   const container = document.getElementById('dict-list');
@@ -2538,6 +2598,7 @@ function buildTitleDict(filter) {
   // Hide dict-panel-sub if dict progression is disabled
   const subEl = document.querySelector('.dict-panel-sub');
   if (subEl) subEl.style.display = G.dictProgressionDisabled ? 'none' : '';
+  _syncDictTitles();
 
   // ── Add lesson tabs dynamically for all lessons (visual) ─────────
   const titleTabContainer = document.getElementById('title-dict-tabs');
@@ -2579,6 +2640,12 @@ function buildTitleDict(filter) {
     } else {
       container.innerHTML = '';
     }
+    return;
+  }
+
+  if (_titleDictCat === 'stats') {
+    if (searchWrap) searchWrap.style.display = 'none';
+    container.innerHTML = _renderStatsContent();
     return;
   }
 
@@ -2641,8 +2708,20 @@ function buildTitleDict(filter) {
 /* ================================================================
    IN-RUN SHOP / TREASURE close helpers
 ================================================================ */
-window.closeRunShop = function() { screenOff('scr-shop'); };
-window.closeTreasure = function() { screenOff('scr-treasure'); };
+window.closeRunShop = function() { screenOff('scr-shop'); if (!G.touchMode && G.phase === 'run') typingEl?.focus(); };
+window.closeTreasure = function() { screenOff('scr-treasure'); if (!G.touchMode && G.phase === 'run') typingEl?.focus(); };
+window.closeTeacherScreen = function() {
+  screenOff('scr-teacher');
+  const pi = document.getElementById('player-inner');
+  if (pi) pi.style.visibility = '';
+  const pa = document.getElementById('player-area');
+  if (pa) { pa.style.zIndex = ''; pa.style.padding = ''; }
+  window._feedKeyToTestInput = null;
+  window._backspaceTestInput = null;
+  window._commitAndGetTestInput = null;
+  window._getTestInputValue = null;
+  if (!G.touchMode && G.phase === 'run') typingEl?.focus();
+};
 window.invUseClick   = function() { invUse(); refreshInventoryUI(); };
 
 /* ================================================================
@@ -2895,9 +2974,9 @@ function renderDictEntry(w) {
 const GRAMMAR_HTML = `
 <div class="guide-section">
   <div class="guide-title">Tense</div>
-  <div class="guide-row"><span class="guide-icon">▶</span> <b>Present</b> — 아요/어요 <span class="guide-ex">가요 "goes"</span></div>
-  <div class="guide-row"><span class="guide-icon">⏪</span> <b>Past</b> — 았어요/었어요 <span class="guide-ex">갔어요 "went"</span></div>
-  <div class="guide-row"><span class="guide-icon">⏩</span> <b>Future</b> — ㄹ 거예요 <span class="guide-ex">갈 거예요 "will go"</span></div>
+  <div class="guide-row"><span class="guide-icon">▶</span> <b>Present</b> - 아요/어요 <span class="guide-ex">가요 "goes"</span></div>
+  <div class="guide-row"><span class="guide-icon">⏪</span> <b>Past</b> - 았어요/었어요 <span class="guide-ex">갔어요 "went"</span></div>
+  <div class="guide-row"><span class="guide-icon">⏩</span> <b>Future</b> - ㄹ 거예요 <span class="guide-ex">갈 거예요 "will go"</span></div>
 </div>
 <div class="guide-section">
   <div class="guide-title">Particles</div>
@@ -2961,7 +3040,7 @@ function _syncPauseToggles() {
     pt.disabled = ttsUnsupported;
     pt.closest('.pause-opt-row')?.classList.toggle('tts-unsupported', ttsUnsupported);
   }
-  if (ptr) ptr.checked = G.showTranslations ?? true;
+  if (ptr) ptr.checked = G.translationEnabled ?? true;
   if (ph) ph.checked = G.showHanjaOnMonsters;
 }
 
@@ -3196,7 +3275,7 @@ function navigateWithAnim(dir) {
 
   // Hide real emoji; show ghost; hide bubbles during transition
   if (plEl) plEl.style.opacity = '0';
-  _ghost.style.display = 'block'; // must be 'block' — '' inherits display:none from CSS
+  _ghost.style.display = 'block'; // must be 'block' - '' inherits display:none from CSS
   { const bub = document.getElementById('effect-bubble'); if (bub) bub.style.opacity = '0'; }
 
   // Match ghost size to actual player emoji size (handles touch-mode resize)
@@ -3245,7 +3324,7 @@ function navigateWithAnim(dir) {
     placeGhost(entry.x, entry.y, 0.5, 0, false); // invisible+small, at entry door
     void _ghost.offsetWidth;
 
-    enterRoom(nc, nr); // direct call — skips G.transition canvas fade
+    enterRoom(nc, nr); // direct call - skips G.transition canvas fade
 
     if (_overlay) { _overlay.style.transition = 'opacity 0.18s ease'; _overlay.style.opacity = '0'; }
 
@@ -3314,6 +3393,7 @@ window.toggleMap = function() {
       G.phase = 'run';
     }
     _mapOpenedWhileRunning = false;
+    if (!G.touchMode && G.phase === 'run') typingEl?.focus();
   }
 };
 
@@ -3343,6 +3423,7 @@ window.toggleBook = function() {
       G.phase = 'run';
     }
     _bookOpenedWhileRunning = false;
+    if (!G.touchMode && G.phase === 'run') typingEl?.focus();
   }
 };
 
@@ -3396,6 +3477,16 @@ function updateBook() {
   // ── Determine active tab ──────────────────────────────────────
   const activeTab = panel.querySelector('.dict-tab.active');
   const category = activeTab?.dataset.cat || 'noun';
+
+  // ── Hide/show search bar based on tab type ───────────────────
+  const searchWrap = document.getElementById('book-dict-search-wrap');
+  if (searchWrap) searchWrap.style.display = (category === 'stats' || /^\d/.test(category)) ? 'none' : '';
+
+  // ── Stats tab ─────────────────────────────────────────────────
+  if (category === 'stats') {
+    listEl.innerHTML = _renderStatsContent();
+    return;
+  }
 
   // ── Lesson tab: show markdown content ────────────────────────
   if (/^\d/.test(category)) {
@@ -3483,6 +3574,59 @@ document.getElementById('ime-toggle')?.addEventListener('click', () => {
   _imeToggle();
   typingEl?.focus();
 });
+
+// Attach the custom HangulComposer to any auxiliary input (e.g. test write input)
+// so that 한 mode is respected outside of the main typing field.
+window._attachHangulToInput = (inputEl) => {
+  if (!inputEl) return;
+  const composer = new HangulComposer();
+  let committed = '';
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (!_imeEnabled) return;
+    if (e.key === 'Enter' || e.key === 'Tab') return; // let other handlers fire
+    const jamo = QWERTY_TO_JAMO[e.shiftKey ? e.key : e.key.toLowerCase()] ?? QWERTY_TO_JAMO[e.key];
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (!composer.backspace()) committed = committed.slice(0, -1);
+      inputEl.value = committed + composer.composing;
+      return;
+    }
+    if (!jamo) return;
+    e.preventDefault();
+    committed += composer.input(jamo);
+    inputEl.value = committed + composer.composing;
+  });
+
+  // Commit any in-flight syllable before value is read (Enter key path)
+  inputEl.addEventListener('keydown', (e) => {
+    if (!_imeEnabled) return;
+    if (e.key === 'Enter' && !composer.isEmpty) {
+      // Only overwrite inputEl.value if OUR composer was managing the syllable.
+      // When the system IME is active, composer is always empty — don't touch the value.
+      committed += composer.commitCurrent();
+      inputEl.value = committed;
+    }
+  }, true); // capture phase so value is committed before hud.js Enter handler fires
+
+  // Expose handlers for touch kb-key routing
+  window._feedKeyToTestInput = (k, shifted) => {
+    const effectiveKey = shifted ? k.toUpperCase() : k;
+    const jamo = QWERTY_TO_JAMO[effectiveKey] ?? QWERTY_TO_JAMO[k];
+    if (!jamo) return;
+    committed += composer.input(jamo);
+    inputEl.value = committed + composer.composing;
+  };
+  window._backspaceTestInput = () => {
+    if (!composer.backspace()) committed = committed.slice(0, -1);
+    inputEl.value = committed + composer.composing;
+  };
+  window._commitAndGetTestInput = () => {
+    committed += composer.commitCurrent();
+    inputEl.value = committed;
+    return committed;
+  };
+};
 
 /* ================================================================
    MINI KEYBOARD DISPLAY (visual aid for Korean IME)
@@ -3577,10 +3721,18 @@ function _touchKeyPress(k) {
   if (!G.touchMode) return; // on-screen keys are visual-only in keyboard mode
   if (G.phase !== 'run') return;
   const shifted = _kbShift !== 'off';
-  if (!_imeEnabled) {
+
+  // If teacher test is active, route to test write input
+  if (window._feedKeyToTestInput) {
+    window._feedKeyToTestInput(k, shifted);
+    if (_kbShift === 'shift') _setKbShift('off');
+  } else if (!document.getElementById('scr-teacher')?.classList.contains('off')) {
+    // Teacher screen open but no write input (choice question) - do nothing
+  } else if (!_imeEnabled) {
     // 영 mode: insert latin letter directly into the input value
     const char = shifted ? k.toUpperCase() : k;
     if (typingEl) typingEl.value += char;
+    if (_kbShift === 'shift') _setKbShift('off');
   } else {
     // 한 mode: feed jamo
     const effectiveKey = shifted ? k.toUpperCase() : k;
@@ -3590,8 +3742,8 @@ function _touchKeyPress(k) {
       typingEl.value = _imeCommitted + _imeComposer.composing;
       typingEl.setSelectionRange(typingEl.value.length, typingEl.value.length);
     }
+    if (_kbShift === 'shift') _setKbShift('off');
   }
-  if (_kbShift === 'shift') _setKbShift('off');
   _updateEnterGlow();
   // Briefly light up the key
   const keyEl = _kbKeyEls[k];
@@ -3621,7 +3773,9 @@ function _touchSpace() {
 }
 
 function _touchBackspace() {
-  if (_imeEnabled) {
+  if (window._backspaceTestInput) {
+    window._backspaceTestInput();
+  } else if (_imeEnabled) {
     if (!_imeComposer.backspace()) _imeCommitted = _imeCommitted.slice(0, -1);
     if (typingEl) typingEl.value = _imeCommitted + _imeComposer.composing;
   } else {
@@ -3701,6 +3855,12 @@ function _buildTouchExtras() {
   const enterBtn = _makeTouchKey('kb-touch-enter', '⏎');
   enterBtn.addEventListener('pointerdown', e => {
     e.preventDefault();
+    // If teacher test write input is active, commit and submit
+    if (window._commitAndGetTestInput) {
+      const val = window._commitAndGetTestInput();
+      window._submitTestAnswer?.(val);
+      return;
+    }
     if (_imeEnabled) {
       _imeCommitted += _imeComposer.commitCurrent();
       if (typingEl) typingEl.value = _imeCommitted || typingEl.value;
@@ -3804,7 +3964,7 @@ function applyTouchMode() {
       typingEl.setAttribute('readonly', 'readonly');
     }
 
-    // Wire all KB keys to touch handler (once — same DOM elements throughout session)
+    // Wire all KB keys to touch handler (once - same DOM elements throughout session)
     Object.entries(_kbKeyEls).forEach(([k, el]) => {
       el.parentElement.style.cursor = 'pointer';
       el.addEventListener('pointerdown', e => { e.preventDefault(); _touchKeyPress(k); });
@@ -3911,7 +4071,7 @@ window.addEventListener('resize', () => {
    TYPING INPUT
 ================================================================ */
 typingEl?.addEventListener('keydown', e => {
-  // Touch mode: block ALL physical keyboard input — only pointer/touch events work
+  // Touch mode: block ALL physical keyboard input - only pointer/touch events work
   if (G.touchMode) { e.preventDefault(); return; }
 
   // Block text-editing shortcuts that would modify selection or clipboard
@@ -3928,7 +4088,7 @@ typingEl?.addEventListener('keydown', e => {
     _setKbShift(_kbShift === 'caps' ? 'off' : 'caps');
   }
 
-  // Enter — commit IME composition first, then fire onInput
+  // Enter - commit IME composition first, then fire onInput
   if (e.key === 'Enter') {
     if (_imeEnabled) {
       // Always commit (returns '' if nothing in flight)
@@ -3991,7 +4151,7 @@ typingEl?.addEventListener('beforeinput', e => {
 typingEl?.addEventListener('input', () => {
   if (_imeEnabled && typingEl) {
     if (_imeComposer.isEmpty) {
-      _imeCommitted = typingEl.value; // browser added a char — accept it
+      _imeCommitted = typingEl.value; // browser added a char - accept it
     } else {
       typingEl.value = _imeCommitted + _imeComposer.composing; // safety net
     }
@@ -4021,7 +4181,7 @@ function warmUpTTS() {
 document.addEventListener('click', warmUpTTS, { once: true });
 document.addEventListener('keydown', warmUpTTS, { once: true });
 
-// Speak a Korean word — cancels any ongoing speech immediately
+// Speak a Korean word - cancels any ongoing speech immediately
 function speakKorean(text) {
   if (!G.ttsEnabled || !text || typeof speechSynthesis === 'undefined') return;
   speechSynthesis.cancel();
@@ -4038,7 +4198,7 @@ function onInput() {
   if (G.frozen) { typingEl.value = ''; return; }
   const val = typingEl.value.trim();
   if (!val) {
-    // Whitespace-only input — just clear the field
+    // Whitespace-only input - just clear the field
     typingEl.value = '';
     _imeCommitted = '';
     _imeComposer.reset();
@@ -4046,7 +4206,7 @@ function onInput() {
     return;
   }
 
-  // Speak what was typed — queued, fires even on wrong input
+  // Speak what was typed - queued, fires even on wrong input
   speakKorean(val);
 
   // Ground items can always be collected (combat or navigate)
@@ -4102,7 +4262,7 @@ function onInput() {
       const [fdc, fdr] = _ANIM_DIR_DELTA[dir];
       const fAdj = getCell(((fleeFromCell?.col ?? 0) + fdc + COLS) % COLS, ((fleeFromCell?.row ?? 0) + fdr + ROWS) % ROWS);
       if (fAdj?.visited) {
-        // Only flee if no monster has this word — killing always takes priority
+        // Only flee if no monster has this word - killing always takes priority
         const monsters = G.room?.monsters?.filter(m => !m.dead) || [];
         const wordMatchesMonster = monsters.some(m => {
           const all = [...m.words];
@@ -4153,7 +4313,7 @@ function onInput() {
       }
     }
 
-    // Nothing matched in navigate mode — scatter
+    // Nothing matched in navigate mode - scatter
     typingEl.style.color = '#ff4466';
     setTimeout(() => typingEl.style.color = '', 280);
     spawnMissParticles(val);
@@ -4194,7 +4354,7 @@ function onInput() {
         spawnMissParticles(val);
       }
     } else {
-      // No monsters alive — scatter
+      // No monsters alive - scatter
       typingEl.style.color = '#ff4466';
       setTimeout(() => typingEl.style.color = '', 280);
       spawnMissParticles(val);
@@ -4233,17 +4393,18 @@ document.addEventListener('keydown', e => {
       e.preventDefault();
       _imeToggle();
     }
-    // B: open Dictionary (skip if another input has focus, e.g. dict search)
+    const teacherOpen = !document.getElementById('scr-teacher')?.classList.contains('off');
+    // B: open Dictionary (skip if another input has focus, or teacher screen is open)
     if (e.key === 'b' || e.key === 'B') {
       const inOtherInput = document.activeElement !== typingEl &&
         document.activeElement?.closest('input, textarea, select');
-      if (!inOtherInput) { e.preventDefault(); window.toggleBook(); }
+      if (!inOtherInput && !teacherOpen) { e.preventDefault(); window.toggleBook(); }
     }
-    // M: toggle Map (skip if another input has focus)
+    // M: toggle Map (skip if another input has focus, or teacher screen is open)
     if (e.key === 'm' || e.key === 'M') {
       const inOtherInput = document.activeElement !== typingEl &&
         document.activeElement?.closest('input, textarea, select');
-      if (!inOtherInput) { e.preventDefault(); window.toggleMap(); }
+      if (!inOtherInput && !teacherOpen) { e.preventDefault(); window.toggleMap(); }
     }
     // Cheat: Enter instantly interacts with NPC if cheat menu is open
     if (!G.inTransition && e.key === 'Enter' && G.mode === 'navigate') {
@@ -4275,7 +4436,7 @@ document.addEventListener('keydown', e => {
       if (e.ctrlKey) pauseGame(); // Ctrl+ESC = pause
       return;
     }
-    // Close map if open and game is not paused — double ESC pauses
+    // Close map if open and game is not paused - double ESC pauses
     const mapP = document.getElementById('map-panel');
     if (mapP && !mapP.classList.contains('off') && G.phase !== 'paused') {
       mapP.classList.add('off');
@@ -4283,9 +4444,20 @@ document.addEventListener('keydown', e => {
       setMapPlaceholder(false);
       if (G.touchMode && _mapOpenedWhileRunning && G.phase === 'paused') G.phase = 'run';
       _mapOpenedWhileRunning = false;
+      if (!G.touchMode && G.phase === 'run') typingEl?.focus();
       return;
     }
-    // ESC: pause if running, resume if paused (disabled in touch mode — ctrl-panel handles it)
+    // Close book if open and game is not paused
+    const bookP = document.getElementById('book-panel');
+    if (bookP && !bookP.classList.contains('off') && G.phase !== 'paused') {
+      bookP.classList.add('off');
+      document.body.classList.remove('book-open');
+      if (G.touchMode && _bookOpenedWhileRunning && G.phase === 'paused') G.phase = 'run';
+      _bookOpenedWhileRunning = false;
+      if (!G.touchMode && G.phase === 'run') typingEl?.focus();
+      return;
+    }
+    // ESC: pause if running, resume if paused (disabled in touch mode - ctrl-panel handles it)
     if (G.touchMode) { closeCheatMenu(); return; }
     if (G.phase === 'lore') { pauseGame(); return; }
     if (G.phase === 'lore_paused') { resumeGame(); return; }
@@ -4319,9 +4491,9 @@ typingEl?.addEventListener('blur', () => {
 });
 
 // Close ctrl panel when window loses focus (tab switch, alt-tab, etc.)
-// In touch mode the panel is persistent — don't auto-close on blur.
+// In touch mode the panel is persistent - don't auto-close on blur.
 window.addEventListener('blur', () => {
-  // Always reset shift state on focus loss — prevents visual desync when caps/shift
+  // Always reset shift state on focus loss - prevents visual desync when caps/shift
   // is toggled outside the window (e.g. alt-tab with CapsLock on then turned off externally)
   if (_kbShift !== 'off') _setKbShift('off');
   if (G.touchMode) return;
@@ -4333,7 +4505,7 @@ window.addEventListener('blur', () => {
 });
 
 /* ================================================================
-   DOOR BUTTONS — fixed DOM buttons positioned over each door opening
+   DOOR BUTTONS - fixed DOM buttons positioned over each door opening
 ================================================================ */
 const DIR_DELTA_G = { N: [0,-1], S: [0,1], E: [1,0], W: [-1,0] };
 const _doorBtns = {};
@@ -4420,7 +4592,7 @@ function updateDoorButtons() {
 }
 
 /* ================================================================
-   MOBILE — visualViewport (verbatim from original)
+   MOBILE - visualViewport (verbatim from original)
 ================================================================ */
 if ('visualViewport' in window) {
   function _applyVisualViewport() {
@@ -4758,7 +4930,7 @@ function screenOff(id) {
 }
 
 /* ================================================================
-   ORIENTATION LOCK — portrait (width < height × 0.75) shows rotate overlay
+   ORIENTATION LOCK - portrait (width < height × 0.75) shows rotate overlay
 ================================================================ */
 (function() {
   const overlay = document.getElementById('rotate-overlay');
@@ -4785,7 +4957,7 @@ function screenOff(id) {
       _rotateLangTimer = null;
     }
 
-    // Translations not yet loaded — show English fallback to avoid raw key flash
+    // Translations not yet loaded - show English fallback to avoid raw key flash
     if (!langs.length) {
       rotateText.textContent = 'Rotate your device';
       return;

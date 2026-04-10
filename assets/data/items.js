@@ -1,5 +1,5 @@
 /* ================================================================
-   ITEMS — consumables, permanents, shop catalog
+   ITEMS - consumables, permanents, shop catalog
 ================================================================ */
 
 export function formatKoreanNumber(num) {
@@ -56,7 +56,7 @@ export const POWERUP_DEFS = {
 export const POWERUP_KEYS = Object.keys(POWERUP_DEFS);
 
 /* ================================================================
-   RUN MODIFIERS — permanent upgrades that persist for the current run
+   RUN MODIFIERS - permanent upgrades that persist for the current run
 ================================================================ */
 export const PERMANENTS = [
   { id: 'block',         emoji: '🛡️', onAcquire: (G) => { G.run.blockChance = true; } },
@@ -96,7 +96,7 @@ export function generateShopInventory(G, worldIdx) {
   items.push(mkCon('❤️‍🩹', _wPrice(worldIdx, 200)));
   items.push(mkCon('📙',    _wPrice(worldIdx, 100)));
   items.push(mkCon('⏱️',   _wPrice(worldIdx, 500)));
-  items.push(mkCon('📖',   300)); // World Guide — flat price, no world scaling
+  items.push(mkCon('📖',   300)); // World Guide - flat price, no world scaling
   // Tent: always available in worlds with a day/night cycle
   if (!G.dungeon?.worldDef?.fixedLighting) items.push(mkCon('⛺', _wPrice(worldIdx, 350)));
 
@@ -165,7 +165,7 @@ function _modPrice(worldIdx, id) {
   return _wPrice(worldIdx, bases[id] || 800);
 }
 
-// Legacy catalog — kept empty; callers should use generateShopInventory instead
+// Legacy catalog - kept empty; callers should use generateShopInventory instead
 export const SHOP_CATALOG = [];
 
 /* ================================================================
@@ -183,7 +183,7 @@ export function rollPowerupDrop(waveNum) {
 }
 
 /* ================================================================
-   MODIFIER ROOM CHOICES — 2 consumables + 1 permanent
+   MODIFIER ROOM CHOICES - 2 consumables + 1 permanent
 ================================================================ */
 export function rollModifierChoices(G) {
   const ownedPerms = new Set(G.run.permanents);

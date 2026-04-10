@@ -1,5 +1,5 @@
 /* ================================================================
-   HUD — DOM-based UI: lives, wallet, world indicator, permanent
+   HUD - DOM-based UI: lives, wallet, world indicator, permanent
    items bar, all special-room screens, game over
 ================================================================ */
 import { G, savePersistentState } from './state.js';
@@ -228,7 +228,7 @@ export function renderShopScreen(cell) {
 }
 
 /* ================================================================
-   TEACHER SCREEN — Markdown processor + TTS
+   TEACHER SCREEN - Markdown processor + TTS
 ================================================================ */
 function _inlineMarkdown(text) {
   return text
@@ -241,7 +241,7 @@ function _inlineMarkdown(text) {
 }
 
 export function parseLessonMarkdown(md) {
-  if (!md) return '<p><em>—</em></p>';
+  if (!md) return '<p><em>-</em></p>';
 
   // 1. Process <speak='word'> tags (self-closing, with or without backtick wrapping)
   md = md.replace(/`?<speak='([^']+)'>`?/g, (_, word) => {
@@ -249,7 +249,7 @@ export function parseLessonMarkdown(md) {
     return `<button class="md-speak-btn" onclick="window._speak('${safe}')">🔊 <span class="md-speak-word">${word}</span></button>`;
   });
 
-  // 2. Process <word='word'> tags — show emoji + hangul + translation inline
+  // 2. Process <word='word'> tags - show emoji + hangul + translation inline
   md = md.replace(/`?<word='([^']+)'>`?/g, (_, word) => {
     const entry = WORD_DICT.find(e => e.text === word);
     if (!entry) return `<span class="md-word-inline">${word}</span>`;
@@ -326,22 +326,36 @@ window._speak = (txt) => {
 ================================================================ */
 let _testState = null; // { questions: [], cur: 0, hits: 0, prize: null, won: 0 }
 
-function generateGibberish(correct) {
-  // Swap specific jamos: ㅓ/ㅏ, ㅇ/ㅁ, ㅂ/ㅍ, ㅈ/ㅊ, ㄱ/ㅋ/ㄲ
-  const swaps = { 'ㅓ':'ㅏ', 'ㅏ':'ㅓ', 'ㅇ':'ㅁ', 'ㅁ':'ㅇ', 'ㅂ':'ㅍ', 'ㅍ':'ㅂ', 'ㅈ':'ㅊ', 'ㅊ':'ㅈ', 'ㄱ':'ㅋ', 'ㅋ':'ㄲ', 'ㄲ':'ㄱ' };
+function generateGibberish(correct, existingGibberish = []) {
+  // Generate unique gibberish by modifying jamos
+  // If this runs out of variations, randomize vowel or consonant
+  const JAMO_CHO = ['ㄱ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅅ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+  const JAMO_JUNG = ['ㅏ','ㅑ','ㅓ','ㅕ','ㅗ','ㅛ','ㅜ','ㅠ','ㅡ','ㅢ','ㅘ'];
+  const JAMO_JONG = ['','ㄱ','ㄲ','ㄴ','ㄷ','ㄹ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ'];
+  
   let result = '';
-  for (const char of correct) {
-    const code = char.charCodeAt(0);
-    if (code >= 0xAC00 && code <= 0xD7A3) {
-      const v = code - 0xAC00;
-      let jong = v % 28, jung = Math.floor(v / 28) % 21, cho = Math.floor(v / 28 / 21);
-      // Simple swap logic for testing complexity
-      if (Math.random() < 0.5) jung = (jung + 1) % 21;
-      else cho = (cho + 1) % 19;
-      result += String.fromCharCode(0xAC00 + (cho * 21 + jung) * 28 + jong);
-    } else {
-      result += char;
+  let attempts = 0;
+  while (true && attempts < 100) {
+    result = '';
+    for (const char of correct) {
+      const code = char.charCodeAt(0);
+      if (code >= 0xAC00 && code <= 0xD7A3) {
+        const v = code - 0xAC00;
+        let jong = v % 28, jung = Math.floor(v / 28) % 21, cho = Math.floor(v / 28 / 21);
+        // Randomly modify jamo: 50% just jung, 50% just cho
+        if (Math.random() < 0.5) {
+          jung = Math.floor(Math.random() * JAMO_JUNG.length);
+        } else {
+          cho = Math.floor(Math.random() * JAMO_CHO.length);
+        }
+        result += String.fromCharCode(0xAC00 + (cho * 21 + jung) * 28 + jong);
+      } else {
+        result += char;
+      }
     }
+    // Check if this gibberish already exists in our set
+    if (!existingGibberish.includes(result)) break;
+    attempts++;
   }
   return result;
 }
@@ -355,19 +369,36 @@ function buildQuestions() {
 
   const questions = [];
   const types = ['ko_to_trans', 'emoji_to_ko', 'emoji_to_write', 'ko_to_emoji', 'listen_to_write', 'listen_to_choice', 'conj_choice'];
+  // Filter conj_choice if verb counting not unlocked
+  const availableTypes = G.verbCountingUnlocked ? types : types.filter(t => t !== 'conj_choice');
   
   for (let i = 0; i < 20; i++) {
-    const type = types[Math.floor(Math.random() * types.length)];
+    const type = availableTypes[Math.floor(Math.random() * availableTypes.length)];
     const correct = pool[Math.floor(Math.random() * pool.length)];
+    
+    // For conj_choice, only allow verbs and adjectives
+    if (type === 'conj_choice') {
+      if (correct.category !== 'verb' && correct.category !== 'adj') {
+        i--; // Skip this question, try again
+        continue;
+      }
+    }
+    
     const options = [correct];
+    const seenGibberish = [];
     
     // Generate 7 distractors
     while (options.length < 8) {
       if (type === 'listen_to_choice') {
-        options.push({ text: generateGibberish(correct.text), isFake: true });
+        const newGibberish = generateGibberish(correct.text, seenGibberish);
+        seenGibberish.push(newGibberish);
+        options.push({ text: newGibberish, isFake: true });
       } else {
         const rand = WORD_DICT[Math.floor(Math.random() * WORD_DICT.length)];
-        if (!options.find(o => o.text === rand.text)) options.push(rand);
+        // Avoid duplicates by checking both the main text and making sure it's not already in options
+        if (!options.find(o => o.text === rand.text)) {
+          options.push(rand);
+        }
       }
     }
     
@@ -389,6 +420,11 @@ export function startTeacherChallenge(container, cell) {
   const prizeMod = unowned.length ? unowned[Math.floor(Math.random() * unowned.length)] : null;
   const wonPerHit = ((G.run?.worldIdx || 0) + 1) * 50;
 
+  // Initialize each question with a result tracker
+  questions.forEach(q => {
+    q.result = null; // null = not answered, true = correct, false = incorrect
+  });
+
   _testState = { questions, cur: 0, hits: 0, prize: prizeMod, won: 0, wonPerHit, cell };
 
   // Ensure Korean IME is on for written questions
@@ -399,24 +435,83 @@ export function startTeacherChallenge(container, cell) {
 }
 
 function renderQuestion() {
-  const scr = document.getElementById('scr-teacher');
-  const container = scr.querySelector('.menu-card');
+  const container = document.getElementById('teacher-content');
   const q = _testState.questions[_testState.cur];
 
+  // Calculate if already failed (4+ errors means guaranteed failure)
+  const totalAnswered = _testState.cur;
+  const errors = totalAnswered - _testState.hits;
+  const isFailed = errors > 4;
+
   const dotsHtml = Array.from({ length: 20 }, (_, i) => {
-    const cls = i < _testState.cur ? 'done' : i === _testState.cur ? 'current' : '';
+    // Use result tracker for each question
+    const question = _testState.questions[i];
+    let cls = '';
+    if (question.result === true) {
+      cls = 'correct';
+    } else if (question.result === false) {
+      cls = 'incorrect';
+    } else if (i === _testState.cur) {
+      cls = 'current';
+    }
     return `<span class="test-dot${cls ? ' ' + cls : ''}"></span>`;
   }).join('');
-  const headerHtml = `<div class="test-header">
-    <div class="test-dots">${dotsHtml}</div>
-    <span class="test-hits">${i18n('teacher.hitsCount', { hits: _testState.hits })}</span>
-  </div>
-  <button class="pause-btn test-giveup-btn" id="test-giveup">❌ ${i18n('teacher.giveUp')}</button>`;
+
+  const hitsCountStr = i18n('teacher.hitsCount', { hits: _testState.hits });
+  const hitsClass = isFailed ? 'failed' : '';
+  const wonHtml = _testState.won > 0
+    ? `<span class="test-won-indicator">💰 ${formatKoreanNumber(_testState.won)}원</span>`
+    : '';
+
+  const headerHtml = `
+  <div class="test-header">
+    <div class="test-dots">
+      <span class="test-hits ${hitsClass}">${hitsCountStr}</span>
+      ${dotsHtml}
+      <button class="pause-btn test-giveup-btn" id="test-giveup">❌ ${i18n('teacher.giveUp')}</button>
+      ${wonHtml}
+    </div>
+  </div>`;
 
   let contentHtml = '';
 
-  // Helper: render emoji safely (use secondaryEmoji as wield icon like monsters do)
-  const wieldEmoji = (entry) => (entry.secondaryEmoji || entry.emoji || '❓');
+  // Helper: render emoji with optional secondary emoji overlay
+  const wieldEmoji = (entry) => {
+    const primary = entry.emoji || '❓';
+    const secondary = entry.secondaryEmoji;
+    if (!secondary) return primary;
+    return `<span class="emoji-primary" style="position:relative">${primary}<span class="emoji-secondary">${secondary}</span></span>`;
+  };
+
+  // Helper: emoji button with tooltip if translations enabled
+  const makeEmojiBtn = (entry) => {
+    const emoji = wieldEmoji(entry);
+    const tooltip = G.translationEnabled ? `data-tooltip="${wordTr(entry.text) || entry.text}"` : '';
+    return `<button class="pause-btn test-emoji-btn test-ans-btn" data-answer="${entry.text.replace(/"/g,'&quot;')}" ${tooltip}>${emoji}</button>`;
+  };
+
+  // Helper: big emoji with secondary overlay
+  const makeBigEmoji = (entry) => {
+    const primary = entry.emoji || '❓';
+    const secondary = entry.secondaryEmoji;
+    const tooltip = G.translationEnabled ? `data-tooltip="${wordTr(entry.text) || entry.text}"` : '';
+    const hint = G.translationEnabled
+      ? `<p class="test-emoji-tr-hint"><em>${i18n('teacher.emojiTooltipHint')}</em></p>`
+      : '';
+    const emojiEl = secondary
+      ? `<div class="test-big-emoji emoji-primary" ${tooltip}>${primary}<span class="emoji-secondary">${secondary}</span></div>`
+      : `<div class="test-big-emoji" ${tooltip}>${primary}</div>`;
+    return emojiEl + hint;
+  };
+
+  // Helper: double listen buttons (normal + slow speed)
+  const makeListenButtons = () => {
+    return `
+      <div class="test-listen-buttons">
+        <button class="pause-btn md-speak-btn test-listen-btn" id="test-listen-play-normal" style="flex:2">🔊 ${i18n('teacher.listenNormal')}</button>
+        <button class="pause-btn md-speak-btn test-listen-btn" id="test-listen-play-slow" style="flex:1">🐌 ${i18n('teacher.listenSlow')}</button>
+      </div>`;
+  };
 
   switch (q.type) {
     case 'ko_to_trans':
@@ -430,7 +525,7 @@ function renderQuestion() {
       break;
 
     case 'emoji_to_ko':
-      contentHtml = `<div class="test-big-emoji">${wieldEmoji(q.correct)}</div>
+      contentHtml = `${makeBigEmoji(q.correct)}
         <div class="test-grid-4">
           ${q.options.map(o => `<button class="pause-btn test-ko-btn test-ans-btn" data-answer="${o.text.replace(/"/g,'&quot;')}">${o.text}</button>`).join('')}
         </div>`;
@@ -439,7 +534,7 @@ function renderQuestion() {
     case 'ko_to_emoji':
       contentHtml = `<div class="test-big-word">${q.correct.text}</div>
         <div class="test-grid-4">
-          ${q.options.map(o => `<button class="pause-btn test-emoji-btn test-ans-btn" data-answer="${o.text.replace(/"/g,'&quot;')}">${wieldEmoji(o)}</button>`).join('')}
+          ${q.options.map(o => makeEmojiBtn(o)).join('')}
         </div>`;
       break;
 
@@ -448,8 +543,8 @@ function renderQuestion() {
       const isListen = q.type === 'listen_to_write';
       contentHtml = `
         ${isListen
-          ? `<button class="pause-btn md-speak-btn test-listen-btn" id="test-listen-play">${i18n('teacher.listenBtn')}</button>`
-          : `<div class="test-big-emoji">${wieldEmoji(q.correct)}</div>`}
+          ? makeListenButtons()
+          : makeBigEmoji(q.correct)}
         <p>${isListen ? i18n('teacher.listenWrite') : i18n('teacher.writeEmoji')}</p>
         <input type="text" id="test-write-input" class="cheat-inp test-write-inp" autocomplete="off" autocorrect="off">
         <button class="pause-btn" id="test-write-submit" style="background:#27ae60; margin-top:8px">→</button>
@@ -458,7 +553,7 @@ function renderQuestion() {
     }
 
     case 'listen_to_choice': {
-      contentHtml = `<button class="pause-btn md-speak-btn test-listen-btn" id="test-listen-play">${i18n('teacher.listenBtn')}</button>
+      contentHtml = `${makeListenButtons()}
         <div class="test-grid-2">
           ${q.options.map(o => `<button class="pause-btn test-ko-btn test-ans-btn" data-answer="${o.text.replace(/"/g,'&quot;')}">${o.text}</button>`).join('')}
         </div>`;
@@ -467,12 +562,13 @@ function renderQuestion() {
 
     case 'conj_choice': {
       const entry = q.correct;
+      const conjText = entry.textVariations?.haeyoche?.present || (entry.text.replace('다', '') + '요');
       contentHtml = `<p class="test-prompt">${i18n('teacher.conjugationPrompt')}</p>
         <div class="test-big-word">${entry.text} <span style="font-size:1rem;opacity:.6">(해요체)</span></div>
         <div class="test-grid-2">
           ${q.options.map(o => {
-            const conjText = o.textVariations?.haeyoche?.present || generateGibberish(o.text.replace('다', '') + '요');
-            return `<button class="pause-btn test-ko-btn test-ans-btn" data-answer="${conjText.replace(/"/g,'&quot;')}">${conjText}</button>`;
+            const oConjText = o.textVariations?.haeyoche?.present || (o.text.replace('다', '') + '요');
+            return `<button class="pause-btn test-ko-btn test-ans-btn" data-answer="${oConjText.replace(/"/g,'&quot;')}">${oConjText}</button>`;
           }).join('')}
         </div>`;
       break;
@@ -481,41 +577,102 @@ function renderQuestion() {
 
   container.innerHTML = headerHtml + contentHtml;
 
-  // Wire answer buttons via data attributes (safe from quote/injection issues)
+  // Wire answer buttons
   container.querySelectorAll('.test-ans-btn').forEach(btn => {
     btn.addEventListener('click', () => window._submitTestAnswer(btn.dataset.answer));
   });
-  // Wire listen button
-  const listenBtn = container.querySelector('#test-listen-play');
-  if (listenBtn) {
-    listenBtn.addEventListener('click', () => window._speak(q.correct.text));
-    if (q.type === 'listen_to_write' || q.type === 'listen_to_choice') {
-      window._speak(q.correct.text);
+
+  // Wire listen buttons (both normal and slow)
+  const listenNormalBtn = container.querySelector('#test-listen-play-normal');
+  const listenSlowBtn = container.querySelector('#test-listen-play-slow');
+  
+  const speakNormal = () => window._speak(q.correct.text);
+  const speakSlow = () => {
+    if (typeof speechSynthesis !== 'undefined') {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(q.correct.text);
+      u.lang = 'ko-KR';
+      u.rate = 0.5; // Slow speed
+      speechSynthesis.speak(u);
     }
+  };
+
+  if (listenNormalBtn) {
+    listenNormalBtn.addEventListener('click', speakNormal);
   }
+  if (listenSlowBtn) {
+    listenSlowBtn.addEventListener('click', speakSlow);
+  }
+
+  // Auto-play listen for listen questions
+  if (q.type === 'listen_to_write' || q.type === 'listen_to_choice') {
+    setTimeout(() => speakNormal(), 300);
+  }
+
+  const inp = container.querySelector('#test-write-input');
+  if (inp) {
+    // Attach custom HangulComposer so 한 mode works in this input
+    window._attachHangulToInput?.(inp);
+
+    // System IME protection (Linux/IBus): the OS fires compositionend(abort) on ANY mousedown,
+    // losing the last composing syllable. Track the composing value and restore it when
+    // IBus aborts without data — unless backspace caused the abort.
+    let _composingValue = '';
+    let _wasBackspace = false;
+    inp.addEventListener('compositionstart', () => { _composingValue = inp.value; });
+    inp.addEventListener('compositionupdate', () => { _composingValue = inp.value; });
+    // Capture-phase keydown so we know if backspace triggered the compositionend
+    inp.addEventListener('keydown', (e) => { _wasBackspace = (e.key === 'Backspace'); }, true);
+    inp.addEventListener('compositionend', (e) => {
+      if (!e.data && !_wasBackspace && _composingValue.length > inp.value.length) {
+        // IBus aborted (not backspace): restore the composing syllable
+        inp.value = _composingValue;
+      } else {
+        _composingValue = inp.value; // normal commit or backspace — accept new value
+      }
+      _wasBackspace = false;
+    });
+
+    // _readValue: belt-and-suspenders fallback using composing snapshot
+    window._getTestInputValue = () =>
+      _composingValue.length > inp.value.length ? _composingValue : inp.value;
+
+    // Prevent any click inside the test container from stealing focus from this input.
+    // e.preventDefault() on mousedown only blocks browser focus — click events still fire.
+    container.addEventListener('mousedown', (e) => {
+      if (e.target === inp) return; // allow cursor repositioning inside the input
+      if (e.target.closest?.('input, textarea, select')) return;
+      e.preventDefault();
+    });
+
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        window._submitTestAnswer(window._getTestInputValue());
+      }
+    });
+    setTimeout(() => inp.focus(), 100);
+  }
+
   // Wire write submit
   const writeSubmit = container.querySelector('#test-write-submit');
   if (writeSubmit) {
     writeSubmit.addEventListener('click', () => {
-      const inp = container.querySelector('#test-write-input');
-      if (inp) window._submitTestAnswer(inp.value);
+      window._submitTestAnswer(window._getTestInputValue?.() ?? inp?.value ?? '');
     });
   }
-  const inp = container.querySelector('#test-write-input');
-  if (inp) {
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); window._submitTestAnswer(inp.value); } });
-    setTimeout(() => inp.focus(), 100);
-  }
+
   // Wire give-up button
   container.querySelector('#test-giveup')?.addEventListener('click', () => {
     _testState.cur = 20;
-    if (_testState.cell) _testState.cell.gaveUp = true;
+    if (_testState.cell) { _testState.cell.gaveUp = true; _testState.cell.testDone = true; }
     finishTest();
   });
 }
 
 window._submitTestAnswer = (val) => {
-  const q = _testState.questions[_testState.cur];
+  const q = _testState?.questions?.[_testState.cur];
+  if (!q) return; // Guard: stale UI click after give-up or test end
   const correctText = q.type === 'conj_choice'
     ? (q.correct.textVariations?.haeyoche?.present || q.correct.text)
     : q.correct.text;
@@ -523,9 +680,24 @@ window._submitTestAnswer = (val) => {
   if (val.trim() === correctText) {
     _testState.hits++;
     _testState.won += _testState.wonPerHit;
+    q.result = true; // Mark as correct
     flashAnnounce(i18n('teacher.correct'), '#27ae60');
   } else {
-    flashAnnounce(`${i18n('teacher.wrongPrefix')} ${correctText}`, '#e74c3c');
+    q.result = false; // Mark as incorrect
+    // Always show the ANSWER (what the player needed to provide), not the question prompt
+    let correctDisplay = correctText;
+    if (q.type === 'ko_to_emoji') {
+      // Answer was an emoji
+      const primary = q.correct.emoji || '❓';
+      const secondary = q.correct.secondaryEmoji;
+      correctDisplay = secondary ? `${primary}${secondary}` : primary;
+    } else if (q.type === 'ko_to_trans') {
+      // Answer was a translation
+      correctDisplay = wordTr(q.correct.text) || q.correct.text;
+    }
+    // emoji_to_ko, emoji_to_write, listen_to_write, listen_to_choice, conj_choice:
+    // answer is Korean text — correctText is already correct
+    flashAnnounce(`${i18n('teacher.wrongPrefix')} ${correctDisplay}`, '#e74c3c');
   }
 
   _testState.cur++;
@@ -537,12 +709,18 @@ window._submitTestAnswer = (val) => {
 };
 
 function finishTest() {
-  const scr = document.getElementById('scr-teacher');
-  const container = scr.querySelector('.menu-card');
+  const container = document.getElementById('teacher-content');
   const passed = _testState.hits >= 16; // 80% threshold
+  const cell = _testState.cell;
+  if (cell) cell.testDone = true; // always block re-take after completion
+  // Clear touch routing / IME fallback handlers
+  window._feedKeyToTestInput = null;
+  window._backspaceTestInput = null;
+  window._commitAndGetTestInput = null;
+  window._getTestInputValue = null;
 
   if (passed) {
-    G.relThreshold = 0; // Passed the final test — all vocab unlocked
+    G.relThreshold = 0; // Passed the final test - all vocab unlocked
     if (_testState.prize && G.run) {
       G.run.permanents.push(_testState.prize.id);
       _testState.prize.onAcquire(G);
@@ -559,29 +737,38 @@ function finishTest() {
       </div>
       <p style="font-size:0.8rem; opacity:0.7; margin-top:8px">${i18n('teacher.vocabNote')}</p>
       <div style="text-align:center; margin-top:16px">
-        <button class="pause-btn" onclick="document.getElementById('scr-teacher').classList.add('off')">${i18n('teacher.close')}</button>
+        <button class="pause-btn" id="test-close-btn">${i18n('teacher.close')}</button>
       </div>
     `;
+    container.querySelector('#test-close-btn').onclick = () => window.closeTeacherScreen?.();
     flashAnnounce(i18n('teacher.vocabExpanded'), '#ffd700');
   } else {
+    // Pay out partial won even on failure
+    const partialWon = _testState.won;
+    if (partialWon > 0 && G.run) { G.run.wallet += partialWon; savePersistentState(); }
     container.innerHTML = `
       <h1 style="color:#e74c3c">${i18n('teacher.failed')}</h1>
-      <p>${_testState.hits}/20</p>
+      <p style="text-align:center">${_testState.hits}/20</p>
+      ${partialWon > 0 ? `<div class="test-reward-box" style="margin-top:8px"><p>💰 ${i18n('teacher.wonLabel')} ${formatKoreanNumber(partialWon)}원</p></div>` : ''}
       <div style="text-align:center; margin-top:16px">
-        <button class="pause-btn" onclick="document.getElementById('scr-teacher').classList.add('off')">${i18n('teacher.retryNextWorld')}</button>
+        <button class="pause-btn" id="test-fail-back">${i18n('teacher.back')}</button>
       </div>
     `;
+    container.querySelector('#test-fail-back').onclick = () => renderTeacherScreen(cell);
   }
 }
 
-const LESSON_COOLDOWN_SECS = 1860; // 31 minutes of gametime per world
+const LESSON_COOLDOWN_SECS = 1860; // 31 minutes in real time
 
 function getLessonCooldownRemaining() {
-  const cd = G.run?.worldLessonCooldowns;
-  if (!cd) return 0;
-  const ts = cd[G.run?.worldIdx];
-  if (ts === undefined) return 0;
-  return Math.max(0, LESSON_COOLDOWN_SECS - (G.gameTime - ts));
+  // Check cross-run cooldown stored in localStorage
+  const cdTimestamps = JSON.parse(localStorage.getItem('krr_lesson_cooldowns') || '{}');
+  const tsMillis = cdTimestamps[G.run?.worldIdx];
+  if (tsMillis === undefined) return 0;
+  
+  const elapsedMillis = Date.now() - tsMillis;
+  const elapsedSecs = Math.floor(elapsedMillis / 1000);
+  return Math.max(0, LESSON_COOLDOWN_SECS - elapsedSecs);
 }
 
 export function renderTeacherScreen(cell) {
@@ -595,12 +782,12 @@ export function renderTeacherScreen(cell) {
 
   const isHealthy = G.playerHP >= G.playerMax;
   const alreadyLearned = lesson && G.completedLessons?.includes(lesson.id);
-  const gaveUp = cell.gaveUp === true;
+  const gaveUp = cell.gaveUp === true || cell.testDone === true;
   const cdRemaining = getLessonCooldownRemaining();
   const onCooldown = cdRemaining > 0;
   const cdMins = Math.ceil(cdRemaining / 60);
 
-  // Build lesson card — disabled if on cooldown or not full health
+  // Build lesson card - disabled if on cooldown or not full health
   let lessonCardHtml = '';
   if (lesson) {
     const disabledCls = (onCooldown || !isHealthy) ? 'disabled' : '';
@@ -621,16 +808,16 @@ export function renderTeacherScreen(cell) {
     <p class="teacher-warning-msg">${i18n('teacher.difficultyWarning')}</p>
     <div id="teacher-main-ui" style="display:flex; gap:15px; margin-top:16px; justify-content:center; flex-wrap:wrap;">
       ${lessonCardHtml}
-      ${gaveUp ? '' : `
-      <div class="item-choice-card teacher-challenge-card" id="btn-start-challenge">
+      <div class="item-choice-card teacher-challenge-card${gaveUp ? ' teacher-challenge-done' : ''}" id="btn-start-challenge">
         <div class="choice-badge">${i18n('teacher.challengeBadge')}</div>
         <div class="choice-emoji">💪</div>
         <div class="choice-name">${i18n('teacher.challengeTitle')}</div>
-      </div>`}
+        ${gaveUp ? `<div class="choice-desc" style="font-size:.78rem;opacity:.65">${i18n('teacher.alreadyAttempted')}</div>` : ''}
+      </div>
     </div>
     ${lesson && !isHealthy && !onCooldown ? `<p class="teacher-health-warning">${i18n('teacher.fullHealthRequired')}</p>` : ''}
     <div style="text-align:center; margin-top:16px">
-      <button class="pause-btn teacher-exit-btn" onclick="document.getElementById('scr-teacher').classList.add('off')">${i18n('teacher.exit')}</button>
+      <button class="pause-btn teacher-exit-btn" onclick="window.closeTeacherScreen?.()">${i18n('teacher.exit')}</button>
     </div>
   `;
 
@@ -641,10 +828,19 @@ export function renderTeacherScreen(cell) {
     };
   }
 
-  if (!gaveUp) {
-    container.querySelector('#btn-start-challenge').onclick = () => {
-      startTeacherChallenge(container, cell);
+  const challengeBtn = container.querySelector('#btn-start-challenge');
+  if (gaveUp) {
+    challengeBtn.onclick = () => {
+      container.innerHTML = `
+        <p style="text-align:center; padding:16px 0; opacity:.85">${i18n('teacher.challengeAlreadyDone')}</p>
+        <div style="text-align:center; margin-top:8px">
+          <button class="pause-btn" id="done-back-btn">${i18n('teacher.back')}</button>
+        </div>
+      `;
+      container.querySelector('#done-back-btn').onclick = () => renderTeacherScreen(cell);
     };
+  } else {
+    challengeBtn.onclick = () => startTeacherChallenge(container, cell);
   }
 }
 
@@ -670,11 +866,11 @@ function showLessonContent(container, lesson, cell) {
     if (!G.completedLessons) G.completedLessons = [];
     if (!G.completedLessons.includes(lesson.id)) {
       G.completedLessons.push(lesson.id);
-      // Record cooldown timestamp for this world
-      if (G.run) {
-        if (!G.run.worldLessonCooldowns) G.run.worldLessonCooldowns = {};
-        G.run.worldLessonCooldowns[G.run.worldIdx] = G.gameTime;
-      }
+      // Record cooldown timestamp for this world (cross-runs storage)
+      const cdTimestamps = JSON.parse(localStorage.getItem('krr_lesson_cooldowns') || '{}');
+      cdTimestamps[G.run?.worldIdx] = Date.now();
+      localStorage.setItem('krr_lesson_cooldowns', JSON.stringify(cdTimestamps));
+      
       // Add lesson's words to learnedWords pool (cross-run)
       if (!G.learnedWords) G.learnedWords = [];
       lesson.unlockedWords.forEach(w => {
@@ -699,7 +895,8 @@ function showLessonContent(container, lesson, cell) {
       savePersistentState();
       flashAnnounce(i18n('teacher.lessonDone'), '#27ae60');
     }
-    document.getElementById('scr-teacher').classList.add('off');
+    // Return to teacher main screen instead of closing
+    renderTeacherScreen(cell);
   };
 }
 
@@ -886,7 +1083,7 @@ export function renderCasinoScreen(cell) {
     resultIdx = slotIdx[pick];
     const result = pool[resultIdx];
 
-    // Show only the chosen item — centre it, hide others
+    // Show only the chosen item - centre it, hide others
     slotEls.forEach((el, i) => {
       if (!el) return;
       if (i === pick) {

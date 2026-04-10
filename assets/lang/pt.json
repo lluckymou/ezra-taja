@@ -11,7 +11,7 @@
   "title": {
     "playBtn": "▶ Jogar!",
     "slogan": "Aprendendo coreano digitando",
-    "subTitle": "EZRA 타자 — Digite coreano para derrotar monstros!",
+    "subTitle": "EZRA 타자 - Digite coreano para derrotar monstros!",
     "bestScore": "Melhor pontuação"
   },
   "lore": {
@@ -66,19 +66,23 @@
     "tabHangul": "Hangul",
     "searchPlaceholder": "Buscar…",
     "learnedWords": "Palavras Aprendidas",
-    "noWordsYet": "Nenhuma palavra aprendida — derrote monstros!",
+    "noWordsYet": "Nenhuma palavra aprendida - derrote monstros!",
     "openBook": "Abrir Livro",
     "myDict": "Meu Dicionário",
     "myDictBtn": "📙 Meu Dicionário",
     "myDictSub": "Palavras encontradas nas suas runs",
     "myDictEmpty": "Continue jogando para descobrir palavras!",
-    "tabEmpty": "Nenhuma palavra nesta categoria ainda — continue jogando!",
+    "tabEmpty": "Nenhuma palavra nesta categoria ainda - continue jogando!",
     "listTooLarge": "Lista com muitas entradas! Busque algo específico ou digite '*' para mostrar tudo.",
     "killed": "derrotados",
     "tensePresent": "Presente",
     "tensePast": "Passado",
     "tenseFuture": "Futuro",
-    "untouchedTip": "Nenhum monstro deste tipo derrotado ainda"
+    "untouchedTip": "Nenhum monstro deste tipo derrotado ainda",
+    "tabStatistics": "📊 Evolução",
+    "statsLessons": "Aulas Realizadas",
+    "statsWords": "Palavras Desbloqueadas",
+    "statsMastered": "Palavras Dominadas"
   },
   "pause": {
     "title": "Pausado",
@@ -150,7 +154,7 @@
   },
   "casino": {
     "title": "Cassino",
-    "spinHint": "Gire os slots — depois PARE!",
+    "spinHint": "Gire os slots - depois PARE!",
     "acceptBtn": "✅ ACEITAR",
     "clean_start": {
       "name": "Recomeço",
@@ -207,6 +211,8 @@
     "understood": "Entendi!",
     "close": "Fechar",
     "retryNextWorld": "Tentar no próximo mundo",
+    "alreadyAttempted": "Já tentado",
+    "challengeAlreadyDone": "Você já tentou este desafio. Volte no próximo mundo para tentar novamente.",
     "passed": "APROVADO! 🏆",
     "failed": "REPROVADO ❌",
     "notEnoughWords": "Palavras insuficientes para fazer o teste!",
@@ -222,13 +228,16 @@
     "listenWrite": "Escreva o que ouviu:",
     "writeEmoji": "Escreva o nome do objeto:",
     "listenBtn": "🔊 Ouvir",
+    "listenNormal": "Normal",
+    "listenSlow": "Lento",
     "conjugationPrompt": "Qual a conjugação correta de:",
     "questionCount": "Questão {{cur}}/20",
     "hitsCount": "Acertos: {{hits}}",
     "giveUp": "Desistir",
-    "difficultyWarning": "⚠️ Consultar o professor expande seu vocabulário — mas também dificulta o jogo!",
+    "difficultyWarning": "⚠️ Consultar o professor expande seu vocabulário - mas também dificulta o jogo!",
     "lessonOnCooldown": "Não há aulas disponíveis no momento",
-    "lessonCooldownNote": "Volte mais tarde — as aulas se renovam com o tempo"
+    "lessonCooldownNote": "Volte mais tarde - as aulas se renovam com o tempo",
+    "emojiTooltipHint": "Interaja com o emoji para ver sua tradução"
   },
   "tutorial": {
     "typeToKill":    "Digite a palavra para derrotar o monstro",
@@ -241,7 +250,7 @@
     "findBoss":      "Encontre a sala do chefe para aumentar o desafio",
     "buyTent":       "Você poderia comprar uma barraca na loja para dormir essa noite",
     "pickHangul":    "Digite a sílaba na moeda para pegar um item",
-    "pickHanja":     "Digite a sílaba do hanja para pegar o item — ou use um Dicionário para revelá-lo",
+    "pickHanja":     "Digite a sílaba do hanja para pegar o item - ou use um Dicionário para revelá-lo",
     "typeToAdvance": "Digite a palavra para avançar para o próximo mundo",
     "findTeacher":   "Encontrar o professor pode lhe ensinar uma lição e aumentar a dificuldade",
     "casinoLuck":    "Que tal tentar sua sorte arriscando tudo?"
@@ -296,7 +305,7 @@
     },
     "stun": {
       "name": "Atordoar",
-      "desc": "Bolha — atordoa o inimigo mais próximo"
+      "desc": "Bolha - atordoa o inimigo mais próximo"
     },
     "crit": {
       "name": "Crítico",
@@ -308,7 +317,7 @@
     },
     "autokill": {
       "name": "Matar Auto",
-      "desc": "Bolha — próximo inimigo no alcance morre"
+      "desc": "Bolha - próximo inimigo no alcance morre"
     },
     "freeze": {
       "name": "Congelar",
@@ -481,7 +490,7 @@
     },
     "batchim": {
       "title": "Batchim",
-      "content": "### **O que é Batchim?** 📝\n\nNo Hangul, o **Batchim** (받침) é a consoante que aparece na parte inferior de um bloco silábico. Embora existam muitas consoantes, elas são simplificadas em apenas **7 sons principais**.\n\n#### **Os 7 Sons do Batchim**\n\n| Som | Letras Representadas | Áudio Exemplo |\n|:---:|----------------------|---------------|\n| **[k]** | `<speak='ㄱ'>`, `<speak='ㅋ'>`, `<speak='ㄲ'>` | `<speak='억'>` |\n| **[n]** | `<speak='ㄴ'>` | `<speak='언'>` |\n| **[t]** | `<speak='ㄷ'>`, `<speak='ㅅ'>`, `<speak='ㅆ'>`, `<speak='ㅈ'>`, `<speak='ㅊ'>`, `<speak='ㅌ'>`, `<speak='ㅎ'>` | `<speak='얻'>` |\n| **[l]** | `<speak='ㄹ'>` | `<speak='얼'>` |\n| **[m]** | `<speak='ㅁ'>` | `<speak='엄'>` |\n| **[p]** | `<speak='ㅂ'>`, `<speak='ㅍ'>` | `<speak='업'>` |\n| **[ng]**| `<speak='ㅇ'>` | `<speak='엉'>` |\n\n---\n\n### **O Caso Especial do ㅎ (Aspiração)** 💨\n\nQuando o `<speak='ㅎ'>` aparece no Batchim (sozinho ou duplo como em **ㄴㅎ** ou **ㄹㅎ**) e é seguido por certas consoantes, ele não fica mudo. Em vez disso, ele se funde à próxima consoante, tornando-a **aspirada** (com um sopro de ar).\n\n- **ㅎ + ㄱ = ㅋ**\n- **ㅎ + ㄷ = ㅌ**\n- **ㅎ + ㅈ = ㅊ**\n- **ㅎ + ㅂ = ㅍ**\n\n**Exemplos Práticos:**\n- `<speak='축하해'>`: Escrito Chuk-ha-hae | Pronunciado: **Chu-ka-hae** (Felicitações)\n- `<speak='많다'>`: Escrito Man-da | Pronunciado: **Man-ta** (Muito)\n- `<speak='좋다'>`: Escrito Joh-da | Pronunciado: **Jo-ta** (Bom)\n- `<speak='입학'>`: Escrito Ip-hak | Pronunciado: **I-pak** (Admissão escolar)\n\n---\n\n### **Batchim Duplo (겹받침)** ⚠️\n\nExistem 11 combinações. A regra geral é: pronuncia-se apenas **uma** delas, a menos que a próxima sílaba comece com vogal.\n\n#### **1. Pronuncia-se a PRIMEIRA consoante**\n- **ㄴㅈ**: `<speak='앉다'>` (An-da) — *Sentar*\n- **ㄹㅂ**: `<speak='여덟'>` (Yeo-deol) — *Oito*\n- **ㅂㅅ**: `<speak='값'>` (Gap) — *Preço*\n- **ㄱㅅ**: `<speak='몫'>` (Mok) — *Parte*\n\n#### **2. Pronuncia-se a SEGUNDA consoante**\n- **ㄹㄱ**: `<speak='닭'>` (Dak) — *Frango*\n- **ㄹㅁ**: `<speak='삶'>` (Sam) — *Vida*\n- **ㄹㅍ**: `<speak='읊다'>` (Up-da) — *Recitar*\n\n> **Dica:** Se vier uma vogal depois, as duas podem soar (ex: `<speak='읽어'>` vira **Il-geo**)."
+      "content": "### **O que é Batchim?** 📝\n\nNo Hangul, o **Batchim** (받침) é a consoante que aparece na parte inferior de um bloco silábico. Embora existam muitas consoantes, elas são simplificadas em apenas **7 sons principais**.\n\n#### **Os 7 Sons do Batchim**\n\n| Som | Letras Representadas | Áudio Exemplo |\n|:---:|----------------------|---------------|\n| **[k]** | `<speak='ㄱ'>`, `<speak='ㅋ'>`, `<speak='ㄲ'>` | `<speak='억'>` |\n| **[n]** | `<speak='ㄴ'>` | `<speak='언'>` |\n| **[t]** | `<speak='ㄷ'>`, `<speak='ㅅ'>`, `<speak='ㅆ'>`, `<speak='ㅈ'>`, `<speak='ㅊ'>`, `<speak='ㅌ'>`, `<speak='ㅎ'>` | `<speak='얻'>` |\n| **[l]** | `<speak='ㄹ'>` | `<speak='얼'>` |\n| **[m]** | `<speak='ㅁ'>` | `<speak='엄'>` |\n| **[p]** | `<speak='ㅂ'>`, `<speak='ㅍ'>` | `<speak='업'>` |\n| **[ng]**| `<speak='ㅇ'>` | `<speak='엉'>` |\n\n---\n\n### **O Caso Especial do ㅎ (Aspiração)** 💨\n\nQuando o `<speak='ㅎ'>` aparece no Batchim (sozinho ou duplo como em **ㄴㅎ** ou **ㄹㅎ**) e é seguido por certas consoantes, ele não fica mudo. Em vez disso, ele se funde à próxima consoante, tornando-a **aspirada** (com um sopro de ar).\n\n- **ㅎ + ㄱ = ㅋ**\n- **ㅎ + ㄷ = ㅌ**\n- **ㅎ + ㅈ = ㅊ**\n- **ㅎ + ㅂ = ㅍ**\n\n**Exemplos Práticos:**\n- `<speak='축하해'>`: Escrito Chuk-ha-hae | Pronunciado: **Chu-ka-hae** (Felicitações)\n- `<speak='많다'>`: Escrito Man-da | Pronunciado: **Man-ta** (Muito)\n- `<speak='좋다'>`: Escrito Joh-da | Pronunciado: **Jo-ta** (Bom)\n- `<speak='입학'>`: Escrito Ip-hak | Pronunciado: **I-pak** (Admissão escolar)\n\n---\n\n### **Batchim Duplo (겹받침)** ⚠️\n\nExistem 11 combinações. A regra geral é: pronuncia-se apenas **uma** delas, a menos que a próxima sílaba comece com vogal.\n\n#### **1. Pronuncia-se a PRIMEIRA consoante**\n- **ㄴㅈ**: `<speak='앉다'>` (An-da) - *Sentar*\n- **ㄹㅂ**: `<speak='여덟'>` (Yeo-deol) - *Oito*\n- **ㅂㅅ**: `<speak='값'>` (Gap) - *Preço*\n- **ㄱㅅ**: `<speak='몫'>` (Mok) - *Parte*\n\n#### **2. Pronuncia-se a SEGUNDA consoante**\n- **ㄹㄱ**: `<speak='닭'>` (Dak) - *Frango*\n- **ㄹㅁ**: `<speak='삶'>` (Sam) - *Vida*\n- **ㄹㅍ**: `<speak='읊다'>` (Up-da) - *Recitar*\n\n> **Dica:** Se vier uma vogal depois, as duas podem soar (ex: `<speak='읽어'>` vira **Il-geo**)."
     },
     "colors": {
       "title": "Cores",
@@ -718,7 +727,7 @@
     "떡볶이": "tteokbokki",
     "냉면": "macarrão frio",
     "삼계탕": "sopa de frango",
-    "과자": "biscoito",
+    "과자": "snacks",
     "초콜릿": "chocolate",
     "물": "água",
     "차": "carro",

@@ -1,5 +1,5 @@
 /* ================================================================
-   WORLD — dungeon generation + room management + navigation
+   WORLD - dungeon generation + room management + navigation
 ================================================================ */
 import { G, resetRoomState } from './state.js';
 import { get as i18n } from './i18n.js';
@@ -22,7 +22,7 @@ export const WORLDS = [
     name: '경복궁',
     emoji: '🏯',           transport: '🏇',
     bgTop: '#0c1528',      bgBot: '#101e10',
-    bossEmoji: '👺',       // Dokkaebi — Korean goblin
+    bossEmoji: '👺',       // Dokkaebi - Korean goblin
     bossName: '도깨비',
     biome: 'palace',
     forbiddenWeathers: [],
@@ -35,7 +35,7 @@ export const WORLDS = [
     name: '제주도',
     emoji: '🌋',           transport: '✈️',
     bgTop: '#050a00',      bgBot: '#0f1a05',
-    bossEmoji: '🗿',       // Dol hareubang — iconic Jeju stone guardian statue
+    bossEmoji: '🗿',       // Dol hareubang - iconic Jeju stone guardian statue
     bossName: '돌하르방',
     biome: 'jungle',
     forbiddenWeathers: ['snowing', 'blizzard'],
@@ -48,7 +48,7 @@ export const WORLDS = [
     name: '해운대',
     emoji: '🏖️',          transport: '🚆',
     bgTop: '#050814',      bgBot: '#0a1228',
-    bossEmoji: '🦑',       // Giant squid — Busan seafood icon turned monster
+    bossEmoji: '🦑',       // Giant squid - Busan seafood icon turned monster
     bossName: '대왕오징어',
     biome: 'beach',
     forbiddenWeathers: ['snowing', 'blizzard'],
@@ -78,7 +78,7 @@ export const WORLDS = [
     name: '설악산',
     emoji: '⛰️',          transport: '🧗',
     bgTop: '#060c14',      bgBot: '#0c1520',
-    bossEmoji: '🐯',       // Baekho — white tiger, legendary Korean mountain spirit
+    bossEmoji: '🐯',       // Baekho - white tiger, legendary Korean mountain spirit
     bossName: '백호',
     biome: 'ice',
     forbiddenWeathers: ['clear'],
@@ -91,7 +91,7 @@ export const WORLDS = [
     name: '백두산',
     emoji: '🏔️',          transport: '🧗',
     bgTop: '#000810',      bgBot: '#000c20',
-    bossEmoji: '🐲',       // Divine dragon — guardian of Korea's sacred mountain
+    bossEmoji: '🐲',       // Divine dragon - guardian of Korea's sacred mountain
     bossName: '신룡',
     biome: 'volcano',
     forbiddenWeathers: ['clear', 'raining', 'drizzle'],
@@ -106,7 +106,7 @@ export const WORLDS = [
     name: '인사동',
     emoji: '🏮',           transport: '🏃',
     bgTop: '#0e0a04',      bgBot: '#1a1008',
-    bossEmoji: '🦊',       // Gumiho — nine-tailed fox from Korean mythology
+    bossEmoji: '🦊',       // Gumiho - nine-tailed fox from Korean mythology
     bossName: '구미호',
     biome: 'ruins',
     forbiddenWeathers: [],
@@ -119,7 +119,7 @@ export const WORLDS = [
     name: '동해',
     emoji: '🌊',           transport: '🛥️',
     bgTop: '#000c1a',      bgBot: '#00142a',
-    bossEmoji: '🦈',       // Great white shark — deep East Sea
+    bossEmoji: '🦈',       // Great white shark - deep East Sea
     bossName: '상어왕',
     biome: 'ocean',
     forbiddenWeathers: ['snowing', 'blizzard'],
@@ -132,7 +132,7 @@ export const WORLDS = [
     name: '전주 한옥마을',
     emoji: '🏘️',          transport: '🚌',
     bgTop: '#120804',      bgBot: '#200e08',
-    bossEmoji: '🎭',       // Tal mask — worn in traditional Talchum mask dance
+    bossEmoji: '🎭',       // Tal mask - worn in traditional Talchum mask dance
     bossName: '탈춤왕',
     biome: 'traditional',
     forbiddenWeathers: [],
@@ -145,7 +145,7 @@ export const WORLDS = [
     name: '경주',
     emoji: '🏛️',          transport: '🚲',
     bgTop: '#080808',      bgBot: '#101008',
-    bossEmoji: '💀',       // Ancient Silla king's ghost — Daereungwon burial mounds
+    bossEmoji: '💀',       // Ancient Silla king's ghost - Daereungwon burial mounds
     bossName: '신라왕',
     biome: 'ruins',
     forbiddenWeathers: ['snowing', 'blizzard'],
@@ -175,7 +175,7 @@ export const WORLDS = [
     name: '독도',
     emoji: '🪨',           transport: '🚤',
     bgTop: '#040c16',      bgBot: '#081420',
-    bossEmoji: '🦅',       // Steller's sea eagle — endemic to Dokdo's rocky cliffs
+    bossEmoji: '🦅',       // Steller's sea eagle - endemic to Dokdo's rocky cliffs
     bossName: '독수리',
     biome: 'ocean',
     forbiddenWeathers: [],
@@ -190,7 +190,7 @@ export const WORLDS = [
     name: '강남',
     emoji: '💎',           transport: '🚗',
     bgTop: '#030305',      bgBot: '#060610',
-    bossEmoji: '💵',       // Gold boss — luxury and excess
+    bossEmoji: '💵',       // Gold boss - luxury and excess
     bossName: '황금신',
     biome: 'city',
     forbiddenWeathers: ['snowing', 'blizzard', 'foggy'],
@@ -199,13 +199,13 @@ export const WORLDS = [
     fixedLighting: '23:30',
     unfitForTutorial: true,
   },
-  // ── World 13: 용궁 (Dragon Palace — mythological) ─────────────
+  // ── World 13: 용궁 (Dragon Palace - mythological) ─────────────
   {
     id: 'yonggoong',
     name: '용궁',
-    emoji: '🐉',           transport: '🐢',  // 별주부전 — rabbit rides turtle to Dragon Palace
+    emoji: '🐉',           transport: '🐢',  // 별주부전 - rabbit rides turtle to Dragon Palace
     bgTop: '#001414',      bgBot: '#002020',
-    bossEmoji: '🐉',       // 용왕 — Dragon King of the Sea
+    bossEmoji: '🐉',       // 용왕 - Dragon King of the Sea
     bossName: '용왕',
     biome: 'ocean',
     forbiddenWeathers: ['clear', 'raining', 'drizzle', 'snowing', 'blizzard'],
@@ -220,7 +220,7 @@ export const WORLDS = [
     name: '우주',
     emoji: '🌌',           transport: '🚀',
     bgTop: '#000004',      bgBot: '#00000a',
-    bossEmoji: '👾',       // Space invader — cosmic void boss
+    bossEmoji: '👾',       // Space invader - cosmic void boss
     bossName: '우주괴물',
     biome: 'cosmos',
     forbiddenWeathers: ['raining', 'drizzle', 'snowing', 'blizzard', 'foggy'],
@@ -232,7 +232,7 @@ export const WORLDS = [
 ];
 
 /* ================================================================
-   DUNGEON GENERATION — recursive backtracking maze
+   DUNGEON GENERATION - recursive backtracking maze
 ================================================================ */
 const COLS = 8;
 const ROWS = 6;
@@ -357,7 +357,7 @@ function trimWorldSequence() {
   }
 }
 
-/* Pick a world def — uses the pre-seeded sliding-window sequence. */
+/* Pick a world def - uses the pre-seeded sliding-window sequence. */
 export function pickWorldDef(worldIdx) {
   // If a world was confirmed by the portal NPC, use it (and consume the lock)
   if (worldIdx !== 0 && G.run?.confirmedNextWorld) {
@@ -611,7 +611,7 @@ export function enterRoom(col, row) {
   // Reset per-room noise cancellation
   if (G.room) G.room.noiseCancelled = false;
 
-  // Compute open door positions (exclude S — player enters from south area)
+  // Compute open door positions (exclude S - player enters from south area)
   G.room.openDoors = [...cell.connections]
     .filter(d => d !== 'S')
     .map(dir => {
@@ -719,11 +719,11 @@ export function enterRoom(col, row) {
     if (cell.type === 'boss' && cell.cleared && wIdx === 0) {
       window._showTutorial?.('🐲', 'tutorial.typeToAdvance', null, { persist: true });
     } else {
-      // Casino → luck hint (any world) — non-combat room, show immediately, auto-close 20s
+      // Casino → luck hint (any world) - non-combat room, show immediately, auto-close 20s
       if (cell.type === 'casino' && !cell.casinoUsed) {
         window._showTutorial?.('🎰', 'tutorial.casinoLuck', null, { autoClose: 20 });
       }
-      // World 0 special rooms (first visit) → interact hints — non-combat, auto-close 25s
+      // World 0 special rooms (first visit) → interact hints - non-combat, auto-close 25s
       else if (wIdx === 0 && !cell.cleared) {
         if      (cell.type === 'shop')     window._showTutorial?.('🏪', 'tutorial.typeToBuy',  { room: i18n('map.legendShop') },     { autoClose: 25 });
         else if (cell.type === 'teacher')  window._showTutorial?.('🎓', 'tutorial.typeToTalk', { room: i18n('map.legendTeacher') },   { autoClose: 25 });
@@ -764,11 +764,11 @@ function restoreSavedRoom(cell) {
   const remaining = (cell._templates || []).slice(saved.spawnedIdx);
 
   if (saved.monsters.length === 0) {
-    // No alive monsters to restore — just continue the spawner normally
+    // No alive monsters to restore - just continue the spawner normally
     initRoomSpawner(remaining);
   } else {
     // Restored alive monsters are the current "group".
-    // Set up the template queue WITHOUT calling sendNextGroup immediately —
+    // Set up the template queue WITHOUT calling sendNextGroup immediately -
     // onMonsterRemoved will trigger the next group naturally as they die.
     G.room.wTemplates = [...remaining];
     G.room.wTotal    = saved.wTotal;
@@ -857,7 +857,7 @@ function onBossDefeated(cell) {
   G.wallet += G.run.wallet;
   localStorage.setItem('krr_wallet', G.wallet.toString());
 
-  // Spawn portal NPC — player types next world's Korean name to advance
+  // Spawn portal NPC - player types next world's Korean name to advance
   spawnNextWorldNpc();
 
   // World 0: persistent "type to advance" tutorial
@@ -995,7 +995,7 @@ function hideAllScreens() {
 }
 
 /* ================================================================
-   ROOM NPC — interactive entity in special rooms
+   ROOM NPC - interactive entity in special rooms
    Player types the NPC's word to trigger the room action.
 ================================================================ */
 function spawnRoomNpc(type, emoji, cell) {
@@ -1006,7 +1006,7 @@ function spawnRoomNpc(type, emoji, cell) {
     modifier: ['선물', '마법', '능력', '강화', '아이템', '보상', '선택', '주문'],
     treasure: ['보물', '선물', '보석', '상금', '황금', '보따리', '상품', '수정'],
     casino:   ['카지노', '도박', '베팅', '갬블링', '복권', '주사위', '포커'],
-    teacher:  ['선생님', '선생', '학습', '공부', '배우다', '수업'],
+    teacher:  ['선생님', '스승님', '공부', '배우다', '수업'],
   };
   const pool = THEMED[type] || ['가게'];
   // Deterministic pick: same room always gets same word within a run
@@ -1050,7 +1050,7 @@ export function tryNpcInteract(val) {
     cell.cleared = true;
     npc.active = false;
   } else if (npc.type === 'tent') {
-    // Sleep — check cooldown
+    // Sleep - check cooldown
     const cd = G.run?.tentCooldown || 0;
     if (cd > 0) {
       const cdSec = Math.ceil(cd);
@@ -1063,7 +1063,7 @@ export function tryNpcInteract(val) {
     showTeacherScreen(cell);
     // Mark teacher interaction for this world (for tutorial hint suppression)
     if (G.run?.tutorial) G.run.tutorial.teacherInteractedThisWorld = true;
-    // Teacher stays active — player can always return to review the lesson
+    // Teacher stays active - player can always return to review the lesson
   } else if (npc.type === 'next_world') {
     npc.active = false;
     if (window._triggerWorldTransition) {
@@ -1086,7 +1086,7 @@ function reopenSpecialRoom(cell) {
   } else if (cell.type === 'casino' && !cell.casinoUsed) {
     spawnRoomNpc('casino', '🎰', cell);
   } else if (cell.type === 'teacher') {
-    // Teacher always respawns — they never leave
+    // Teacher always respawns - they never leave
     spawnRoomNpc('teacher', '🎓', cell);
   } else if (cell.isTent) {
     spawnRoomNpc('tent', '⛺', cell);
@@ -1160,7 +1160,7 @@ export function startNewWorld(worldIdx) {
   // Enter start room without transition
   enterRoom(G.dungeon.start.col, G.dungeon.start.row);
 
-  // Wall Breaker: permanent — re-open all connections in the new dungeon
+  // Wall Breaker: permanent - re-open all connections in the new dungeon
   if (G.run.wallBreaker) openAllConnections();
 
   // Pick weather not forbidden by this world's biome
@@ -1201,7 +1201,7 @@ export function startRun() {
   G.weather = pickWorldWeather(worldDef);
 
   const _wn = i18n('worlds.' + worldDef.id + '.name') || worldDef.name;
-  const _startMsg = `🌍 ${worldDef.emoji} ${_wn} — ${i18n('world.start')}`;
+  const _startMsg = `🌍 ${worldDef.emoji} ${_wn} - ${i18n('world.start')}`;
   if (G.worldTransition) {
     G.worldTransition.pendingAnnounce = _startMsg;
   } else {
@@ -1210,7 +1210,7 @@ export function startRun() {
 }
 
 /* ================================================================
-   MODIFIER ROOM — pick item
+   MODIFIER ROOM - pick item
 ================================================================ */
 export function pickModifierItem(cell, choiceIdx) {
   if (!cell.itemChoices) return;
@@ -1240,7 +1240,7 @@ export function pickModifierItem(cell, choiceIdx) {
 }
 
 /* ================================================================
-   SHOP — buy item
+   SHOP - buy item
 ================================================================ */
 export function shopBuy(cell, entry, price) {
   if (G.run.wallet < price) {
@@ -1248,7 +1248,7 @@ export function shopBuy(cell, entry, price) {
     return false;
   }
   if (entry.type === 'modifier') {
-    // Permanent upgrade — check not already owned
+    // Permanent upgrade - check not already owned
     if (G.run.permanents.includes(entry.permId)) {
       flashAnnounce(i18n('world.alreadyOwned'), '#ffaa44');
       return false;
@@ -1277,7 +1277,7 @@ export function shopBuy(cell, entry, price) {
 }
 
 /* ================================================================
-   TREASURE ROOM — collect items
+   TREASURE ROOM - collect items
 ================================================================ */
 export function collectTreasure(cell) {
   if (cell.rewardCollected) return;
@@ -1294,7 +1294,7 @@ export function collectTreasure(cell) {
 }
 
 /* ================================================================
-   WALL BREAKER — open all connections between cells
+   WALL BREAKER - open all connections between cells
 ================================================================ */
 export function openAllConnections() {
   const grid = G.dungeon?.grid;

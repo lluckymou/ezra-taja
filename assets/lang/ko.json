@@ -11,7 +11,7 @@
   "title": {
     "playBtn": "▶ 시작!",
     "slogan": "타이핑으로 한국어 배우기",
-    "subTitle": "EZRA 타자 — 한국어를 타이핑해서 몬스터를 물리쳐요!",
+    "subTitle": "EZRA 타자 - 한국어를 타이핑해서 몬스터를 물리쳐요!",
     "bestScore": "최고 점수"
   },
   "lore": {
@@ -66,19 +66,23 @@
     "tabHangul": "한글",
     "searchPlaceholder": "검색…",
     "learnedWords": "배운 단어",
-    "noWordsYet": "아직 배운 단어 없음 — 몬스터를 물리쳐라!",
+    "noWordsYet": "아직 배운 단어 없음 - 몬스터를 물리쳐라!",
     "openBook": "단어장 열기",
     "myDict": "나의 사전",
     "myDictBtn": "📙 나의 사전",
     "myDictSub": "플레이하면서 만난 단어들",
     "myDictEmpty": "계속 플레이하면 단어가 쌓여요!",
-    "tabEmpty": "이 카테고리에 아직 단어가 없어요 — 계속 플레이하세요!",
+    "tabEmpty": "이 카테고리에 아직 단어가 없어요 - 계속 플레이하세요!",
     "listTooLarge": "표시할 항목이 너무 많아요! 특정 단어를 검색하거나 '*'를 입력해서 모든 항목을 보세요.",
     "killed": "처치",
     "tensePresent": "현재",
     "tensePast": "과거",
     "tenseFuture": "미래",
-    "untouchedTip": "아직 이 유형의 몬스터를 처치하지 않았습니다"
+    "untouchedTip": "아직 이 유형의 몬스터를 처치하지 않았습니다",
+    "tabStatistics": "📊 통계",
+    "statsLessons": "완료한 수업",
+    "statsWords": "해금된 단어",
+    "statsMastered": "마스터한 단어"
   },
   "pause": {
     "title": "일시정지",
@@ -150,7 +154,7 @@
   },
   "casino": {
     "title": "카지노",
-    "spinHint": "슬롯을 돌려라 — 멈춰라!",
+    "spinHint": "슬롯을 돌려라 - 멈춰라!",
     "acceptBtn": "✅ 수락",
     "clean_start": { "name": "새 출발", "desc": "모든 소모품 삭제" },
     "tragedy":     { "name": "비극",    "desc": "모든 강화 삭제" },
@@ -198,6 +202,8 @@
     "understood": "이해했어요!",
     "close": "닫기",
     "retryNextWorld": "다음 세계에서 재시도",
+    "alreadyAttempted": "이미 시도됨",
+    "challengeAlreadyDone": "이미 이 도전을 시도했습니다. 다음 세계에서 다시 도전하세요.",
     "passed": "합격! 🏆",
     "failed": "불합격 ❌",
     "notEnoughWords": "테스트를 위한 단어가 부족합니다!",
@@ -213,13 +219,16 @@
     "listenWrite": "들은 것을 쓰세요:",
     "writeEmoji": "이 물체의 이름을 쓰세요:",
     "listenBtn": "🔊 듣기",
+    "listenNormal": "보통",
+    "listenSlow": "느림",
     "conjugationPrompt": "올바른 활용형은?",
     "questionCount": "{{cur}}/20번 문제",
     "hitsCount": "정답: {{hits}}",
     "giveUp": "포기하기",
-    "difficultyWarning": "⚠️ 선생님과 상담하면 어휘가 늘어납니다 — 하지만 게임도 어려워져요!",
+    "difficultyWarning": "⚠️ 선생님과 상담하면 어휘가 늘어납니다 - 하지만 게임도 어려워져요!",
     "lessonOnCooldown": "지금은 수업이 없습니다",
-    "lessonCooldownNote": "나중에 다시 오세요 — 시간이 지나면 수업이 다시 열립니다"
+    "lessonCooldownNote": "나중에 다시 오세요 - 시간이 지나면 수업이 다시 열립니다",
+    "emojiTooltipHint": "이모지를 눌러 번역을 확인하세요"
   },
   "tutorial": {
     "typeToKill":    "단어를 입력해서 몬스터를 물리치세요",
@@ -279,10 +288,10 @@
   "items": {
     "heal":         { "name": "치유",         "desc": "+2 생명력" },
     "maxheal":      { "name": "황금 하트",    "desc": "최대 HP +1" },
-    "stun":         { "name": "기절",         "desc": "기절 버블 — 가장 가까운 적 기절" },
+    "stun":         { "name": "기절",         "desc": "기절 버블 - 가장 가까운 적 기절" },
     "crit":         { "name": "치명타",       "desc": "×2 데미지 5발" },
     "slow":         { "name": "감속",         "desc": "속도 -40% 20초" },
-    "autokill":     { "name": "즉사",         "desc": "즉사 버블 — 범위 내 다음 적 즉사" },
+    "autokill":     { "name": "즉사",         "desc": "즉사 버블 - 범위 내 다음 적 즉사" },
     "freeze":       { "name": "시간 정지",    "desc": "모든 적 5초 동결" },
     "double":       { "name": "2배 원",       "desc": "코인 2배 30초" },
     "mystery":      { "name": "미스터리",     "desc": "랜덤 효과!" },

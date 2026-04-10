@@ -1,5 +1,5 @@
 /* ================================================================
-   I18N — Internationalization system
+   I18N - Internationalization system
    - Loads all language files from lang/
    - get(key, vars?) resolves nested dot-paths with English fallback
    - Interpolation: {{varName}} replaced by vars.varName

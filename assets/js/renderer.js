@@ -1,5 +1,5 @@
 /* ================================================================
-   RENDERER — canvas: room backgrounds, doors, nav arrows, weather
+   RENDERER - canvas: room backgrounds, doors, nav arrows, weather
    Combat drawMonsters/Projs/Parts live in combat.js
 ================================================================ */
 import { G } from './state.js';
@@ -142,9 +142,9 @@ export function drawBackground() {
         ctx.fillRect(wallSide, gy, _fw, gs);
     }
   } else if (_patIdx === 4) {
-    // Monochromatic — solid floorColor (base already drawn, nothing added)
+    // Monochromatic - solid floorColor (base already drawn, nothing added)
   } else if (_patIdx === 5) {
-    // Monochromatic — solid floorAlt
+    // Monochromatic - solid floorAlt
     ctx.fillRect(wallSide, floorTop, _fw, _fh);
   } else if (_patIdx === 6) {
     // Pixel-art: 24px "pixels" with hash pattern seeded by room coords
@@ -215,7 +215,7 @@ function drawWallBricks(wallH, wallSide, wallBot) {
   ctx.lineWidth = 1;
 
   // Corner diagonal angles (radians), chosen so each wall's sequence is
-  // monotonic — no sign-flips through vertical or horizontal.
+  // monotonic - no sign-flips through vertical or horizontal.
   //
   // Side walls (step Y): normalize to dx≥0 so angles stay in (-π/2, π/2).
   const TL   = Math.atan2( wallH,   wallSide);  // ≈ +75°  left top
@@ -269,7 +269,7 @@ function drawWallBricks(wallH, wallSide, wallBot) {
     ctx.restore();
   }
 
-  // Left wall  — TL(+75°) → horizontal(0°) → BL(-64°)
+  // Left wall  - TL(+75°) → horizontal(0°) → BL(-64°)
   // Clip: trapezoid (0,0)→(0,H)→(wallSide,H-wallBot)→(wallSide,wallH)
   fanLines(0, 0, wallSide, H, false, TL, 0, BL, bH, () => {
     ctx.beginPath();
@@ -278,7 +278,7 @@ function drawWallBricks(wallH, wallSide, wallBot) {
     ctx.closePath(); ctx.clip();
   });
 
-  // Right wall — TR(-75°) → horizontal(0°) → BR(+64°)   [dx>0 normalisation]
+  // Right wall - TR(-75°) → horizontal(0°) → BR(+64°)   [dx>0 normalisation]
   // Clip: trapezoid (W,0)→(W,H)→(W-wallSide,H-wallBot)→(W-wallSide,wallH)
   fanLines(W - wallSide, 0, wallSide, H, false, TR, 0, BR, bH, () => {
     ctx.beginPath();
@@ -287,7 +287,7 @@ function drawWallBricks(wallH, wallSide, wallBot) {
     ctx.closePath(); ctx.clip();
   });
 
-  // Top wall  — TL(+75°) → vertical(+90°) → TR_v(+104°)  [dy>0 normalisation]
+  // Top wall  - TL(+75°) → vertical(+90°) → TR_v(+104°)  [dy>0 normalisation]
   // Clip: trapezoid (0,0)→(W,0)→(W-wallSide,wallH)→(wallSide,wallH)
   fanLines(0, 0, W, wallH, true, TL, Math.PI / 2, TR_v, bH, () => {
     ctx.beginPath();
@@ -296,7 +296,7 @@ function drawWallBricks(wallH, wallSide, wallBot) {
     ctx.closePath(); ctx.clip();
   });
 
-  // Bottom wall — BL(-64°) → vertical-up(-90°) → BR_v(-116°)  [dy<0 normalisation]
+  // Bottom wall - BL(-64°) → vertical-up(-90°) → BR_v(-116°)  [dy<0 normalisation]
   // Clip: trapezoid (0,H)→(W,H)→(W-wallSide,H-wallBot)→(wallSide,H-wallBot)
   fanLines(0, H - wallBot, W, wallBot, true, BL, -Math.PI / 2, BR_v, bH, () => {
     ctx.beginPath();
@@ -650,7 +650,7 @@ export function initWeather(w) {
   for (let i = 0; i < count; i++) G.wxParticles.push(mkWxParticle(w, true));
 }
 
-// Crossfade state — old weather fades out while new weather fades in simultaneously.
+// Crossfade state - old weather fades out while new weather fades in simultaneously.
 // Canvas opacity is never animated; instead, particle groups each have an alpha multiplier.
 let _wxFade = { active: false, t: 0, dur: 3.0, oldAlpha: 0, newAlpha: 1 };
 
@@ -739,7 +739,7 @@ function _tickWxParticleGroup(groupKey, w, dt, allowSpawn) {
 export function tickWeather(dt) {
   if (!G.weatherEnabled) return;
 
-  // Advance crossfade — old fades 1→0, new fades 0→1 simultaneously
+  // Advance crossfade - old fades 1→0, new fades 0→1 simultaneously
   if (_wxFade.active) {
     _wxFade.t += dt;
     const frac = Math.min(1, _wxFade.t / _wxFade.dur);
@@ -807,7 +807,7 @@ function _drawWxParticles(particles, w, alphaMult) {
   }
 }
 
-/** Draw weather particles only — day/night handled separately by drawDayNight(). */
+/** Draw weather particles only - day/night handled separately by drawDayNight(). */
 export function drawWeather() {
   if (!wxCtx) return;
   const _dpr = window.devicePixelRatio || 1;
@@ -851,14 +851,14 @@ export function drawDayNight() {
 }
 
 /* ================================================================
-   ROOM NPC (shop / modifier — player types word to interact)
+   ROOM NPC (shop / modifier - player types word to interact)
 ================================================================ */
 export function drawRoomNpc() {
   if (!ctx) return;
   const npc = G.room?.npc;
   if (!npc || !npc.active) return;
 
-  // Always compute from current viewport — NPC position is not stored as absolute coords
+  // Always compute from current viewport - NPC position is not stored as absolute coords
   const x = G.W / 2;
   const y = G.vH * 0.42;
   const emojiSize = Math.floor(G.vH * 0.07);

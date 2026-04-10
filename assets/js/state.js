@@ -1,5 +1,5 @@
 /* ================================================================
-   GLOBAL STATE — imported by all modules (no circular imports)
+   GLOBAL STATE - imported by all modules (no circular imports)
 ================================================================ */
 export const G = {
   // ── Meta ──────────────────────────────────────────────────────
@@ -51,11 +51,11 @@ export const G = {
   showHanjaOnMonsters: false,
 
   // ── Word memorization system (cross-run, localStorage) ────────
-  // wordKillCounts: { '가': 5, '나': 12, ... } — incremented per noun kill
-  // wordHiddenStatus: { '가': false, '나': true, ... } — hidden if 5+ kills (50%) or 10+ kills (100%)
-  // wordConjugationCounts: { '먹다': { 'present-informal': 3, 'past-polite': 1, ... }, ... } — conjugation usage tracking
-  // completedLessons: ['1', '2', ...] — lesson IDs player has finished
-  // learnedWords: [{ text, emoji }, ...] — all words player has encountered (kills + lessons)
+  // wordKillCounts: { '가': 5, '나': 12, ... } - incremented per noun kill
+  // wordHiddenStatus: { '가': false, '나': true, ... } - hidden if 5+ kills (50%) or 10+ kills (100%)
+  // wordConjugationCounts: { '먹다': { 'present-informal': 3, 'past-polite': 1, ... }, ... } - conjugation usage tracking
+  // completedLessons: ['1', '2', ...] - lesson IDs player has finished
+  // learnedWords: [{ text, emoji }, ...] - all words player has encountered (kills + lessons)
   wordKillCounts: {},
   wordHiddenStatus: {},
   wordConjugationCounts: {},
@@ -70,7 +70,7 @@ export const G = {
 
   // ── Day/Night cycle (independent of weather events) ──────────
   gameTime:    0,       // seconds elapsed in run, monotonically increasing
-  // Cycle: 420s total — 30s dawn, 270s day, 60s dusk, 60s night
+  // Cycle: 420s total - 30s dawn, 270s day, 60s dusk, 60s night
 
   // ── Weather events (independent of time-of-day) ──────────────
   weather:     'clear',
@@ -186,7 +186,7 @@ export function resetRoomState(waveNum) {
     wave:       waveNum || 1,
     groundItems: [],
     _groundId:   0,
-    openDoors:  [], // [{dir, x, y}] for non-S doors — set by enterRoom
+    openDoors:  [], // [{dir, x, y}] for non-S doors - set by enterRoom
     usedWords:  new Set(), // words used in this room (all waves, not just alive)
     coins:      [], // room coin particles (fly to player on clear, explode on flee)
     roomPool:   0,  // coins earned this room, added to wallet only on clear

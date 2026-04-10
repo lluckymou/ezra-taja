@@ -1,5 +1,5 @@
 /* ================================================================
-   LESSONS SYSTEM — Teacher NPC vocabulary & grammar progression
+   LESSONS SYSTEM - Teacher NPC vocabulary & grammar progression
    
    Each lesson has:
    - id: string (unique key)
@@ -155,7 +155,7 @@ export const LESSONS_BASE = [
     id: '11',
     title_key: 'lesson.clothing.title',
     emoji: '👕',
-    unlockedWords: ['옷', '바지', '셔츠', '치마', '양말', '장갑', '코트', '지갑', '모자', '신발', '안경', '우산', '드레스'],
+    unlockedWords: ['옷', '바지', '셔츠', '치마', '양말', '장갑', '코트', '목도리', '지갑', '모자', '신발', '안경', '우산', '드레스'],
     unlockModifier: false,
     unlockVerbCounting: false,
     unlockBanmal: false,
@@ -428,7 +428,7 @@ export const LESSONS_BASE = [
     id: '32',
     title_key: 'lesson.professions.title',
     emoji: '💼',
-    unlockedWords: ['학생', '선생', '의사', '경찰', '요리사', '왕', '마법사', '군인', '농부', '가수', '운동선수', '강사님', '교수님', '스승님'],
+    unlockedWords: ['학생', '의사', '경찰', '요리사', '왕', '마법사', '군인', '농부', '가수', '운동선수', '강사님', '교수님', '스승님'],
     unlockModifier: false,
     unlockVerbCounting: false,
     unlockBanmal: false,

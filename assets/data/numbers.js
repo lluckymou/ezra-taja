@@ -1,5 +1,5 @@
 /* ================================================================
-   NUMBERS — Korean number utilities for numeric monsters
+   NUMBERS - Korean number utilities for numeric monsters
    - sinoSpelling(n)         : 0-999,999,999 → Korean string
    - sinoRequiredWords(n)    : required word texts for that number
    - nativeSpelling(n)       : 1-99 → Korean native string

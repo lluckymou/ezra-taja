@@ -1,5 +1,5 @@
 /* ================================================================
-   MINIMAP — DOM-based 8×6 grid with fog-of-war
+   MINIMAP - DOM-based 8×6 grid with fog-of-war
 ================================================================ */
 import { G } from './state.js';
 import { getCell, COLS, ROWS } from './world.js';
@@ -15,7 +15,7 @@ const TYPE_ICONS = {
   tent:     '⛺',
   teacher:  '🎓',
 };
-// Boss icon is dynamic — comes from the current world's bossEmoji
+// Boss icon is dynamic - comes from the current world's bossEmoji
 function bossIcon() {
   return G.dungeon?.worldDef?.bossEmoji || '🐲';
 }
@@ -260,14 +260,14 @@ function setClockDisplay(totalSecs) {
   iconEl.title = getWeatherLabel();
 }
 
-// Tick at 100ms — one display minute ≈ 291ms, so each minute is shown before advancing
+// Tick at 100ms - one display minute ≈ 291ms, so each minute is shown before advancing
 setInterval(() => {
   if (G.phase !== 'run') return;
   const cl = document.getElementById('hud-clock');
   const timeEl = document.getElementById('hud-clock-time');
   if (G.dungeon?.worldDef?.fixedLighting) {
     // Fixed-lighting world: show dash (time doesn't pass)
-    if (timeEl) timeEl.textContent = '—';
+    if (timeEl) timeEl.textContent = '-';
     const wxEl = document.getElementById('hud-clock-weather');
     const hours = parseInt(G.dungeon.worldDef.fixedLighting.split(':')[0]) || 0;
     const isNight = hours >= 22 || hours < 5;
@@ -297,7 +297,7 @@ export function updateMapExtras() {
 
   // Clock: interval handles updates; nothing to sync here
 
-  // Show next worlds preview (cached at world-start — stable, no random flicker)
+  // Show next worlds preview (cached at world-start - stable, no random flicker)
   const nextEl = document.getElementById('map-next-worlds');
   if (nextEl) {
     const nexts = G.run?.nextWorldsPreview;
@@ -344,7 +344,7 @@ export function updateMapExtras() {
         });
       }
     } else {
-      nextEl.textContent = '—';
+      nextEl.textContent = '-';
     }
   }
 }

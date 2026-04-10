@@ -11,7 +11,7 @@
   "title": {
     "playBtn": "▶ Start Game!",
     "slogan": "Learning Korean by typing",
-    "subTitle": "EZRA 타자 — Type Korean to defeat monsters!",
+    "subTitle": "EZRA 타자 - Type Korean to defeat monsters!",
     "bestScore": "Best score"
   },
   "lore": {
@@ -66,19 +66,23 @@
     "tabHangul": "Hangul",
     "searchPlaceholder": "Search…",
     "learnedWords": "Learned Words",
-    "noWordsYet": "No words learned yet — defeat monsters!",
+    "noWordsYet": "No words learned yet - defeat monsters!",
     "openBook": "Open Book",
     "myDict": "My Dictionary",
     "myDictBtn": "📙 My Dictionary",
     "myDictSub": "Words you've encountered on your runs",
     "myDictEmpty": "Keep playing to discover words!",
-    "tabEmpty": "No words in this category yet — keep playing!",
+    "tabEmpty": "No words in this category yet - keep playing!",
     "listTooLarge": "List too large to display! Search for something specific or type '*' to show all.",
     "killed": "killed",
     "tensePresent": "Present",
     "tensePast": "Past",
     "tenseFuture": "Future",
-    "untouchedTip": "No monsters of this type defeated yet"
+    "untouchedTip": "No monsters of this type defeated yet",
+    "tabStatistics": "📊 Stats",
+    "statsLessons": "Lessons Completed",
+    "statsWords": "Words Unlocked",
+    "statsMastered": "Mastered Words"
   },
   "pause": {
     "title": "Paused",
@@ -150,7 +154,7 @@
   },
   "casino": {
     "title": "Casino",
-    "spinHint": "Spin the slots — then STOP!",
+    "spinHint": "Spin the slots - then STOP!",
     "acceptBtn": "✅ ACCEPT",
     "clean_start": {
       "name": "Clean Start",
@@ -246,7 +250,7 @@
     },
     "stun": {
       "name": "Stun",
-      "desc": "Stun bubble — stuns nearest enemy"
+      "desc": "Stun bubble - stuns nearest enemy"
     },
     "crit": {
       "name": "Crit",
@@ -258,7 +262,7 @@
     },
     "autokill": {
       "name": "Auto-kill",
-      "desc": "Kill bubble — next enemy in range dies"
+      "desc": "Kill bubble - next enemy in range dies"
     },
     "freeze": {
       "name": "Time Freeze",
@@ -431,7 +435,7 @@
     },
     "batchim": {
       "title": "Batchim",
-      "content": "### **What is Batchim?** 📝\n\nIn Hangul, **Batchim** (받침) refers to the consonants at the bottom of a block. They are simplified into **7 main sounds**.\n\n#### **The 7 Sounds of Batchim**\n\n| Sound | Represented Letters | Sound Sample |\n|:---:|---------------------|--------------|\n| **[k]** | `<speak='ㄱ'>`, `<speak='ㅋ'>`, `<speak='ㄲ'>` | `<speak='억'>` |\n| **[n]** | `<speak='ㄴ'>` | `<speak='언'>` |\n| **[t]** | `<speak='ㄷ'>`, `<speak='ㅅ'>`, `<speak='ㅆ'>`, `<speak='ㅈ'>`, `<speak='ㅊ'>`, `<speak='ㅌ'>`, `<speak='ㅎ'>` | `<speak='얻'>` |\n| **[l]** | `<speak='ㄹ'>` | `<speak='얼'>` |\n| **[m]** | `<speak='ㅁ'>` | `<speak='엄'>` |\n| **[p]** | `<speak='ㅂ'>`, `<speak='ㅍ'>` | `<speak='업'>` |\n| **[ng]**| `<speak='ㅇ'>` | `<speak='엉'>` |\n\n---\n\n### **The Special Case of ㅎ (Aspiration)** 💨\n\nWhen `<speak='ㅎ'>` is in the Batchim position (either alone or in doubles like **ㄴㅎ**, **ㄹㅎ**) and meets certain consonants in the next syllable, they combine to create an **aspirated** sound (a burst of air).\n\n- **ㅎ + ㄱ = ㅋ**\n- **ㅎ + ㄷ = ㅌ**\n- **ㅎ + ㅈ = ㅊ**\n- **ㅎ + ㅂ = ㅍ**\n\n**Key Examples:**\n- `<speak='축하해'>`: Written Chuk-ha-hae | Pronounced: **Chu-ka-hae** (Congratulations)\n- `<speak='많다'>`: Written Man-da | Pronounced: **Man-ta** (To be many)\n- `<speak='좋다'>`: Written Joh-da | Pronounced: **Jo-ta** (To be good)\n- `<speak='입학'>`: Written Ip-hak | Pronounced: **I-pak** (School admission)\n\n---\n\n### **Double Batchim (겹받침)** ⚠️\n\nThere are 11 combinations. Usually, only **one** is pronounced unless followed by a vowel.\n\n#### **1. Pronouncing the FIRST consonant**\n- **ㄴㅈ**: `<speak='앉다'>` (An-da) — *To sit*\n- **ㄹㅂ**: `<speak='여덟'>` (Yeo-deol) — *Eight*\n- **ㅂㅅ**: `<speak='값'>` (Gap) — *Price*\n- **ㄱㅅ**: `<speak='몫'>` (Mok) — *Share*\n\n#### **2. Pronouncing the SECOND consonant**\n- **ㄹㄱ**: `<speak='닭'>` (Dak) — *Chicken*\n- **ㄹㅁ**: `<speak='삶'>` (Sam) — *Life*\n- **ㄹㅍ**: `<speak='읊다'>` (Up-da) — *To recite*"
+      "content": "### **What is Batchim?** 📝\n\nIn Hangul, **Batchim** (받침) refers to the consonants at the bottom of a block. They are simplified into **7 main sounds**.\n\n#### **The 7 Sounds of Batchim**\n\n| Sound | Represented Letters | Sound Sample |\n|:---:|---------------------|--------------|\n| **[k]** | `<speak='ㄱ'>`, `<speak='ㅋ'>`, `<speak='ㄲ'>` | `<speak='억'>` |\n| **[n]** | `<speak='ㄴ'>` | `<speak='언'>` |\n| **[t]** | `<speak='ㄷ'>`, `<speak='ㅅ'>`, `<speak='ㅆ'>`, `<speak='ㅈ'>`, `<speak='ㅊ'>`, `<speak='ㅌ'>`, `<speak='ㅎ'>` | `<speak='얻'>` |\n| **[l]** | `<speak='ㄹ'>` | `<speak='얼'>` |\n| **[m]** | `<speak='ㅁ'>` | `<speak='엄'>` |\n| **[p]** | `<speak='ㅂ'>`, `<speak='ㅍ'>` | `<speak='업'>` |\n| **[ng]**| `<speak='ㅇ'>` | `<speak='엉'>` |\n\n---\n\n### **The Special Case of ㅎ (Aspiration)** 💨\n\nWhen `<speak='ㅎ'>` is in the Batchim position (either alone or in doubles like **ㄴㅎ**, **ㄹㅎ**) and meets certain consonants in the next syllable, they combine to create an **aspirated** sound (a burst of air).\n\n- **ㅎ + ㄱ = ㅋ**\n- **ㅎ + ㄷ = ㅌ**\n- **ㅎ + ㅈ = ㅊ**\n- **ㅎ + ㅂ = ㅍ**\n\n**Key Examples:**\n- `<speak='축하해'>`: Written Chuk-ha-hae | Pronounced: **Chu-ka-hae** (Congratulations)\n- `<speak='많다'>`: Written Man-da | Pronounced: **Man-ta** (To be many)\n- `<speak='좋다'>`: Written Joh-da | Pronounced: **Jo-ta** (To be good)\n- `<speak='입학'>`: Written Ip-hak | Pronounced: **I-pak** (School admission)\n\n---\n\n### **Double Batchim (겹받침)** ⚠️\n\nThere are 11 combinations. Usually, only **one** is pronounced unless followed by a vowel.\n\n#### **1. Pronouncing the FIRST consonant**\n- **ㄴㅈ**: `<speak='앉다'>` (An-da) - *To sit*\n- **ㄹㅂ**: `<speak='여덟'>` (Yeo-deol) - *Eight*\n- **ㅂㅅ**: `<speak='값'>` (Gap) - *Price*\n- **ㄱㅅ**: `<speak='몫'>` (Mok) - *Share*\n\n#### **2. Pronouncing the SECOND consonant**\n- **ㄹㄱ**: `<speak='닭'>` (Dak) - *Chicken*\n- **ㄹㅁ**: `<speak='삶'>` (Sam) - *Life*\n- **ㄹㅍ**: `<speak='읊다'>` (Up-da) - *To recite*"
     },
     "colors": {
       "title": "Colors",
@@ -511,7 +515,7 @@
     },
     "banmal": {
       "title": "Banmal and Etiquette",
-      "content": "### **The Hierarchy of Respect** 🧢\n\nKorean is a socially stratified language. **Banmal** (**`<speak='반말'>`**) means \"half-speech\"—the casual level. Using it correctly shows cultural depth; using it wrong can end a friendship instantly.\n\n#### **How it works**\nTo speak in Banmal, drop the polite **-요**.\n- **Polite**: `<speak='안녕하세요'>` (Hello) → **Casual**: `<speak='안녕'>`.\n- **Polite**: `<speak='고마워요'>` (Thanks) → **Casual**: `<speak='고마워'>`.\n\n#### **Social Danger** ⚠️\nNever use Banmal with:\n1. Elders (even just 1 year older!).\n2. Strangers on the street.\n3. Coworkers or bosses.\n\n#### **When is it allowed?**\n- With very close friends (same birth year).\n- With younger siblings or children.\n- When an elder gives explicit permission.\n\n> **Gold Tip:** There is a ritual for this. An older friend might say: **`<speak='말 놓으셔도 돼요'>`** (You can drop the honorifics). Only then are you free to be casual. If in doubt, stay with **-요**!"
+      "content": "### **The Hierarchy of Respect** 🧢\n\nKorean is a socially stratified language. **Banmal** (**`<speak='반말'>`**) means \"half-speech\"-the casual level. Using it correctly shows cultural depth; using it wrong can end a friendship instantly.\n\n#### **How it works**\nTo speak in Banmal, drop the polite **-요**.\n- **Polite**: `<speak='안녕하세요'>` (Hello) → **Casual**: `<speak='안녕'>`.\n- **Polite**: `<speak='고마워요'>` (Thanks) → **Casual**: `<speak='고마워'>`.\n\n#### **Social Danger** ⚠️\nNever use Banmal with:\n1. Elders (even just 1 year older!).\n2. Strangers on the street.\n3. Coworkers or bosses.\n\n#### **When is it allowed?**\n- With very close friends (same birth year).\n- With younger siblings or children.\n- When an elder gives explicit permission.\n\n> **Gold Tip:** There is a ritual for this. An older friend might say: **`<speak='말 놓으셔도 돼요'>`** (You can drop the honorifics). Only then are you free to be casual. If in doubt, stay with **-요**!"
     },
     "particles": {
       "title": "Particles and Functions",
@@ -581,6 +585,8 @@
     "understood": "Got it!",
     "close": "Close",
     "retryNextWorld": "Try again next world",
+    "alreadyAttempted": "Already attempted",
+    "challengeAlreadyDone": "You've already attempted this challenge. Come back in the next world to try again.",
     "passed": "PASSED! 🏆",
     "failed": "FAILED ❌",
     "notEnoughWords": "Not enough words learned yet to take the test!",
@@ -596,13 +602,16 @@
     "listenWrite": "Write what you hear:",
     "writeEmoji": "Write the name of the object:",
     "listenBtn": "🔊 Listen",
+    "listenNormal": "Normal",
+    "listenSlow": "Slow",
     "conjugationPrompt": "What is the correct conjugation of:",
     "questionCount": "Question {{cur}}/20",
     "hitsCount": "Correct: {{hits}}",
     "giveUp": "Give up",
-    "difficultyWarning": "⚠️ Consulting the teacher expands your vocabulary — but also makes the game harder!",
+    "difficultyWarning": "⚠️ Consulting the teacher expands your vocabulary - but also makes the game harder!",
     "lessonOnCooldown": "You have no lessons for now",
-    "lessonCooldownNote": "Come back later — lessons recharge over time"
+    "lessonCooldownNote": "Come back later - lessons recharge over time",
+    "emojiTooltipHint": "Interact with the emoji to see its translation"
   },
   "tutorial": {
     "typeToKill":    "Type the word to defeat the monster",
@@ -615,7 +624,7 @@
     "findBoss":      "Find the boss room to increase the challenge",
     "buyTent":       "You could buy a tent at the shop to sleep through the night",
     "pickHangul":    "Type the syllable on the coin to pick up an item",
-    "pickHanja":     "Type the hanja syllable to pick up an item — or use a Dictionary to reveal it",
+    "pickHanja":     "Type the hanja syllable to pick up an item - or use a Dictionary to reveal it",
     "typeToAdvance": "Type the word to advance to the next world",
     "findTeacher":   "Finding the teacher can teach you a lesson and increase the challenge",
     "casinoLuck":    "Why not try your luck risking it all?"
@@ -1422,7 +1431,7 @@
     "선생님": "teacher",
     "강사님": "cram school instructor",
     "교수님": "university professor",
-    "스승님": "mentor/master teacher",
+    "스승님": "mentor/master",
     "공책": "notebook",
     "지우개": "eraser",
     "기쁘다": "happy/joyful",
@@ -1659,7 +1668,7 @@
   },
   "donate": {
     "enjoyingIt": "Are you enjoying it?",
-    "body": "You've opened the game {{count}} times… Consider supporting my work — I believe in free educational platforms and people like you can help advance this platform.",
+    "body": "You've opened the game {{count}} times… Consider supporting my work - I believe in free educational platforms and people like you can help advance this platform.",
     "btnLabel": "Support on GitHub Sponsors"
   },
   "ttsWarning": {
