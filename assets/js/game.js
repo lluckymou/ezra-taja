@@ -46,6 +46,7 @@ import { POWERUP_DEFS, formatKoreanNumber } from '../data/items.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { dojangManager, loadDojangStats } from './dojang.js';
 import { computeHangulStage } from '../data/dojang-data.js';
+import { play as sfx, preloadSFX, getVolume, setVolume } from './sfx.js';
 
 // Parse lesson word string, handling disambiguation like 'text:emoji'
 function parseLessonWord(str) {
@@ -1297,6 +1298,7 @@ function tickTransition(dt) {
 ================================================================ */
 function triggerWorldTransition(worldIdx) {
   if (G.worldTransition || G.phase !== 'run') return;
+  sfx('worldClear');
   // Clear current room so player takes no damage during animation
   G.room.monsters = [];
   G.room.projs    = [];
@@ -2086,6 +2088,7 @@ function buildTitleScreen() {
     void btn.offsetWidth; // reflow para reiniciar animação se clicar rápido
     btn.classList.add('spinning');
     btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
+    sfx('diceRoll', 0.8);
     _avaRandomize();
   });
   document.getElementById('ava-edit')?.addEventListener('click', _avaToggleEditMode);
@@ -2157,6 +2160,21 @@ function buildTitleScreen() {
     const main = document.getElementById('chk-hanja-monsters');
     if (main) main.checked = e.target.checked;
   });
+  // SFX volume sliders (settings, pause, dojang-pause) — all in sync
+  function _syncSfxSliders(v) {
+    const pct = Math.round(v * 100);
+    ['sfx-vol-slider','pause-sfx-vol','dojang-sfx-vol'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value !== String(pct)) el.value = String(pct);
+    });
+  }
+  function _onSfxSlider(e) { setVolume(e.target.value / 100); _syncSfxSliders(getVolume()); }
+  document.getElementById('sfx-vol-slider')?.addEventListener('input', _onSfxSlider);
+  document.getElementById('pause-sfx-vol')?.addEventListener('input', _onSfxSlider);
+  document.getElementById('dojang-sfx-vol')?.addEventListener('input', _onSfxSlider);
+  // Init slider positions from saved volume
+  _syncSfxSliders(getVolume());
+
   // hangulSize is determined by screen size at run start (hardcoded; no slider)
   document.getElementById('chk-hanja')?.addEventListener('change', e => {
     G.hanjaEnabled = e.target.checked;
@@ -2750,6 +2768,7 @@ window.invUseClick   = function() { invUse(); refreshInventoryUI(); };
    CTRL QUICK-ACTION PANEL
 ================================================================ */
 function openCtrlPanel() {
+  sfx('backpackOpen', 0.8);
   G.ctrlPanelOpen = true;
   _panelFadeAlpha = 0; // RAF fades panel in
   // Show ctrl panel (opacity starts at 0, RAF fades it in)
@@ -3379,6 +3398,7 @@ function navigateWithAnim(dir) {
   // Clear typing input to prevent cheating across rooms
   if (typingEl) typingEl.value = '';
 
+  sfx('roomNavigate', 0.65);
   // Fall back to instant transition if ghost element missing
   if (!_ghost) { enterRoom(nc, nr); typingEl?.focus(); return; }
 
@@ -3523,6 +3543,7 @@ window.toggleMap = function() {
   if (!panel) return;
   panel.classList.toggle('off');
   const mapOpen = !panel.classList.contains('off');
+  sfx('mapOpen', 0.7);
   document.body.classList.toggle('map-open', mapOpen);
   if (mapOpen) {
     window._onMapOpen?.();
@@ -3556,6 +3577,7 @@ window.toggleBook = function() {
   if (!panel) return;
   panel.classList.toggle('off');
   const bookOpen = !panel.classList.contains('off');
+  sfx('bookOpen', 0.7);
   document.body.classList.toggle('book-open', bookOpen);
   if (bookOpen) {
     updateBook();
@@ -3609,6 +3631,7 @@ function updateBook() {
       tabContainer.dataset.wired = '1';
       tabContainer.querySelectorAll('.dict-tab').forEach(tab => {
         tab.addEventListener('click', () => {
+          sfx('bookTabFlip', 0.6);
           panel.querySelectorAll('.dict-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           updateBook();
@@ -4325,6 +4348,25 @@ function warmUpTTS() {
 }
 document.addEventListener('click', warmUpTTS, { once: true });
 document.addEventListener('keydown', warmUpTTS, { once: true });
+
+// Preload SFX on first interaction
+function _initSFX() { preloadSFX(); }
+document.addEventListener('click', _initSFX, { once: true });
+document.addEventListener('keydown', _initSFX, { once: true });
+
+// UI hover sfx (desktop only) and click sfx
+document.addEventListener('mouseover', e => {
+  if (window.matchMedia('(pointer:coarse)').matches) return;
+  if (e.target.closest('button, .dict-tab, .kb-key, .dj-pause-btn, .dj-entry-btn, .pause-btn, .map-cell.can-teleport, .item-choice-card')) {
+    sfx('uiHover', 0.25);
+  }
+});
+document.addEventListener('click', e => {
+  if (!e.target.closest('#casino-stop-btn, #ava-randomize') &&
+      e.target.closest('button, .dict-tab, .dj-pause-btn, .dj-entry-btn, .pause-btn, .item-choice-card, .gopt-toggle')) {
+    sfx('uiClick', 0.35);
+  }
+});
 
 // Speak a Korean word - cancels any ongoing speech immediately
 function speakKorean(text) {

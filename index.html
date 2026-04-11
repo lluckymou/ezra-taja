@@ -236,6 +236,10 @@
             <span class="gopt-track"><span class="gopt-thumb"></span></span>
           </label>
         </div>
+        <div class="gopt-card" style="grid-column:1/-1">
+          <div class="gopt-label" data-i18n="options.sfxVolume">🔉 Sound Effects</div>
+          <input type="range" id="sfx-vol-slider" min="0" max="100" value="50" style="width:30%;accent-color:#4a9eff">
+        </div>
       </div>
       <div id="settings-credits">
         <div class="credits-by" data-i18n="credits.byLine">🫰 By Lucas Nascimento</div>
@@ -286,6 +290,10 @@
         <div id="pause-run-stats" style="display:none"></div>
       </div>
       <div id="pause-mid-opts">
+        <div class="pause-opt-row">
+          <span class="pause-opt-label">🔉 SFX</span>
+          <input type="range" id="pause-sfx-vol" min="0" max="100" value="50" style="width:90px;accent-color:#4a9eff">
+        </div>
         <div class="pause-opt-row">
           <span class="pause-opt-label" data-i18n="options.weather">🌤️ Weather</span>
           <label class="gopt-toggle"><input type="checkbox" id="pause-chk-weather" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
@@ -590,6 +598,9 @@
   <div id="dojang-pause-overlay" class="off">
     <div id="dojang-pause-panel">
       <h2 data-i18n="dojang.paused">Paused</h2>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;padding: 0 12px;font-size:.85rem;opacity:.75">
+        <span>🔉</span><input type="range" id="dojang-sfx-vol" min="0" max="100" value="50" style="flex:1;accent-color:#4a9eff">
+      </div>
       <button class="dj-pause-btn dj-pause-primary" id="dojang-btn-resume" data-i18n="dojang.resume">▶ Resume</button>
       <button class="dj-pause-btn" id="dojang-btn-menu" data-i18n="dojang.backMenu">Main Menu</button>
       <button class="dj-pause-btn off" id="dojang-btn-adventure" data-i18n="dojang.startAdventure">⚔️ Start Adventure</button>

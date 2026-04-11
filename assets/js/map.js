@@ -6,6 +6,7 @@ import { getCell, COLS, ROWS } from './world.js';
 import { getGameHour } from './renderer.js';
 import { PERMANENTS } from '../data/items.js';
 import { get as i18n } from './i18n.js';
+import { play as sfx } from './sfx.js';
 
 const TYPE_ICONS = {
   normal:   '⚔️',
@@ -64,6 +65,7 @@ export function initMap(containerEl) {
         const canTeleport = cell && (cell.visited || G.run?.mapRevealed) && !isCurrent;
         if (!canTeleport) return;
         if (typeof window !== 'undefined' && window._worldRef?.enterRoom) {
+          sfx('teleport', 0.8);
           // Revoke masterkey reveal after teleport, but keep it if crystal_ball is owned
           if (G.run && !G.run.permanents?.includes('crystal_ball')) G.run.mapRevealed = false;
           window._worldRef.enterRoom(c, r);

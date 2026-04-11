@@ -10,6 +10,7 @@ import { LESSONS_BASE } from '../data/lessons.js';
 import { POWERUP_DEFS, POWERUP_KEYS, rollPowerupDrop, formatKoreanNumber } from '../data/items.js';
 import { WORD_DICT } from '../data/words.js';
 import { get as i18n, wordTr } from './i18n.js';
+import { play as sfx } from './sfx.js';
 import { genSinoNumber, genNativeNumber, sinoSpelling, nativeSpelling } from '../data/numbers.js';
 
 
@@ -602,6 +603,7 @@ function onRoomCleared() {
   if (G.room.wPhase === 'clear') return;
   G.room.wPhase = 'clear';
   G.mode = 'navigate';
+  sfx('roomClear');
   if (_onRoomClearedCallback) _onRoomClearedCallback();
 }
 
@@ -803,6 +805,7 @@ function rollNextSpell() {
 }
 
 export function fire(monster) {
+  sfx('arrowShoot');
   const emoji = _nextSpell || '🔮';
   const px    = G.W / 2;
   const emojiElF = document.getElementById('pl-emoji');
@@ -881,6 +884,7 @@ export function hitMonster(m) {
   // Shield perk
   if (G.run?.shieldHits > 0 && !m.isProjectileMonster) {
     G.run.shieldHits--;
+    sfx('damageBlocked');
     flashAnnounce('🛡️ Blocked!', '#88aaff');
     return;
   }
@@ -924,6 +928,7 @@ export function hitMonster(m) {
 
   if (m.hp <= 0) {
     m.dead = true;
+    sfx(m.isProjectileMonster ? 'monsterDamage' : 'monsterDeath');
     const killBonus = Math.floor((G.room.wave || 1) * m.maxHp * 4 * coinMult * mult);
     G.room.roomPool = (G.room.roomPool || 0) + killBonus;
     // Update pending counter live
@@ -1060,6 +1065,7 @@ export function hurtPlayer(dmg = 1) {
   }
   G.playerHP = Math.max(0, G.playerHP - dmg);
   if (G.run) G.run.damageTaken = (G.run.damageTaken || 0) + dmg;
+  sfx('playerDamage');
   refreshLives();
   const plEmoji = document.getElementById('player-emoji');
   if (plEmoji) {
@@ -1079,6 +1085,7 @@ export function hurtPlayer(dmg = 1) {
 }
 
 export function freezePlayer(dur) {
+  sfx('freezeHit');
   G.frozen = true;
   G.freezeTimer = dur;
   const inp = document.getElementById('typing');
@@ -1215,6 +1222,7 @@ function spawnArrow(archer, px, py) {
 
 function spawnNote(musician) {
   if (G.room?.noiseCancelled) return; // Noise Cancel consumable active
+  sfx('musicianNote', 0.6);
   const syl = NOTE_SYLS[Math.floor(Math.random() * NOTE_SYLS.length)];
   G.room.monsters.push({
     id: ++_id, type:'note', special:null,
@@ -1703,6 +1711,7 @@ export function tryCollectGroundItem(val) {
 }
 
 export function addToInventory(item) {
+  sfx('itemPickup');
   const stack = G.inventory.stacks.find(s => s.item === item);
   if (stack) stack.count++;
   else G.inventory.stacks.push({ item, count:1 });
@@ -1767,6 +1776,7 @@ export function refreshInventoryUI() {
 
 export function invNavigate(dir) {
   if (!G.inventory.stacks.length) return;
+  sfx('invNavigate', 0.5);
   G.inventory.sel = ((G.inventory.sel + dir) + G.inventory.stacks.length) % G.inventory.stacks.length;
   refreshInventoryUI();
 }
@@ -1809,6 +1819,7 @@ export function invUse() {
   if (!inv.stacks.length) return;
   const stack = inv.stacks[inv.sel];
   if (!stack) return;
+  sfx('itemUse');
   const item = stack.item === '🎲'
     ? POWERUP_KEYS[Math.floor(Math.random() * POWERUP_KEYS.length)]
     : stack.item;

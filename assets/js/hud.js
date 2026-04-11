@@ -8,6 +8,7 @@ import { PERMANENTS, generateShopInventory, POWERUP_DEFS, formatKoreanNumber } f
 import { pickModifierItem, shopBuy, collectTreasure, startNewWorld } from './world.js';
 import { currentCell } from './world.js';
 import { addToInventory, flashAnnounce } from './combat.js';
+import { play as sfx } from './sfx.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { WORD_DICT } from '../data/words.js';
 
@@ -668,6 +669,7 @@ function renderQuestion() {
 
   // Wire give-up button
   container.querySelector('#test-giveup')?.addEventListener('click', () => {
+    sfx('testGiveup', 0.8);
     _testState.cur = 20;
     if (_testState.cell) { _testState.cell.gaveUp = true; _testState.cell.testDone = true; }
     finishTest();
@@ -685,9 +687,11 @@ window._submitTestAnswer = (val) => {
     _testState.hits++;
     _testState.won += _testState.wonPerHit;
     q.result = true; // Mark as correct
+    sfx('testAnswer', 0.8);
     flashAnnounce(i18n('teacher.correct'), '#27ae60');
   } else {
     q.result = false; // Mark as incorrect
+    sfx('testAnswer', 0.6);
     // Always show the ANSWER (what the player needed to provide), not the question prompt
     let correctDisplay = correctText;
     if (q.type === 'ko_to_emoji') {
@@ -717,6 +721,7 @@ function finishTest() {
   const passed = _testState.hits >= 16; // 80% threshold
   const cell = _testState.cell;
   if (cell) cell.testDone = true; // always block re-take after completion
+  sfx(passed ? 'testWin' : 'testAnswer', 0.9);
   // Lower kb-panels back below teacher screen (results don't need typing)
   document.body.classList.remove('teacher-test-active');
   const pa = document.getElementById('player-area');
@@ -871,6 +876,7 @@ function showLessonContent(container, lesson, cell) {
   `;
 
   container.querySelector('#btn-lesson-done').onclick = () => {
+    sfx('lessonDone');
     if (!G.completedLessons) G.completedLessons = [];
     if (!G.completedLessons.includes(lesson.id)) {
       G.completedLessons.push(lesson.id);
@@ -1085,6 +1091,7 @@ export function renderCasinoScreen(cell) {
 
   stopBtn.onclick = () => {
     if (_casinoInterval) { clearInterval(_casinoInterval); _casinoInterval = null; }
+    sfx('diceRoll', 0.8);
 
     // Pick 1 random result from the 3 stopped slots
     const pick = Math.floor(Math.random() * 3);

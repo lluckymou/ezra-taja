@@ -50,7 +50,8 @@
     "wg_weapons": "Weapons",
     "wg_ocean": "Ocean",
     "wg_elements": "Elements",
-    "wg_animals": "Animals"
+    "wg_animals": "Animals",
+    "sfxVolume": "🔉 Sound Effects"
   },
   "dict": {
     "title": "Dictionary",

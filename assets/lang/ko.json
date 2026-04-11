@@ -50,7 +50,8 @@
     "wg_weapons": "무기",
     "wg_ocean": "바다",
     "wg_elements": "원소",
-    "wg_animals": "동물"
+    "wg_animals": "동물",
+    "sfxVolume": "🔉 효과음"
   },
   "dict": {
     "title": "사전",

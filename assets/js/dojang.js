@@ -12,6 +12,7 @@ import {
 import { WORD_DICT } from '../data/words.js';
 import { get as i18n } from './i18n.js';
 import { parseLessonMarkdown } from './hud.js';
+import { play as sfx } from './sfx.js';
 
 const STORAGE_KEY = 'krr_dojang';
 const MAX_ERRORS  = 3;     // errors before resetting current character
@@ -324,14 +325,22 @@ export class DojangManager {
       ctx.fillText(msg, W / 2, instrY);
     }
 
-    // Stroke counter dots — span the FULL character's total strokes
-    const dotY    = isMob ? H * 0.895 : H * 0.856;
-    const dotR    = H * 0.013;
-    const dotGap  = dotR * 3.2;
-    const startX  = W / 2 - (totalStrokes - 1) * dotGap / 2;
-    for (let i = 0; i < totalStrokes; i++) {
+    // Stroke counter dots — sliding window of max 10, centered on current stroke
+    const MAX_DOTS  = 10;
+    const dotY      = isMob ? H * 0.895 : H * 0.856;
+    const dotR      = H * 0.013;
+    const dotGap    = dotR * 3.2;
+    let winStart = 0;
+    if (totalStrokes > MAX_DOTS) {
+      // Keep current stroke in the middle half of the window (start scrolling at index 5)
+      winStart = Math.max(0, Math.min(globalStrokeIdx - Math.floor(MAX_DOTS / 2), totalStrokes - MAX_DOTS));
+    }
+    const winCount = Math.min(MAX_DOTS, totalStrokes);
+    const startX   = W / 2 - (winCount - 1) * dotGap / 2;
+    for (let w = 0; w < winCount; w++) {
+      const i = winStart + w;
       ctx.beginPath();
-      ctx.arc(startX + i * dotGap, dotY, dotR, 0, Math.PI * 2);
+      ctx.arc(startX + w * dotGap, dotY, dotR, 0, Math.PI * 2);
       if (i < globalStrokeIdx) {
         ctx.fillStyle = 'rgba(80,220,120,0.9)';   // completed
       } else if (i === globalStrokeIdx) {
@@ -580,6 +589,7 @@ export class DojangManager {
   }
 
   _onJamoComplete() {
+    sfx('doStrokeOk', 0.75);
     const { jamos, jamoIdx } = this.challenge;
     const curJamo = jamos[jamoIdx];
 
@@ -622,9 +632,8 @@ export class DojangManager {
       if (stageAfter > stageBefore) this._announceStageUp(stageAfter);
     }
 
-    this._speakText(char);
-    this.flash = { type: 'ok', t: 0, dur: 0.5 };
-    this.nextDelay = 1.2;
+    this.flash = { type: 'ok', t: 0, dur: 0.4 };
+    this.nextDelay = 0.55;
     this._clearStrokes();
     this.challenge.completedPaths = [];
   }
@@ -647,6 +656,7 @@ export class DojangManager {
     this._redrawCompletedStrokes();
 
     if (this.errors >= MAX_ERRORS) {
+      sfx('doMajorError', 0.8);
       // Reset entire character — clear all ink and restart from first jamo
       this.errors = 0;
       this.challenge.jamoIdx   = 0;
@@ -655,6 +665,8 @@ export class DojangManager {
       this.challenge.completedPaths  = [];
       this._clearStrokes();
       this._announce(i18n('dojang.resetJamo'));
+    } else {
+      sfx('doMinorError', 0.3);
     }
   }
 
@@ -695,18 +707,23 @@ export class DojangManager {
                       / (PHASE1_JAMOS.length * MAX_JAMO_COUNT);
     const wordsUnlocked = globalPct >= WORDS_UNLOCK_PCT;
 
+    const lastChar = this.challenge?.char ?? null;
     let char;
-    const rnd = Math.random();
-    if (wordsUnlocked && rnd < 0.05) {
-      // 5% chance: complex syllable
-      char = COMPLEX_SYLLABLES[Math.floor(Math.random() * COMPLEX_SYLLABLES.length)];
-    } else if (wordsUnlocked && rnd < 0.15) {
-      // 10% chance: word from dictionary
-      const entry = WORD_DICT[Math.floor(Math.random() * Math.min(WORD_DICT.length, 300))];
-      char = entry.text[0];
-    } else {
-      char = pickNextChallenge(this.stats);
-    }
+    let attempts = 0;
+    do {
+      const rnd = Math.random();
+      if (wordsUnlocked && rnd < 0.05) {
+        // 5% chance: complex syllable
+        char = COMPLEX_SYLLABLES[Math.floor(Math.random() * COMPLEX_SYLLABLES.length)];
+      } else if (wordsUnlocked && rnd < 0.15) {
+        // 10% chance: word from dictionary
+        const entry = WORD_DICT[Math.floor(Math.random() * Math.min(WORD_DICT.length, 300))];
+        char = entry.text[0];
+      } else {
+        char = pickNextChallenge(this.stats);
+      }
+      attempts++;
+    } while (char === lastChar && attempts < 5);
 
     const jamos = syllableToJamos(char);
     const totalStrokes = jamos.reduce((sum, j) => sum + (JAMO_STROKES[j]?.length || 0), 0);
