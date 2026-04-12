@@ -42,10 +42,10 @@ import {
 import { loadLanguages, setLanguage, getAvailableLanguages, getLangMeta, get as i18n, wordTr } from './i18n.js';
 import { HangulComposer, QWERTY_TO_JAMO } from './hangul-input.js';
 import { WORD_DICT } from '../data/words.js';
-import { POWERUP_DEFS, formatKoreanNumber } from '../data/items.js';
+import { POWERUP_DEFS, POWERUP_KEYS, PERMANENTS, formatKoreanNumber } from '../data/items.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { dojangManager, loadDojangStats } from './dojang.js';
-import { computeHangulStage } from '../data/dojang-data.js';
+import { computeHangulStage, PHASE1_JAMOS, MAX_JAMO_COUNT, JAMO_INFO, JAMO_STROKES, JAMO_HAS_BATCHIM, BATCHIM_UNLOCK_COUNT } from '../data/dojang-data.js';
 import { play as sfx, preloadSFX, getVolume, setVolume } from './sfx.js';
 
 // Parse lesson word string, handling disambiguation like 'text:emoji'
@@ -539,6 +539,11 @@ const paEl     = document.getElementById('player-area');
 const mapEl    = document.getElementById('minimap-grid');
 const hudEl    = document.getElementById('hud');
 
+// Fullscreen prompt cycle helpers — assigned inside loadLanguages().then()
+let _fsPromptTimer      = null;
+let _startFsPromptCycle = () => {};
+let _stopFsPromptCycle  = () => {};
+
 
 /* ================================================================
    STARTUP MODALS  (donate + TTS warning)
@@ -631,7 +636,9 @@ function runStartupAnimation(onPrepare, onDone) {
     const _lc = parseInt(localStorage.getItem('krr_launchCount') || '0') + 1;
     localStorage.setItem('krr_launchCount', String(_lc));
     // On mobile without fullscreen: hide everything until fullscreen is entered
-    const needsFs = window.innerHeight < 500 && !(document.fullscreenElement || document.webkitFullscreenElement);
+    // Skip if already running as PWA (standalone mode is already fullscreen)
+    const _isPWA = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
+    const needsFs = !_isPWA && window.innerHeight < 500 && !(document.fullscreenElement || document.webkitFullscreenElement);
     const _gameEls = needsFs
       ? ['scr-title','gc','wx-canvas','dn-canvas'].map(id => document.getElementById(id)).filter(Boolean)
       : [];
@@ -803,9 +810,7 @@ export function init() {
 
   // ── Fullscreen overlay manager (mobile only) ─────────────────
   let _fsOverlayCallback = null;
-  // Cycling timer for #fs-prompt text
-  let _fsPromptTimer = null;
-  function _startFsPromptCycle() {
+  _startFsPromptCycle = function() {
     const promptEl = document.getElementById('fs-prompt');
     if (!promptEl) return;
     if (_fsPromptTimer) return; // already running
@@ -823,6 +828,13 @@ export function init() {
     showNext();
     _fsPromptTimer = setInterval(showNext, 2000);
   }
+
+  // Stop the cycling timer and clear prompt text
+  _stopFsPromptCycle = function() {
+    if (_fsPromptTimer) { clearInterval(_fsPromptTimer); _fsPromptTimer = null; }
+    const promptEl = document.getElementById('fs-prompt');
+    if (promptEl) promptEl.textContent = '';
+  };
 
   window._showFsOverlay = function(cb) {
     _fsOverlayCallback = cb || null;
@@ -1049,6 +1061,9 @@ function loop(ts) {
   G.last  = ts;
 
   // Ctrl hold timer + progressive blur / HUD fade / panel fade
+  // Suppress backpack/ctrl panel if NPC/teacher screen is open
+  const _npcOpen = !document.getElementById('scr-teacher')?.classList.contains('off');
+  if (_npcOpen && _ctrlState === 'holding') { _ctrlState = 'idle'; _ctrlHoldTimer = 0; }
   if (_ctrlState === 'holding') {
     _ctrlHoldTimer += dt;
     const prog = Math.min(1, _ctrlHoldTimer / 0.25); // reaches 1 in 0.25s
@@ -2088,7 +2103,7 @@ function buildTitleScreen() {
     void btn.offsetWidth; // reflow para reiniciar animação se clicar rápido
     btn.classList.add('spinning');
     btn.addEventListener('animationend', () => btn.classList.remove('spinning'), { once: true });
-    sfx('diceRoll', 0.8);
+    sfx('diceRoll', 0.43);
     _avaRandomize();
   });
   document.getElementById('ava-edit')?.addEventListener('click', _avaToggleEditMode);
@@ -2160,7 +2175,7 @@ function buildTitleScreen() {
     const main = document.getElementById('chk-hanja-monsters');
     if (main) main.checked = e.target.checked;
   });
-  // SFX volume sliders (settings, pause, dojang-pause) — all in sync
+  // SFX volume sliders (settings, pause, dojang-pause) - all in sync
   function _syncSfxSliders(v) {
     const pct = Math.round(v * 100);
     ['sfx-vol-slider','pause-sfx-vol','dojang-sfx-vol'].forEach(id => {
@@ -2507,8 +2522,12 @@ function showTitleScreen() {
   if (G.ctrlPanelOpen || _ctrlState !== 'idle') closeCtrlPanel();
   screenOff('scr-over'); screenOff('scr-pause');
   screenOff('scr-modifier'); screenOff('scr-shop'); screenOff('scr-treasure');
-  screenOff('scr-teacher');
+  window.closeTeacherScreen?.(); // also restores player-inner visibility + clears teacher-test-active
   window._hideTutorial?.(true);
+  // Close map and book panels so they don't bleed into next run
+  document.getElementById('map-panel')?.classList.add('off');
+  document.body.classList.remove('map-open');
+  document.getElementById('book-panel')?.classList.add('off');
   screenOn('scr-title');
   if (hudEl) { hudEl.style.display = 'none'; hudEl.style.opacity = ''; }
   if (paEl) paEl.style.display = 'none';
@@ -2587,10 +2606,9 @@ function _syncDictTitles() {
 function _renderStatsContent() {
   const r = 42, circ = +(2 * Math.PI * r).toFixed(2);
 
-  function ring(pct, color, labelKey, count, total) {
+  function ring(pct, color, labelKey, line1, line2 = '') {
     const p = Math.min(1, Math.max(0, isNaN(pct) ? 0 : pct));
     const offset = +(circ * (1 - p)).toFixed(2);
-    const pctStr = total > 0 ? Math.round(p * 100) + '%' : '0%';
     return `
       <div class="dict-stats-ring">
         <svg viewBox="0 0 100 100" width="96" height="96" aria-hidden="true">
@@ -2598,20 +2616,19 @@ function _renderStatsContent() {
           <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="10"
             stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
             stroke-linecap="round" transform="rotate(-90 50 50)"/>
-          <text x="50" y="46" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="inherit">${pctStr}</text>
-          <text x="50" y="63" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="inherit">${count}/${total}</text>
+          <text x="50" y="46" text-anchor="middle" fill="white" font-size="16" font-weight="bold" font-family="inherit">${line1}</text>
+          ${line2 ? `<text x="50" y="63" text-anchor="middle" fill="rgba(255,255,255,.5)" font-size="11" font-family="inherit">${line2}</text>` : ''}
         </svg>
         <div class="dict-stats-label">${i18n(labelKey)}</div>
       </div>`;
   }
 
-  const totalLessons = LESSONS_BASE.length;
-  const doneLessons  = (G.completedLessons || []).length;
-
-  const totalWords   = WORD_DICT.length;
-  const learnedList  = G.dictProgressionDisabled ? WORD_DICT : (G.learnedWords || []);
+  // ── Existing 3 rings ──────────────────────────────────────────────
+  const totalLessons  = LESSONS_BASE.length;
+  const doneLessons   = (G.completedLessons || []).length;
+  const totalWords    = WORD_DICT.length;
+  const learnedList   = G.dictProgressionDisabled ? WORD_DICT : (G.learnedWords || []);
   const unlockedWords = learnedList.length;
-
   const masteredCount = learnedList.filter(w => {
     const d = WORD_DICT.find(e => e.text === w.text && e.emoji === w.emoji)
            || WORD_DICT.find(e => e.text === w.text) || w;
@@ -2622,11 +2639,155 @@ function _renderStatsContent() {
     return G.wordHiddenStatus?.[w.text] === true;
   }).length;
 
-  return `<div class="dict-stats">
-    ${ring(doneLessons / totalLessons, '#27ae60', 'dict.statsLessons', doneLessons, totalLessons)}
-    ${ring(unlockedWords / totalWords,  '#3498db', 'dict.statsWords',   unlockedWords, totalWords)}
-    ${ring(masteredCount / (unlockedWords || 1), '#9b59b6', 'dict.statsMastered', masteredCount, unlockedWords)}
-  </div>`;
+  // ── 3 new rings ───────────────────────────────────────────────────
+  const dojangStats = G.dojangStats || {};
+  const jp          = dojangStats.jamoProgress || {};
+  const jp_tot      = PHASE1_JAMOS.reduce((s, j) => s + (jp[j]?.count || 0), 0);
+  const dojangMax   = PHASE1_JAMOS.length * MAX_JAMO_COUNT;
+
+  const totalAllItems = POWERUP_KEYS.length + PERMANENTS.length;
+  const itemsAcq      = G.itemsEverAcquired || 0;
+
+  const seenWorlds  = G.seenWorlds || [];
+  const totalWorlds = WORLDS.length;
+
+  // ── Wiki accordion helpers ────────────────────────────────────────
+  const WEATHER_MAP = { clear:'☀️', foggy:'🌫️', drizzle:'🌦️', raining:'🌧️',
+                        snowing:'❄️', blizzard:'🌨️', fall:'🍁', blossom:'🌸' };
+  const ALL_W = ['clear','foggy','drizzle','raining','snowing','blizzard','fall','blossom'];
+
+  function worldWeatherIcons(w) {
+    const forb = new Set(w.forbiddenWeathers || []);
+    return ALL_W.filter(x => !forb.has(x)).map(x => WEATHER_MAP[x]).join(' ');
+  }
+
+  function priceRange(base) {
+    // World 0 (×1.0) → World 4 (×10.0) as practical range
+    const lo = Math.round(base * 1.0 / 10) * 10;
+    const hi = Math.round(base * 10.0 / 10) * 10;
+    return `<span class="wiki-price">${formatKoreanNumber(lo)}~${formatKoreanNumber(hi)}<b>원</b></span>`;
+  }
+  const CON_BASES = { '❤️‍🩹':200,'💛':350,'⚡':300,'🔥':400,'🎯':700,'⏰':600,'🎁':300,
+    '💣':450,'🛡️':350,'⚔️':1200,'🔇':200,'🤑':300,'🕳️':700,'🏯':3000,'⛺':350,'📖':300,
+    '📙':100,'⏱️':500,'🔑':900,'⏰':600,'🎲':200 };
+  const MOD_BASES = { block:800,lucky:700,thorn_armor:900,treasure:1000,double_shot:1400,
+    ancient_scroll:2000,sloth:700,phoenix_heart:1400,magnet:1000,dummy_turtle:600,
+    god_run:1800,crystal_ball:1200,wall_breaker:1800,punching_glove:1200 };
+
+  // ── World wiki rows ───────────────────────────────────────────────
+  const worldRows = WORLDS.map(w => {
+    const visited   = seenWorlds.includes(w.id);
+    const timeTip   = w.fixedLighting ? `${w.fixedLighting} 🌙` : null;
+    const weatherTip= worldWeatherIcons(w);
+    const tipContent= [timeTip, weatherTip].filter(Boolean).join('\n');
+    const tooltip   = tipContent ? ` data-tooltip="${tipContent}"` : '';
+    const visitedBadge = visited
+      ? `<span class="wiki-badge wiki-badge-visited">${i18n('dict.wikiVisited')}</span>` : '';
+    return `<div class="wiki-card${visited ? ' wiki-card-seen' : ''}">
+      <div class="wiki-card-icon"${tooltip}>${w.emoji}</div>
+      <div class="wiki-card-body">
+        <div class="wiki-card-title">${i18n('worlds.'+w.id+'.name') || w.name} ${visitedBadge}</div>
+        <div class="wiki-card-sub">${w.bossEmoji} · ${i18n('worlds.'+w.id+'.desc') || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Consumable items wiki rows ────────────────────────────────────
+  const itemRows = POWERUP_KEYS.map(emoji => {
+    const def = POWERUP_DEFS[emoji];
+    if (!def) return '';
+    const base = CON_BASES[emoji] || 300;
+    const pr   = priceRange(base);
+    return `<div class="wiki-card">
+      <div class="wiki-card-icon">${emoji}</div>
+      <div class="wiki-card-body">
+        <div class="wiki-card-title">${i18n('items.'+def.id+'.name')}</div>
+        <div class="wiki-card-sub">${pr} · <span class="wiki-desc">${i18n('items.'+def.id+'.desc')}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Permanent buffs wiki rows ─────────────────────────────────────
+  const permRows = PERMANENTS.map(p => {
+    const base = MOD_BASES[p.id] || 800;
+    const pr   = priceRange(base);
+    return `<div class="wiki-card">
+      <div class="wiki-card-icon">${p.emoji}</div>
+      <div class="wiki-card-body">
+        <div class="wiki-card-title">${i18n('items.'+p.id+'.name')}</div>
+        <div class="wiki-card-sub">${pr} · <span class="wiki-desc">${i18n('items.'+p.id+'.desc')}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // ── Dojang wiki rows (same as dojang book, read-only) ─────────────
+  const dojangRows = PHASE1_JAMOS.map(j => {
+    const count   = jp[j]?.count || 0;
+    const strokes = (JAMO_STROKES[j] || []).length;
+    const bar     = Math.min(100, Math.round(count / MAX_JAMO_COUNT * 100));
+    const info    = JAMO_INFO[j];
+    const hasDesc = count >= 1;
+    let descHtml  = '';
+    if (hasDesc) {
+      const baseText    = i18n(`jamo_desc.${j}.base`);
+      const showBatchim = count >= BATCHIM_UNLOCK_COUNT && JAMO_HAS_BATCHIM.has(j);
+      const batchimText = showBatchim ? i18n(`jamo_desc.${j}.batchim`) : '';
+      const fullMd = baseText + (batchimText ? `\n\n**받침:** ${batchimText}` : '');
+      descHtml = parseLessonMarkdown(fullMd);
+    }
+    return `<div class="dj-book-row${hasDesc ? ' has-desc' : ''}">
+      <div class="dj-book-row-main">
+        <span class="dj-book-jamo">${j}</span>
+        <span class="dj-book-name">${info?.name || ''}</span>
+        <span class="dj-book-rom">${info?.rom || ''}</span>
+        <div class="dj-book-bar-wrap"><div class="dj-book-bar" style="width:${bar}%"></div></div>
+        <span class="dj-book-count">${count}</span>
+        <span class="dj-book-strokes">${strokes}획</span>
+        ${hasDesc ? '<button class="dj-book-expand-btn">▼</button>' : '<span></span>'}
+      </div>
+      ${hasDesc ? `<div class="dj-book-desc off">${descHtml}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  // ── Accordion ─────────────────────────────────────────────────────
+  function accordion(id, labelKey, body) {
+    return `<div class="wiki-section" id="wiki-sec-${id}">
+      <button class="wiki-header" onclick="this.parentElement.classList.toggle('open')">
+        <span>${i18n(labelKey)}</span><span class="wiki-chevron">▼</span>
+      </button>
+      <div class="wiki-body">${body}</div>
+    </div>`;
+  }
+
+  return `
+    <div class="dict-stats">
+      ${ring(doneLessons/totalLessons,    '#27ae60', 'dict.statsLessons',  Math.round(doneLessons/totalLessons*100)+'%',   doneLessons+'/'+totalLessons)}
+      ${ring(unlockedWords/totalWords,    '#3498db', 'dict.statsWords',    Math.round(unlockedWords/totalWords*100)+'%',   unlockedWords+'/'+totalWords)}
+      ${ring(masteredCount/(unlockedWords||1),'#9b59b6','dict.statsMastered',Math.round(masteredCount/(unlockedWords||1)*100)+'%',masteredCount+'/'+(unlockedWords||0))}
+      ${ring(jp_tot/dojangMax,                  '#e67e22', 'dict.statsDojang',  Math.round(jp_tot/dojangMax*100)+'%', jp_tot.toLocaleString())}
+      ${ring(itemsAcq/totalAllItems,            '#e74c3c', 'dict.statsItems',   Math.round(itemsAcq/totalAllItems*100)+'%', itemsAcq+'/'+totalAllItems)}
+      ${ring(seenWorlds.length/totalWorlds,     '#1abc9c', 'dict.statsWorlds',  Math.round(seenWorlds.length/totalWorlds*100)+'%', seenWorlds.length+'/'+totalWorlds)}
+    </div>
+    <div class="wiki-accordion">
+      ${accordion('dojang','dict.wikiDojang', `<div class="dj-book-body-inner">${dojangRows}</div>`)}
+      ${accordion('worlds','dict.wikiWorlds', worldRows)}
+      ${accordion('items', 'dict.wikiItems',  itemRows)}
+      ${accordion('perms', 'dict.wikiPerms',  permRows)}
+    </div>`;
+}
+
+function _wireStatsInteractions(root) {
+  // Wire dojang expand buttons inside the wiki accordion
+  root.querySelectorAll('.dj-book-row.has-desc .dj-book-row-main').forEach(row => {
+    row.addEventListener('click', () => {
+      const parent = row.closest('.dj-book-row');
+      parent.classList.toggle('expanded');
+      const desc = parent.querySelector('.dj-book-desc');
+      if (desc) desc.classList.toggle('off');
+      const btn = parent.querySelector('.dj-book-expand-btn');
+      if (btn) btn.textContent = parent.classList.contains('expanded') ? '▲' : '▼';
+    });
+  });
 }
 
 function buildTitleDict(filter) {
@@ -2685,6 +2846,7 @@ function buildTitleDict(filter) {
   if (_titleDictCat === 'stats') {
     if (searchWrap) searchWrap.style.display = 'none';
     container.innerHTML = _renderStatsContent();
+    _wireStatsInteractions(container);
     return;
   }
 
@@ -2878,7 +3040,7 @@ function _showDojangEntryModal() {
   const modal = document.getElementById('dojang-entry-modal');
   if (!modal) return;
   modal.classList.remove('off');
-  // After stage 1 the player knows the ropes — demote the primary button style
+  // After stage 1 the player knows the ropes - demote the primary button style
   const goBtn = document.getElementById('dojang-entry-go');
   if (goBtn) {
     const stats = loadDojangStats();
@@ -2990,8 +3152,7 @@ function _dojangStartAdventure() {
   if (scrDojang) scrDojang.classList.add('off');
   const dojangCanvas = document.getElementById('dojang-canvas');
   if (dojangCanvas) dojangCanvas.style.display = 'none';
-  // Start run immediately without lore
-  triggerMenuPlayTransition();
+  runLoreAnimation(() => triggerMenuPlayTransition());
 }
 
 function startNewRun() {
@@ -3653,6 +3814,7 @@ function updateBook() {
   // ── Stats tab ─────────────────────────────────────────────────
   if (category === 'stats') {
     listEl.innerHTML = _renderStatsContent();
+    _wireStatsInteractions(listEl);
     return;
   }
 
@@ -3771,7 +3933,7 @@ window._attachHangulToInput = (inputEl) => {
     if (!_imeEnabled) return;
     if (e.key === 'Enter' && !composer.isEmpty) {
       // Only overwrite inputEl.value if OUR composer was managing the syllable.
-      // When the system IME is active, composer is always empty — don't touch the value.
+      // When the system IME is active, composer is always empty - don't touch the value.
       committed += composer.commitCurrent();
       inputEl.value = committed;
     }
@@ -4193,16 +4355,23 @@ function _syncMobileFs() {
   const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
   document.body.classList.toggle('mobile-fs', isMobile && inFs);
   const fsOverlay = document.getElementById('fs-overlay');
-  if (fsOverlay) {
-    if (!isMobile) {
-      // Screen large enough: hide overlay unconditionally
-      fsOverlay.classList.add('off');
-    } else if (!inFs) {
-      // Mobile but not in fullscreen: request fullscreen
-      fsOverlay.classList.remove('off');
-    } else {
-      fsOverlay.classList.add('off');
-    }
+  const fsBtn = document.getElementById('fs-btn');
+  if (!fsOverlay) return;
+  if (!isMobile) {
+    // Screen large enough: hide overlay unconditionally
+    fsOverlay.classList.add('off');
+    _stopFsPromptCycle();
+    fsBtn?.classList.remove('glow');
+  } else if (!inFs) {
+    // Mobile but not in fullscreen: request fullscreen
+    fsOverlay.classList.remove('off');
+    _startFsPromptCycle();
+    fsBtn?.classList.add('glow');
+  } else {
+    // In fullscreen on mobile: hide overlay and stop cycle
+    fsOverlay.classList.add('off');
+    _stopFsPromptCycle();
+    fsBtn?.classList.remove('glow');
   }
 }
 
@@ -4362,7 +4531,7 @@ document.addEventListener('mouseover', e => {
   }
 });
 document.addEventListener('click', e => {
-  if (!e.target.closest('#casino-stop-btn, #ava-randomize') &&
+  if (!e.target.closest('#casino-stop-btn, #ava-randomize, .dict-tab') &&
       e.target.closest('button, .dict-tab, .dj-pause-btn, .dj-entry-btn, .pause-btn, .item-choice-card, .gopt-toggle')) {
     sfx('uiClick', 0.35);
   }
@@ -4526,7 +4695,8 @@ function onInput() {
         const allWords = monsterWords(m);
         if (allWords.includes(val)) { best = m; bestScore = 0; break; }
         for (const w of allWords) {
-          if (w.startsWith(val) || val.startsWith(w)) {
+          if (val.startsWith(w)) {
+            // val is longer but starts with a word (e.g. typed extra chars) - still a hit
             const score = Math.abs(w.length - val.length);
             if (score < bestScore) { bestScore = score; best = m; }
           }
@@ -4581,8 +4751,8 @@ document.addEventListener('keydown', e => {
       _imeToggle();
     }
     const teacherOpen = !document.getElementById('scr-teacher')?.classList.contains('off');
-    // B: open Dictionary (skip if another input has focus, or teacher screen is open)
-    if (e.key === 'b' || e.key === 'B') {
+    // Ctrl+B: open Dictionary (skip if another input has focus, or teacher screen is open)
+    if ((e.key === 'b' || e.key === 'B') && e.ctrlKey) {
       const inOtherInput = document.activeElement !== typingEl &&
         document.activeElement?.closest('input, textarea, select');
       if (!inOtherInput && !teacherOpen) { e.preventDefault(); window.toggleBook(); }
@@ -4602,8 +4772,8 @@ document.addEventListener('keydown', e => {
         return;
       }
     }
-    // Enter to use item when not in typing field
-    if (!G.inTransition && e.key === 'Enter' && document.activeElement !== typingEl) {
+    // Enter to use item when not in typing field (blocked during NPC screen)
+    if (!G.inTransition && !teacherOpen && e.key === 'Enter' && document.activeElement !== typingEl) {
       e.preventDefault();
       invUse(); refreshInventoryUI();
     }

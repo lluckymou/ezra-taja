@@ -245,7 +245,9 @@ export function parseLessonMarkdown(md) {
   if (!md) return '<p><em>-</em></p>';
 
   // 1. Process <speak='word'> tags (self-closing, with or without backtick wrapping)
+  const _ttsAvailable = (typeof speechSynthesis !== 'undefined') && speechSynthesis !== null;
   md = md.replace(/`?<speak='([^']+)'>`?/g, (_, word) => {
+    if (!_ttsAvailable) return `<span class="md-speak-word">${word}</span>`;
     const safe = word.replace(/'/g, "\\'");
     return `<button class="md-speak-btn" onclick="window._speak('${safe}')">🔊 <span class="md-speak-word">${word}</span></button>`;
   });
@@ -411,7 +413,6 @@ function buildQuestions() {
 export function startTeacherChallenge(container, cell) {
   const questions = buildQuestions();
   if (!questions.length) {
-    document.getElementById('scr-teacher').classList.add('off');
     flashAnnounce(i18n('teacher.notEnoughWords'), '#ff4444');
     return;
   }
@@ -621,7 +622,7 @@ function renderQuestion() {
 
     // System IME protection (Linux/IBus): the OS fires compositionend(abort) on ANY mousedown,
     // losing the last composing syllable. Track the composing value and restore it when
-    // IBus aborts without data — unless backspace caused the abort.
+    // IBus aborts without data - unless backspace caused the abort.
     let _composingValue = '';
     let _wasBackspace = false;
     inp.addEventListener('compositionstart', () => { _composingValue = inp.value; });
@@ -633,7 +634,7 @@ function renderQuestion() {
         // IBus aborted (not backspace): restore the composing syllable
         inp.value = _composingValue;
       } else {
-        _composingValue = inp.value; // normal commit or backspace — accept new value
+        _composingValue = inp.value; // normal commit or backspace - accept new value
       }
       _wasBackspace = false;
     });
@@ -643,7 +644,7 @@ function renderQuestion() {
       _composingValue.length > inp.value.length ? _composingValue : inp.value;
 
     // Prevent any click inside the test container from stealing focus from this input.
-    // e.preventDefault() on mousedown only blocks browser focus — click events still fire.
+    // e.preventDefault() on mousedown only blocks browser focus - click events still fire.
     container.addEventListener('mousedown', (e) => {
       if (e.target === inp) return; // allow cursor repositioning inside the input
       if (e.target.closest?.('input, textarea, select')) return;
@@ -704,7 +705,7 @@ window._submitTestAnswer = (val) => {
       correctDisplay = wordTr(q.correct.text) || q.correct.text;
     }
     // emoji_to_ko, emoji_to_write, listen_to_write, listen_to_choice, conj_choice:
-    // answer is Korean text — correctText is already correct
+    // answer is Korean text - correctText is already correct
     flashAnnounce(`${i18n('teacher.wrongPrefix')} ${correctDisplay}`, '#e74c3c');
   }
 
@@ -737,6 +738,7 @@ function finishTest() {
     if (_testState.prize && G.run) {
       G.run.permanents.push(_testState.prize.id);
       _testState.prize.onAcquire(G);
+      G.itemsEverAcquired = (G.itemsEverAcquired || 0) + 1;
     }
     if (G.run) G.run.wallet += _testState.won;
     savePersistentState();
@@ -1091,7 +1093,7 @@ export function renderCasinoScreen(cell) {
 
   stopBtn.onclick = () => {
     if (_casinoInterval) { clearInterval(_casinoInterval); _casinoInterval = null; }
-    sfx('diceRoll', 0.8);
+    sfx('diceRoll', 0.43);
 
     // Pick 1 random result from the 3 stopped slots
     const pick = Math.floor(Math.random() * 3);
@@ -1125,6 +1127,7 @@ export function renderCasinoScreen(cell) {
       if (!G.run.permanents.includes(item.permId)) {
         G.run.permanents.push(item.permId);
         PERMANENTS.find(p => p.id === item.permId)?.onAcquire?.(G);
+        G.itemsEverAcquired = (G.itemsEverAcquired || 0) + 1;
       }
     }
     cell.casinoUsed = true;

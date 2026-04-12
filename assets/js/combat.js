@@ -1712,6 +1712,7 @@ export function tryCollectGroundItem(val) {
 
 export function addToInventory(item) {
   sfx('itemPickup');
+  G.itemsEverAcquired = (G.itemsEverAcquired || 0) + 1;
   const stack = G.inventory.stacks.find(s => s.item === item);
   if (stack) stack.count++;
   else G.inventory.stacks.push({ item, count:1 });

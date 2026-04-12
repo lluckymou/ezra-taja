@@ -125,7 +125,7 @@ body:not(.phase-dojang) #dojang-canvas {
   left: 0;
   right: 0;
   z-index: 161;
-  pointer-events: none; /* transparent — children opt back in */
+  pointer-events: none; /* transparent - children opt back in */
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -139,7 +139,7 @@ body:not(.phase-dojang) #dojang-canvas {
   gap: 8px;
 }
 
-/* Progress ring + label — fixed to true viewport center, not HUD center */
+/* Progress ring + label - fixed to true viewport center, not HUD center */
 #dojang-ring-wrap {
   position: fixed;
   top: 10px;
@@ -263,7 +263,7 @@ body.mobile-fs #dojang-player {
 }
 .dj-player-btn:hover { background: rgba(255,255,255,.22); }
 
-/* ── Announce — at body level, above everything ──────────────── */
+/* ── Announce - at body level, above everything ──────────────── */
 #dojang-announce {
   position: fixed;
   left: 50%;
@@ -300,6 +300,7 @@ body.mobile-fs #dojang-player {
 #dojang-pause-overlay.off {
   opacity: 0;
   pointer-events: none;
+  display: none;
 }
 #dojang-pause-panel {
   background: #0d1428;

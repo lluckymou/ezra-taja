@@ -83,7 +83,17 @@
     "tabStatistics": "📊 Stats",
     "statsLessons": "Lessons Completed",
     "statsWords": "Words Unlocked",
-    "statsMastered": "Mastered Words"
+    "statsMastered": "Mastered Words",
+    "statsDojang": "Hangul Dojang",
+    "statsItems": "Items Acquired",
+    "statsWorlds": "Worlds Explored",
+    "wikiDojang": "🥋 Hangul Dojang",
+    "wikiWorlds": "🌏 Worlds",
+    "wikiItems": "📦 Items",
+    "wikiPerms": "✨ Permanent Buffs",
+    "wikiVisited": "Visited",
+    "wikiAcquired": "Acquired",
+    "wikiPriceRange": "~원"
   },
   "pause": {
     "title": "Paused",
@@ -380,49 +390,64 @@
   },
   "worlds": {
     "palace": {
-      "name": "Gyeongbokgung Palace"
+      "name": "Gyeongbokgung Palace",
+      "desc": "The royal palace of the Joseon dynasty, heart of Korean history in central Seoul."
     },
     "jeju": {
-      "name": "Jeju Island"
+      "name": "Jeju Island",
+      "desc": "Korea's volcanic southern island, home to Hallasan crater and the haenyeo sea-divers."
     },
     "haeundae": {
-      "name": "Haeundae Beach"
+      "name": "Haeundae Beach",
+      "desc": "Busan's iconic beach resort, lit up by seafood markets and city lights after dark."
     },
     "myeongdong": {
-      "name": "Myeongdong"
+      "name": "Myeongdong",
+      "desc": "Seoul's neon-lit shopping district, buzzing with K-pop, street food and city energy."
     },
     "seoraksan": {
-      "name": "Seoraksan"
+      "name": "Seoraksan",
+      "desc": "Gangwon-do's grand granite peaks, sacred territory of the Baekho white tiger spirit."
     },
     "baekdu": {
-      "name": "Mount Baekdu"
+      "name": "Mount Baekdu",
+      "desc": "Korea's sacred northern volcano on the Chinese border, legendary cradle of the Korean people."
     },
     "insadong": {
-      "name": "Insadong"
+      "name": "Insadong",
+      "desc": "Seoul's traditional arts alley, lined with tea houses, calligraphy shops and folk crafts."
     },
     "eastsea": {
-      "name": "East Sea"
+      "name": "East Sea",
+      "desc": "The deep East Sea separating Korea and Japan, rich fishing grounds and stormy open waters."
     },
     "jeonju": {
-      "name": "Jeonju Hanok Village"
+      "name": "Jeonju Hanok Village",
+      "desc": "A city of UNESCO-listed hanok houses, the birthplace of bibimbap and traditional Korean culture."
     },
     "gyeongju": {
-      "name": "Gyeongju"
+      "name": "Gyeongju",
+      "desc": "Ancient capital of the Silla kingdom, studded with royal burial mounds and gold-crowned tombs."
     },
     "yeouido": {
-      "name": "Yeouido Blossoms"
+      "name": "Yeouido Blossoms",
+      "desc": "Seoul's financial island on the Han River, famous for its spectacular spring cherry blossom festival."
     },
     "dokdo": {
-      "name": "Dokdo Island"
+      "name": "Dokdo Island",
+      "desc": "Korea's remote easternmost islets in the East Sea, home to rare seabirds and rocky cliffs."
     },
     "gangnam": {
-      "name": "Gangnam"
+      "name": "Gangnam",
+      "desc": "Seoul's wealthiest district south of the Han River, symbol of K-pop glamour and luxury living."
     },
     "yonggoong": {
-      "name": "Dragon Palace"
+      "name": "Dragon Palace",
+      "desc": "The mythological Dragon Palace beneath the sea, realm of the Dragon King from Korean folklore."
     },
     "cosmos": {
-      "name": "Space"
+      "name": "Space",
+      "desc": "The frontier of the Korean Space Program - the final frontier beyond Earth's atmosphere."
     }
   },
   "lesson": {
@@ -1696,7 +1721,7 @@
     "drawSyllable": "Draw {s}  ·  now: {j}",
     "great": "Great!",
     "lastTry": "Last try!",
-    "resetJamo": "Wrong order — try again",
+    "resetJamo": "Wrong order - try again",
     "newGuide": "New content unlocked in the book!",
     "phaseUp2": "Compound vowels and tense consonants unlocked!",
     "phaseUpCV": "CV syllables unlocked! Combine consonants and vowels!",
@@ -1716,141 +1741,141 @@
   },
   "jamo_desc": {
     "ㄱ": {
-      "base": "**기역** · velar consonant, plain (unaspirated)\n\nAt syllable onset it sounds like a soft 'g' — <speak='가'>, <speak='기다리다'>. Not as strong as English 'k', and softer than English 'g'. No puff of air.\n\nKorean has **three versions** of each articulation point:\n\n- **ㄱ** · plain — <speak='가'>\n- **ㅋ** · aspirated (strong breath) — <speak='카'>\n- **ㄲ** · tense, no breath (fortis) — <speak='까'>\n\nTry comparing all three in a row — the difference becomes clearer with practice!\n\nCommon words: <speak='가방'> (bag) · <speak='고기'> (meat) · <speak='학교'> (school)",
-      "batchim": "As batchim, ㄱ closes the syllable as an unreleased velar stop — the throat closes but no air escapes. It sounds like a silent 'k'.\n\nWhen followed by a vowel, ㄱ \"moves\" to the next syllable:\n<speak='학이'> pronounced [하기] · <speak='국어'> pronounced [구거]\n\nBefore ㅎ, they merge into ㅋ (aspiration):\n<speak='착하다'> pronounced [차카다]"
+      "base": "**기역** · velar consonant, plain (unaspirated)\n\nAt syllable onset it sounds like a soft 'g' - <speak='가'>, <speak='기다리다'>. Not as strong as English 'k', and softer than English 'g'. No puff of air.\n\nKorean has **three versions** of each articulation point:\n\n- **ㄱ** · plain - <speak='가'>\n- **ㅋ** · aspirated (strong breath) - <speak='카'>\n- **ㄲ** · tense, no breath (fortis) - <speak='까'>\n\nTry comparing all three in a row - the difference becomes clearer with practice!\n\nCommon words: <speak='가방'> (bag) · <speak='고기'> (meat) · <speak='학교'> (school)",
+      "batchim": "As batchim, ㄱ closes the syllable as an unreleased velar stop - the throat closes but no air escapes. It sounds like a silent 'k'.\n\nWhen followed by a vowel, ㄱ \"moves\" to the next syllable:\n<speak='학이'> pronounced [하기] · <speak='국어'> pronounced [구거]\n\nBefore ㅎ, they merge into ㅋ (aspiration):\n<speak='착하다'> pronounced [차카다]"
     },
     "ㄴ": {
-      "base": "**니은** · alveolar nasal 'n'\n\nIdentical to 'n' in \"no\" — <speak='나'>, <speak='누나'>, <speak='나라'>. One of the most stable consonants in Korean — same sound in all positions.\n\nCommon words:\n- <speak='나'> (I/me)\n- <speak='노래'> (song)\n- <speak='나라'> (country)\n- <speak='눈'> (eye / snow)",
+      "base": "**니은** · alveolar nasal 'n'\n\nIdentical to 'n' in \"no\" - <speak='나'>, <speak='누나'>, <speak='나라'>. One of the most stable consonants in Korean - same sound in all positions.\n\nCommon words:\n- <speak='나'> (I/me)\n- <speak='노래'> (song)\n- <speak='나라'> (country)\n- <speak='눈'> (eye / snow)",
       "batchim": "As batchim, closes with nasal 'n'. Very common and easy to identify.\n\nWhen followed by a vowel, ㄴ links to the next syllable:\n<speak='눈이'> pronounced [누니] · <speak='반이'> pronounced [바니]\n\nBefore ㄹ, ㄴ can assimilate to ㄹ in fast speech:\n<speak='신라'> pronounced [실라]"
     },
     "ㄷ": {
-      "base": "**디귿** · alveolar stop, plain (unaspirated)\n\nAt syllable onset, sounds between 'd' and 't' — <speak='다'>, <speak='도'>. No puff of air. Plain counterpart of ㅌ.\n\n**Alveolar trio:**\n- **ㄷ** · plain — <speak='다'>\n- **ㅌ** · aspirated — <speak='타'>\n- **ㄸ** · tense — <speak='따'>\n\n**Palatalization** (important rule!): When ㄷ meets ㅣ in the next syllable, it becomes ㅈ:\n- 굳이 → <speak='굳이'> sounds like [구지]\n- 같이 → <speak='같이'> sounds like [가치] (ㅌ → ㅊ by same rule)",
-      "batchim": "As batchim, ㄷ closes with an unreleased alveolar stop — muffled sound, no air.\n\nLinks to next vowel: <speak='믿어'> pronounced [미더]\n\nBefore ㅎ, merges to ㅌ: <speak='좋다'> pronounced [조타]\n\nBefore ㅣ in next syllable, palatalizes to ㅈ: <speak='굳이'> pronounced [구지]"
+      "base": "**디귿** · alveolar stop, plain (unaspirated)\n\nAt syllable onset, sounds between 'd' and 't' - <speak='다'>, <speak='도'>. No puff of air. Plain counterpart of ㅌ.\n\n**Alveolar trio:**\n- **ㄷ** · plain - <speak='다'>\n- **ㅌ** · aspirated - <speak='타'>\n- **ㄸ** · tense - <speak='따'>\n\n**Palatalization** (important rule!): When ㄷ meets ㅣ in the next syllable, it becomes ㅈ:\n- 굳이 → <speak='굳이'> sounds like [구지]\n- 같이 → <speak='같이'> sounds like [가치] (ㅌ → ㅊ by same rule)",
+      "batchim": "As batchim, ㄷ closes with an unreleased alveolar stop - muffled sound, no air.\n\nLinks to next vowel: <speak='믿어'> pronounced [미더]\n\nBefore ㅎ, merges to ㅌ: <speak='좋다'> pronounced [조타]\n\nBefore ㅣ in next syllable, palatalizes to ㅈ: <speak='굳이'> pronounced [구지]"
     },
     "ㄹ": {
-      "base": "**리을** · the most unique consonant in Korean!\n\nㄹ has no direct English equivalent — it's between 'r' and 'l' depending on position.\n\n**At syllable onset:** quick flap, like 'r' in Spanish \"caro\" or 'd' in English \"ladder\" — <speak='라'>, <speak='리'>\n\n**Between vowels:** vibrates quickly — <speak='사람'> (person), <speak='바람'> (wind)\n\n**Doubled (ㄹㄹ):** sounds like a long 'l' — <speak='달리다'> (to run)\n\nTip: don't force either 'r' or 'l' — it's a light, quick sound in between!",
-      "batchim": "As batchim, ㄹ clearly sounds like 'l' — tongue touches upper teeth: <speak='달'>, <speak='말'>, <speak='일'>\n\nLinks to next vowel as flap: <speak='달이'> pronounced [다리] · <speak='말이'> pronounced [마리]\n\nBefore ㄴ, the ㄴ assimilates to ㄹ: <speak='일년'> pronounced [일련]"
+      "base": "**리을** · the most unique consonant in Korean!\n\nㄹ has no direct English equivalent - it's between 'r' and 'l' depending on position.\n\n**At syllable onset:** quick flap, like 'r' in Spanish \"caro\" or 'd' in English \"ladder\" - <speak='라'>, <speak='리'>\n\n**Between vowels:** vibrates quickly - <speak='사람'> (person), <speak='바람'> (wind)\n\n**Doubled (ㄹㄹ):** sounds like a long 'l' - <speak='달리다'> (to run)\n\nTip: don't force either 'r' or 'l' - it's a light, quick sound in between!",
+      "batchim": "As batchim, ㄹ clearly sounds like 'l' - tongue touches upper teeth: <speak='달'>, <speak='말'>, <speak='일'>\n\nLinks to next vowel as flap: <speak='달이'> pronounced [다리] · <speak='말이'> pronounced [마리]\n\nBefore ㄴ, the ㄴ assimilates to ㄹ: <speak='일년'> pronounced [일련]"
     },
     "ㅁ": {
-      "base": "**미음** · bilabial nasal 'm'\n\nIdentical to 'm' in \"map\" — <speak='마'>, <speak='미'>, <speak='모'>. Completely stable in all positions. Easy!\n\nCommon words:\n- <speak='마음'> (heart, mind)\n- <speak='나무'> (tree)\n- <speak='모두'> (everyone)\n- <speak='무엇'> (what)",
-      "batchim": "As batchim, closes with bilabial nasal 'm' — lips close at syllable end: <speak='밤'> (night), <speak='봄'> (spring), <speak='이름'> (name)\n\nLinks to next vowel naturally:\n<speak='이름이'> pronounced [이르미] · <speak='밤이'> pronounced [바미]"
+      "base": "**미음** · bilabial nasal 'm'\n\nIdentical to 'm' in \"map\" - <speak='마'>, <speak='미'>, <speak='모'>. Completely stable in all positions. Easy!\n\nCommon words:\n- <speak='마음'> (heart, mind)\n- <speak='나무'> (tree)\n- <speak='모두'> (everyone)\n- <speak='무엇'> (what)",
+      "batchim": "As batchim, closes with bilabial nasal 'm' - lips close at syllable end: <speak='밤'> (night), <speak='봄'> (spring), <speak='이름'> (name)\n\nLinks to next vowel naturally:\n<speak='이름이'> pronounced [이르미] · <speak='밤이'> pronounced [바미]"
     },
     "ㅂ": {
-      "base": "**비읍** · bilabial stop, plain (unaspirated)\n\nAt syllable onset, sounds between 'b' and 'p' — <speak='바'>, <speak='비'>. No puff of air. Plain counterpart of ㅍ.\n\n**Bilabial trio:**\n- **ㅂ** · plain — <speak='바'>\n- **ㅍ** · aspirated — <speak='파'>\n- **ㅃ** · tense — <speak='빠'>\n\n**Note:** At the very start of a sentence, ㅂ sounds slightly more like 'p'. Mid-sentence it sounds more like 'b'. In practice, it's between the two — neither fully 'b' nor 'p'!",
-      "batchim": "As batchim, ㅂ closes with an unreleased bilabial stop — lips close but don't pop: <speak='밥'> (rice), <speak='입'> (mouth), <speak='앞'> (front)\n\nLinks to next vowel as 'b': <speak='밥이'> pronounced [바비] · <speak='입이'> pronounced [이비]\n\nBefore ㅎ, merges to ㅍ: <speak='잡히다'> pronounced [자피다]"
+      "base": "**비읍** · bilabial stop, plain (unaspirated)\n\nAt syllable onset, sounds between 'b' and 'p' - <speak='바'>, <speak='비'>. No puff of air. Plain counterpart of ㅍ.\n\n**Bilabial trio:**\n- **ㅂ** · plain - <speak='바'>\n- **ㅍ** · aspirated - <speak='파'>\n- **ㅃ** · tense - <speak='빠'>\n\n**Note:** At the very start of a sentence, ㅂ sounds slightly more like 'p'. Mid-sentence it sounds more like 'b'. In practice, it's between the two - neither fully 'b' nor 'p'!",
+      "batchim": "As batchim, ㅂ closes with an unreleased bilabial stop - lips close but don't pop: <speak='밥'> (rice), <speak='입'> (mouth), <speak='앞'> (front)\n\nLinks to next vowel as 'b': <speak='밥이'> pronounced [바비] · <speak='입이'> pronounced [이비]\n\nBefore ㅎ, merges to ㅍ: <speak='잡히다'> pronounced [자피다]"
     },
     "ㅅ": {
-      "base": "**시옷** · fricative 's'\n\nAt syllable onset, sounds like 's' — <speak='사'>, <speak='소'>, <speak='수'>. Simple!\n\n**Important exception:** Before vowels ㅣ, ㅑ, ㅕ, ㅛ, ㅠ, ㅖ, ㅒ, ㅢ, ㅅ becomes \"sh\" (like in \"show\"):\n- <speak='시'> sounds [sh + i]\n- <speak='시작'> (start) sounds [시장 — sh at start]\n- <speak='샤워'> (shower) sounds [sh + ya]\n\nThis palatalization is automatic and instinctive for Korean speakers!",
-      "batchim": "As batchim, ㅅ closes like an unreleased alveolar stop (same as ㄷ-batchim class).\n\nLinks to next vowel as 's': <speak='옷이'> pronounced [오시] · <speak='맛이'> pronounced [마시]\n\nNote: many different batchim (ㄷ, ㅅ, ㄸ, ㅈ, ㅊ, ㅌ, ㅎ) sound identical in final position — only linking to a vowel reveals the difference!"
+      "base": "**시옷** · fricative 's'\n\nAt syllable onset, sounds like 's' - <speak='사'>, <speak='소'>, <speak='수'>. Simple!\n\n**Important exception:** Before vowels ㅣ, ㅑ, ㅕ, ㅛ, ㅠ, ㅖ, ㅒ, ㅢ, ㅅ becomes \"sh\" (like in \"show\"):\n- <speak='시'> sounds [sh + i]\n- <speak='시작'> (start) sounds [시장 - sh at start]\n- <speak='샤워'> (shower) sounds [sh + ya]\n\nThis palatalization is automatic and instinctive for Korean speakers!",
+      "batchim": "As batchim, ㅅ closes like an unreleased alveolar stop (same as ㄷ-batchim class).\n\nLinks to next vowel as 's': <speak='옷이'> pronounced [오시] · <speak='맛이'> pronounced [마시]\n\nNote: many different batchim (ㄷ, ㅅ, ㄸ, ㅈ, ㅊ, ㅌ, ㅎ) sound identical in final position - only linking to a vowel reveals the difference!"
     },
     "ㅇ": {
       "base": "**이응** · the most special consonant in Korean!\n\nㅇ has **two completely different sounds** depending on position:\n\n**At syllable ONSET → SILENT.** Just a placeholder, showing the syllable starts with a pure vowel. No consonant sound:\n- <speak='아'> = just 'a'\n- <speak='이'> = just 'i'\n- <speak='오'> = just 'o'\n\n**As BATCHIM (final) → 'ng' velar nasal**, like in \"ban**g**\", \"son**g**\", \"thi**ng**\":\n- <speak='강'> (river)\n- <speak='방'> (room)\n- <speak='공'> (ball)\n- <speak='성'> (castle)\n\nThis distinction is fundamental to understanding the Hangul writing system!",
-      "batchim": "As batchim 'ng' — <speak='강'>, <speak='방'>, <speak='성'>\n\nWhen followed by a vowel, the ㅇ onset of the next syllable absorbs it silently:\n<speak='방이'> pronounced [바이] (the 'ng' dissolves)\n<speak='강이'> pronounced [가이]\n\nNote: in careful speech, the final 'ng' may be lightly preserved before a vowel."
+      "batchim": "As batchim 'ng' - <speak='강'>, <speak='방'>, <speak='성'>\n\nWhen followed by a vowel, the ㅇ onset of the next syllable absorbs it silently:\n<speak='방이'> pronounced [바이] (the 'ng' dissolves)\n<speak='강이'> pronounced [가이]\n\nNote: in careful speech, the final 'ng' may be lightly preserved before a vowel."
     },
     "ㅈ": {
-      "base": "**지읒** · affricate 'j', plain (unaspirated)\n\nSounds like 'j' in \"just\" but without breath — <speak='자'>, <speak='저'>, <speak='조'>. Plain counterpart of ㅊ.\n\n**Affricate trio:**\n- **ㅈ** · plain — <speak='자'>\n- **ㅊ** · aspirated — <speak='차'>\n- **ㅉ** · tense — <speak='짜'>\n\nCommon words:\n- <speak='저'> (I — humble form)\n- <speak='자다'> (to sleep)\n- <speak='좋다'> (to be good)\n- <speak='진짜'> (really, truly)",
+      "base": "**지읒** · affricate 'j', plain (unaspirated)\n\nSounds like 'j' in \"just\" but without breath - <speak='자'>, <speak='저'>, <speak='조'>. Plain counterpart of ㅊ.\n\n**Affricate trio:**\n- **ㅈ** · plain - <speak='자'>\n- **ㅊ** · aspirated - <speak='차'>\n- **ㅉ** · tense - <speak='짜'>\n\nCommon words:\n- <speak='저'> (I - humble form)\n- <speak='자다'> (to sleep)\n- <speak='좋다'> (to be good)\n- <speak='진짜'> (really, truly)",
       "batchim": "As batchim, ㅈ closes as unreleased alveolar stop (ㄷ group):\n<speak='낮'> (day), <speak='빛'> (light)\n\nLinks to next vowel as 'j': <speak='낮이'> pronounced [나지]"
     },
     "ㅊ": {
-      "base": "**치읓** · affricate 'ch', aspirated\n\nSounds like 'ch' in \"church\" with a strong puff of air — <speak='차'>, <speak='처'>, <speak='초'>. Aspirated form of ㅈ. The breath is clearly noticeable!\n\nTest: hold your hand in front of your mouth and say <speak='차'> — you should feel air. Then say <speak='자'> — almost nothing.\n\nCommon words:\n- <speak='차'> (tea / car)\n- <speak='책'> (book)\n- <speak='처음'> (for the first time)\n- <speak='친구'> (friend)",
+      "base": "**치읓** · affricate 'ch', aspirated\n\nSounds like 'ch' in \"church\" with a strong puff of air - <speak='차'>, <speak='처'>, <speak='초'>. Aspirated form of ㅈ. The breath is clearly noticeable!\n\nTest: hold your hand in front of your mouth and say <speak='차'> - you should feel air. Then say <speak='자'> - almost nothing.\n\nCommon words:\n- <speak='차'> (tea / car)\n- <speak='책'> (book)\n- <speak='처음'> (for the first time)\n- <speak='친구'> (friend)",
       "batchim": "As batchim, ㅊ closes as unreleased stop (ㄷ group): <speak='꽃'> (flower)\n\nLinks to next vowel as 'ch': <speak='꽃이'> pronounced [꼬치]"
     },
     "ㅋ": {
-      "base": "**키읔** · velar stop 'k', aspirated\n\nSounds like 'k' in \"king\" with a strong puff of air — <speak='카'>, <speak='커'>, <speak='코'>. Aspirated form of ㄱ. The difference from ㄱ is the breath you feel coming out.\n\nRemember the trio: **ㄱ** (soft) / **ㅋ** (with breath) / **ㄲ** (tense)\n\nCommon words:\n- <speak='카메라'> (camera)\n- <speak='커피'> (coffee)\n- <speak='코'> (nose)\n- <speak='크다'> (to be big)",
+      "base": "**키읔** · velar stop 'k', aspirated\n\nSounds like 'k' in \"king\" with a strong puff of air - <speak='카'>, <speak='커'>, <speak='코'>. Aspirated form of ㄱ. The difference from ㄱ is the breath you feel coming out.\n\nRemember the trio: **ㄱ** (soft) / **ㅋ** (with breath) / **ㄲ** (tense)\n\nCommon words:\n- <speak='카메라'> (camera)\n- <speak='커피'> (coffee)\n- <speak='코'> (nose)\n- <speak='크다'> (to be big)",
       "batchim": "As batchim, same class as ㄱ. Links to next vowel: <speak='부엌이'> pronounced [부어키]"
     },
     "ㅌ": {
-      "base": "**티읕** · alveolar stop 't', aspirated\n\nSounds like 't' in \"top\" with a strong puff of air — <speak='타'>, <speak='터'>, <speak='토'>. Aspirated form of ㄷ.\n\n**Palatalization** (same rule as ㄷ): When ㅌ meets ㅣ in the next syllable, it becomes ㅊ:\n- 같이 → <speak='같이'> sounds [가치]\n- 밭이 → <speak='밭이'> sounds [바치]\n\n**Alveolar trio:** ㄷ (plain) · **ㅌ** (aspirated) · ㄸ (tense)",
+      "base": "**티읕** · alveolar stop 't', aspirated\n\nSounds like 't' in \"top\" with a strong puff of air - <speak='타'>, <speak='터'>, <speak='토'>. Aspirated form of ㄷ.\n\n**Palatalization** (same rule as ㄷ): When ㅌ meets ㅣ in the next syllable, it becomes ㅊ:\n- 같이 → <speak='같이'> sounds [가치]\n- 밭이 → <speak='밭이'> sounds [바치]\n\n**Alveolar trio:** ㄷ (plain) · **ㅌ** (aspirated) · ㄸ (tense)",
       "batchim": "As batchim, closes in ㄷ group. Palatalizes before ㅣ: <speak='밭이'> pronounced [바치]"
     },
     "ㅍ": {
-      "base": "**피읖** · bilabial stop 'p', aspirated\n\nSounds like 'p' with a strong puff of air — <speak='파'>, <speak='퍼'>, <speak='포'>. Aspirated form of ㅂ.\n\n**Bilabial trio:** ㅂ (plain) · **ㅍ** (aspirated) · ㅃ (tense)\n\nCommon words:\n- <speak='파'> (green onion / wave)\n- <speak='피'> (blood)\n- <speak='편의점'> (convenience store)\n- <speak='피자'> (pizza)",
+      "base": "**피읖** · bilabial stop 'p', aspirated\n\nSounds like 'p' with a strong puff of air - <speak='파'>, <speak='퍼'>, <speak='포'>. Aspirated form of ㅂ.\n\n**Bilabial trio:** ㅂ (plain) · **ㅍ** (aspirated) · ㅃ (tense)\n\nCommon words:\n- <speak='파'> (green onion / wave)\n- <speak='피'> (blood)\n- <speak='편의점'> (convenience store)\n- <speak='피자'> (pizza)",
       "batchim": "As batchim, closes in ㅂ group. Links to next vowel as 'p': <speak='앞이'> pronounced [아피]"
     },
     "ㅎ": {
-      "base": "**히읗** · glottal fricative 'h'\n\nAt syllable onset, sounds like 'h' in \"happy\" — <speak='하'>, <speak='히'>, <speak='호'>. Simple!\n\n**Special behaviors:**\n\n1. **Weakens between vowels or after nasals**: 많이 → <speak='많이'> sounds [마니] (ㅎ nearly disappears)\n\n2. **Causes aspiration** when next to ㄱ, ㄷ, ㅂ, ㅈ — they fuse into ㅋ, ㅌ, ㅍ, ㅊ:\n- 좋다 → <speak='좋다'> sounds [조타] (ㅎ + ㄷ = ㅌ)\n- 입학 → <speak='입학'> sounds [이팍] (ㅂ + ㅎ = ㅍ)\n- 백화점 → <speak='백화점'> sounds [배콰점] (ㄱ + ㅎ = ㅋ)",
-      "batchim": "As batchim, ㅎ silently disappears when followed by a vowel — it \"evaporates\":\n<speak='놓아'> pronounced [노아] · <speak='닿아'> pronounced [다아]\n\nBefore consonants, it causes aspiration as described above.\n\nNote: ㅎ-batchim is one of the most irregular — memorizing specific cases is the best strategy!"
+      "base": "**히읗** · glottal fricative 'h'\n\nAt syllable onset, sounds like 'h' in \"happy\" - <speak='하'>, <speak='히'>, <speak='호'>. Simple!\n\n**Special behaviors:**\n\n1. **Weakens between vowels or after nasals**: 많이 → <speak='많이'> sounds [마니] (ㅎ nearly disappears)\n\n2. **Causes aspiration** when next to ㄱ, ㄷ, ㅂ, ㅈ - they fuse into ㅋ, ㅌ, ㅍ, ㅊ:\n- 좋다 → <speak='좋다'> sounds [조타] (ㅎ + ㄷ = ㅌ)\n- 입학 → <speak='입학'> sounds [이팍] (ㅂ + ㅎ = ㅍ)\n- 백화점 → <speak='백화점'> sounds [배콰점] (ㄱ + ㅎ = ㅋ)",
+      "batchim": "As batchim, ㅎ silently disappears when followed by a vowel - it \"evaporates\":\n<speak='놓아'> pronounced [노아] · <speak='닿아'> pronounced [다아]\n\nBefore consonants, it causes aspiration as described above.\n\nNote: ㅎ-batchim is one of the most irregular - memorizing specific cases is the best strategy!"
     },
     "ㄲ": {
-      "base": "**쌍기역** · tense ㄱ (fortis)\n\nThe tense consonants (경음) are unique to Korean — no equivalent in English or most European languages! The throat tightens (glottal tension), no air release at all — <speak='까'>, <speak='꼬'>, <speak='끼'>.\n\n**How to produce:** Try saying ㄱ but \"hold back\" the air before releasing. The voice feels compressed. Some describe it as the sound of a surprised \"ack!\".\n\n**ㄱ trio:** ㄱ (plain) · ㅋ (aspirated) · **ㄲ** (tense, no breath)\n\nCommon words:\n- <speak='까다'> (to peel)\n- <speak='끝'> (end)\n- <speak='꿈'> (dream)",
-      "batchim": "As batchim, same as ㄱ — unreleased velar stop."
+      "base": "**쌍기역** · tense ㄱ (fortis)\n\nThe tense consonants (경음) are unique to Korean - no equivalent in English or most European languages! The throat tightens (glottal tension), no air release at all - <speak='까'>, <speak='꼬'>, <speak='끼'>.\n\n**How to produce:** Try saying ㄱ but \"hold back\" the air before releasing. The voice feels compressed. Some describe it as the sound of a surprised \"ack!\".\n\n**ㄱ trio:** ㄱ (plain) · ㅋ (aspirated) · **ㄲ** (tense, no breath)\n\nCommon words:\n- <speak='까다'> (to peel)\n- <speak='끝'> (end)\n- <speak='꿈'> (dream)",
+      "batchim": "As batchim, same as ㄱ - unreleased velar stop."
     },
     "ㄸ": {
-      "base": "**쌍디귿** · tense ㄷ (fortis)\n\nTense version of ㄷ — <speak='따'>, <speak='또'>, <speak='띠'>. Throat contracted, no air release. Feels like a forceful 'tt'.\n\n**ㄷ trio:** ㄷ (plain) · ㅌ (aspirated) · **ㄸ** (tense)\n\nCommon words:\n- <speak='따뜻하다'> (warm, cozy)\n- <speak='또'> (also, again)\n- <speak='땅'> (ground, earth)",
+      "base": "**쌍디귿** · tense ㄷ (fortis)\n\nTense version of ㄷ - <speak='따'>, <speak='또'>, <speak='띠'>. Throat contracted, no air release. Feels like a forceful 'tt'.\n\n**ㄷ trio:** ㄷ (plain) · ㅌ (aspirated) · **ㄸ** (tense)\n\nCommon words:\n- <speak='따뜻하다'> (warm, cozy)\n- <speak='또'> (also, again)\n- <speak='땅'> (ground, earth)",
       "batchim": "As batchim, same as ㄷ."
     },
     "ㅃ": {
-      "base": "**쌍비읍** · tense ㅂ (fortis)\n\nTense version of ㅂ — <speak='빠'>, <speak='뽀'>, <speak='삐'>. Lips pressed with tension, no breath.\n\n**ㅂ trio:** ㅂ (plain) · ㅍ (aspirated) · **ㅃ** (tense)\n\nCommon words:\n- <speak='빠르다'> (to be fast)\n- <speak='빵'> (bread)\n- <speak='뽀뽀'> (little kiss)"
+      "base": "**쌍비읍** · tense ㅂ (fortis)\n\nTense version of ㅂ - <speak='빠'>, <speak='뽀'>, <speak='삐'>. Lips pressed with tension, no breath.\n\n**ㅂ trio:** ㅂ (plain) · ㅍ (aspirated) · **ㅃ** (tense)\n\nCommon words:\n- <speak='빠르다'> (to be fast)\n- <speak='빵'> (bread)\n- <speak='뽀뽀'> (little kiss)"
     },
     "ㅆ": {
-      "base": "**쌍시옷** · tense ㅅ (fortis)\n\nTense version of ㅅ — <speak='싸'>, <speak='쏘'>, <speak='씌'>. Forceful 'ss' with no breath.\n\n**Very common!** Appears in two of the most-used Korean words:\n- <speak='있다'> (to exist, to have) → sounds [이따] in fast speech\n- <speak='없다'> (to not exist, to not have) → sounds [업따] in fast speech\n\nOther words: <speak='씩'> (each), <speak='쓰다'> (to use / write), <speak='쌀'> (uncooked rice)",
+      "base": "**쌍시옷** · tense ㅅ (fortis)\n\nTense version of ㅅ - <speak='싸'>, <speak='쏘'>, <speak='씌'>. Forceful 'ss' with no breath.\n\n**Very common!** Appears in two of the most-used Korean words:\n- <speak='있다'> (to exist, to have) → sounds [이따] in fast speech\n- <speak='없다'> (to not exist, to not have) → sounds [업따] in fast speech\n\nOther words: <speak='씩'> (each), <speak='쓰다'> (to use / write), <speak='쌀'> (uncooked rice)",
       "batchim": "As batchim, same as ㅅ (ㄷ group)."
     },
     "ㅉ": {
-      "base": "**쌍지읒** · tense ㅈ (fortis)\n\nTense version of ㅈ — <speak='짜'>, <speak='쪄'>, <speak='쪼'>. Forceful 'jj' with no breath.\n\n**ㅈ trio:** ㅈ (plain) · ㅊ (aspirated) · **ㅉ** (tense)\n\nCommon words:\n- <speak='짜다'> (to be salty / to squeeze)\n- <speak='찌다'> (to gain weight / to steam)\n- <speak='짜증'> (irritation, annoyance)"
+      "base": "**쌍지읒** · tense ㅈ (fortis)\n\nTense version of ㅈ - <speak='짜'>, <speak='쪄'>, <speak='쪼'>. Forceful 'jj' with no breath.\n\n**ㅈ trio:** ㅈ (plain) · ㅊ (aspirated) · **ㅉ** (tense)\n\nCommon words:\n- <speak='짜다'> (to be salty / to squeeze)\n- <speak='찌다'> (to gain weight / to steam)\n- <speak='짜증'> (irritation, annoyance)"
     },
     "ㅏ": {
-      "base": "**아** · open vowel 'a'\n\nThe simplest, clearest vowel — <speak='아'>. Same as 'a' in \"father\". Wide open mouth, tongue low. Easy!\n\nCommon words:\n- <speak='아'> (ah! / older brother — for women)\n- <speak='아버지'> (father)\n- <speak='사랑'> (love)\n- <speak='가다'> (to go)\n\nIn Hangul, ㅏ is written to the RIGHT of the initial consonant."
+      "base": "**아** · open vowel 'a'\n\nThe simplest, clearest vowel - <speak='아'>. Same as 'a' in \"father\". Wide open mouth, tongue low. Easy!\n\nCommon words:\n- <speak='아'> (ah! / older brother - for women)\n- <speak='아버지'> (father)\n- <speak='사랑'> (love)\n- <speak='가다'> (to go)\n\nIn Hangul, ㅏ is written to the RIGHT of the initial consonant."
     },
     "ㅑ": {
-      "base": "**야** · 'ya' — glide + ㅏ\n\nStarts with a quick 'y' before 'a' — <speak='야'>. Like saying \"ya\" quickly. Phonetically: semivowel (y) + ㅏ.\n\nCommon words:\n- <speak='야'> (hey! / field)\n- <speak='야구'> (baseball)\n- <speak='야채'> (vegetables)\n- <speak='야간'> (nighttime)"
+      "base": "**야** · 'ya' - glide + ㅏ\n\nStarts with a quick 'y' before 'a' - <speak='야'>. Like saying \"ya\" quickly. Phonetically: semivowel (y) + ㅏ.\n\nCommon words:\n- <speak='야'> (hey! / field)\n- <speak='야구'> (baseball)\n- <speak='야채'> (vegetables)\n- <speak='야간'> (nighttime)"
     },
     "ㅓ": {
-      "base": "**어** · vowel 'eo' — the hardest for learners!\n\nㅓ has no direct English equivalent. It's a **back unrounded vowel** — <speak='어'>.\n\n**How to produce:**\n1. Position your tongue as if to say 'uh' (like in \"fun\")\n2. BUT your lips are NOT rounded — neutral or slightly open\n3. The sound resonates in the back of the mouth\n\nCompare: <speak='오'> (ㅗ — rounded lips) vs. <speak='어'> (ㅓ — no rounding)\n\nCommon words:\n- <speak='어'> (hmm, yes — informal response)\n- <speak='어머니'> (mother)\n- <speak='저'> (I — humble form)\n- <speak='뭐'> (what)"
+      "base": "**어** · vowel 'eo' - the hardest for learners!\n\nㅓ has no direct English equivalent. It's a **back unrounded vowel** - <speak='어'>.\n\n**How to produce:**\n1. Position your tongue as if to say 'uh' (like in \"fun\")\n2. BUT your lips are NOT rounded - neutral or slightly open\n3. The sound resonates in the back of the mouth\n\nCompare: <speak='오'> (ㅗ - rounded lips) vs. <speak='어'> (ㅓ - no rounding)\n\nCommon words:\n- <speak='어'> (hmm, yes - informal response)\n- <speak='어머니'> (mother)\n- <speak='저'> (I - humble form)\n- <speak='뭐'> (what)"
     },
     "ㅕ": {
-      "base": "**여** · 'yeo' — glide + ㅓ\n\nStarts with quick 'y' before ㅓ — <speak='여'>. One of the most characteristic Korean sounds!\n\n**How to produce:** Quick 'y' + ㅓ (back, unrounded). Hard to mimic without practice.\n\nCommon words:\n- <speak='여자'> (woman)\n- <speak='여기'> (here)\n- <speak='여행'> (travel)\n- <speak='이야기'> (story, conversation)"
+      "base": "**여** · 'yeo' - glide + ㅓ\n\nStarts with quick 'y' before ㅓ - <speak='여'>. One of the most characteristic Korean sounds!\n\n**How to produce:** Quick 'y' + ㅓ (back, unrounded). Hard to mimic without practice.\n\nCommon words:\n- <speak='여자'> (woman)\n- <speak='여기'> (here)\n- <speak='여행'> (travel)\n- <speak='이야기'> (story, conversation)"
     },
     "ㅗ": {
-      "base": "**오** · close rounded vowel 'o'\n\nRounded 'o' with lips in a small circle — <speak='오'>. Similar to 'o' in \"go\" or \"boat\". Round lips into a small circle.\n\nCommon words:\n- <speak='오'> (five / oh!)\n- <speak='오다'> (to come)\n- <speak='오늘'> (today)\n- <speak='소'> (cow)\n- <speak='코'> (nose)\n\nIn Hangul, ㅗ is written BELOW the initial consonant."
+      "base": "**오** · close rounded vowel 'o'\n\nRounded 'o' with lips in a small circle - <speak='오'>. Similar to 'o' in \"go\" or \"boat\". Round lips into a small circle.\n\nCommon words:\n- <speak='오'> (five / oh!)\n- <speak='오다'> (to come)\n- <speak='오늘'> (today)\n- <speak='소'> (cow)\n- <speak='코'> (nose)\n\nIn Hangul, ㅗ is written BELOW the initial consonant."
     },
     "ㅛ": {
-      "base": "**요** · 'yo' — glide + ㅗ\n\nQuick 'y' before rounded ㅗ — <speak='요'>. Round lips from the start.\n\nCommon words:\n- <speak='요'> (politeness particle / this one here)\n- <speak='요즘'> (these days)\n- <speak='요리'> (cooking)\n- <speak='요일'> (day of the week)"
+      "base": "**요** · 'yo' - glide + ㅗ\n\nQuick 'y' before rounded ㅗ - <speak='요'>. Round lips from the start.\n\nCommon words:\n- <speak='요'> (politeness particle / this one here)\n- <speak='요즘'> (these days)\n- <speak='요리'> (cooking)\n- <speak='요일'> (day of the week)"
     },
     "ㅜ": {
-      "base": "**우** · close rounded vowel 'u'\n\n'u' with lips projected forward — <speak='우'>. Similar to 'oo' in \"food\". Lips pushed forward.\n\nCommon words:\n- <speak='우리'> (we / our)\n- <speak='우유'> (milk)\n- <speak='물'> (water)\n- <speak='구름'> (cloud)\n- <speak='두'> (two)\n\nIn Hangul, ㅜ is written BELOW the initial consonant (like ㅗ but pointing down)."
+      "base": "**우** · close rounded vowel 'u'\n\n'u' with lips projected forward - <speak='우'>. Similar to 'oo' in \"food\". Lips pushed forward.\n\nCommon words:\n- <speak='우리'> (we / our)\n- <speak='우유'> (milk)\n- <speak='물'> (water)\n- <speak='구름'> (cloud)\n- <speak='두'> (two)\n\nIn Hangul, ㅜ is written BELOW the initial consonant (like ㅗ but pointing down)."
     },
     "ㅠ": {
-      "base": "**유** · 'yu' — glide + ㅜ\n\nQuick 'y' before rounded ㅜ — <speak='유'>. Like 'yu' in \"yukon\"!\n\nCommon words:\n- <speak='유명하다'> (to be famous)\n- <speak='유럽'> (Europe)\n- <speak='이유'> (reason)"
+      "base": "**유** · 'yu' - glide + ㅜ\n\nQuick 'y' before rounded ㅜ - <speak='유'>. Like 'yu' in \"yukon\"!\n\nCommon words:\n- <speak='유명하다'> (to be famous)\n- <speak='유럽'> (Europe)\n- <speak='이유'> (reason)"
     },
     "ㅡ": {
-      "base": "**으** · central unrounded vowel 'eu' — no equivalent in English!\n\nㅡ is probably the hardest vowel for English speakers. It's a **high central unrounded vowel** — <speak='으'>.\n\n**How to produce:**\n1. Position your tongue as for 'u' (high and back)\n2. BUT do NOT round your lips — keep them spread or neutral\n3. Sound comes out without lip projection\n\nLike the \"hmm\" of hesitation, or the 'uh' in \"just\".\n\nCompare: <speak='우'> (ㅜ — rounded) vs. <speak='으'> (ㅡ — unrounded)\n\nVery common in Korean! Appears in almost every verb in basic form:\n- <speak='가다'> (go) · <speak='먹다'> (eat) · <speak='크다'> (be big)"
+      "base": "**으** · central unrounded vowel 'eu' - no equivalent in English!\n\nㅡ is probably the hardest vowel for English speakers. It's a **high central unrounded vowel** - <speak='으'>.\n\n**How to produce:**\n1. Position your tongue as for 'u' (high and back)\n2. BUT do NOT round your lips - keep them spread or neutral\n3. Sound comes out without lip projection\n\nLike the \"hmm\" of hesitation, or the 'uh' in \"just\".\n\nCompare: <speak='우'> (ㅜ - rounded) vs. <speak='으'> (ㅡ - unrounded)\n\nVery common in Korean! Appears in almost every verb in basic form:\n- <speak='가다'> (go) · <speak='먹다'> (eat) · <speak='크다'> (be big)"
     },
     "ㅣ": {
-      "base": "**이** · high front vowel 'i'\n\nThe simplest vowel — <speak='이'>. Same as 'ee' in \"see\". Easy!\n\nOne of the Korean nominative particles is 이/가 — one of the first things you learn in grammar!\n\nCommon words:\n- <speak='이'> (this / nominative particle / two)\n- <speak='이름'> (name)\n- <speak='이상하다'> (to be strange)\n- <speak='기쁘다'> (to be happy)\n\nIn Hangul, ㅣ is written to the RIGHT of the initial consonant."
+      "base": "**이** · high front vowel 'i'\n\nThe simplest vowel - <speak='이'>. Same as 'ee' in \"see\". Easy!\n\nOne of the Korean nominative particles is 이/가 - one of the first things you learn in grammar!\n\nCommon words:\n- <speak='이'> (this / nominative particle / two)\n- <speak='이름'> (name)\n- <speak='이상하다'> (to be strange)\n- <speak='기쁘다'> (to be happy)\n\nIn Hangul, ㅣ is written to the RIGHT of the initial consonant."
     },
     "ㅐ": {
-      "base": "**애** · vowel 'ae'\n\nHistorically distinct from ㅔ (like 'ae' in Latin), but in **modern Korean** ㅐ and ㅔ are pronounced **identically** — <speak='애'>.\n\nDon't worry about distinguishing them in speech! Even native young Koreans no longer distinguish them. The difference exists only in writing.\n\nCommon words:\n- <speak='애'> (kid / face)\n- <speak='애기'> (baby — affectionate)\n- <speak='사랑해'> (I love you!)\n- <speak='왜냐하면'> (because)"
+      "base": "**애** · vowel 'ae'\n\nHistorically distinct from ㅔ (like 'ae' in Latin), but in **modern Korean** ㅐ and ㅔ are pronounced **identically** - <speak='애'>.\n\nDon't worry about distinguishing them in speech! Even native young Koreans no longer distinguish them. The difference exists only in writing.\n\nCommon words:\n- <speak='애'> (kid / face)\n- <speak='애기'> (baby - affectionate)\n- <speak='사랑해'> (I love you!)\n- <speak='왜냐하면'> (because)"
     },
     "ㅒ": {
-      "base": "**얘** · 'yae' — glide + ㅐ\n\nQuick 'y' before ㅐ — <speak='얘'>. Since ㅐ = ㅔ in modern speech, ㅒ and ㅖ sound identical.\n\nRelatively rare. Most common in:\n- <speak='얘기'> (story, chat — shortened from 이야기)\n- <speak='얘'> (this person — informal reference)"
+      "base": "**얘** · 'yae' - glide + ㅐ\n\nQuick 'y' before ㅐ - <speak='얘'>. Since ㅐ = ㅔ in modern speech, ㅒ and ㅖ sound identical.\n\nRelatively rare. Most common in:\n- <speak='얘기'> (story, chat - shortened from 이야기)\n- <speak='얘'> (this person - informal reference)"
     },
     "ㅔ": {
-      "base": "**에** · vowel 'e'\n\nSounds like 'e' in \"red\" — <speak='에'>. Identical to ㅐ in modern Korean. Only the spelling differs.\n\nCommon words:\n- <speak='에'> (location / direction particle)\n- <speak='에서'> (at, from — location particle)\n- <speak='세'> (three)\n- <speak='게임'> (game)\n- <speak='케이크'> (cake)"
+      "base": "**에** · vowel 'e'\n\nSounds like 'e' in \"red\" - <speak='에'>. Identical to ㅐ in modern Korean. Only the spelling differs.\n\nCommon words:\n- <speak='에'> (location / direction particle)\n- <speak='에서'> (at, from - location particle)\n- <speak='세'> (three)\n- <speak='게임'> (game)\n- <speak='케이크'> (cake)"
     },
     "ㅖ": {
-      "base": "**예** · 'ye' — glide + ㅔ\n\nQuick 'y' before ㅔ — <speak='예'>. Very common!\n\nCommon words:\n- <speak='예'> (yes — formal)\n- <speak='예쁘다'> (to be pretty)\n- <speak='예약'> (reservation)\n- <speak='예습'> (pre-study)\n- <speak='예의'> (manners, etiquette)"
+      "base": "**예** · 'ye' - glide + ㅔ\n\nQuick 'y' before ㅔ - <speak='예'>. Very common!\n\nCommon words:\n- <speak='예'> (yes - formal)\n- <speak='예쁘다'> (to be pretty)\n- <speak='예약'> (reservation)\n- <speak='예습'> (pre-study)\n- <speak='예의'> (manners, etiquette)"
     },
     "ㅘ": {
-      "base": "**와** · 'wa' — ㅗ + ㅏ fused\n\nㅗ and ㅏ combined into one gliding vowel — <speak='와'>. Like saying \"wa\" quickly.\n\nCommon words:\n- <speak='와'> (wow! / and — particle)\n- <speak='와요'> (come! / to come — polite)\n- <speak='봐요'> (look! / to see — polite)\n- <speak='와인'> (wine)\n- <speak='과일'> (fruit)"
+      "base": "**와** · 'wa' - ㅗ + ㅏ fused\n\nㅗ and ㅏ combined into one gliding vowel - <speak='와'>. Like saying \"wa\" quickly.\n\nCommon words:\n- <speak='와'> (wow! / and - particle)\n- <speak='와요'> (come! / to come - polite)\n- <speak='봐요'> (look! / to see - polite)\n- <speak='와인'> (wine)\n- <speak='과일'> (fruit)"
     },
     "ㅙ": {
-      "base": "**왜** · 'wae' — ㅗ + ㅐ fused\n\nPronounced as <speak='왜'>. In modern Korean, sounds **identical** to ㅚ and ㅞ — all merged into a single \"we\" sound.\n\nMost important word with this vowel:\n- <speak='왜'> (why?)\n\nAlso in: <speak='왜냐하면'> (because)"
+      "base": "**왜** · 'wae' - ㅗ + ㅐ fused\n\nPronounced as <speak='왜'>. In modern Korean, sounds **identical** to ㅚ and ㅞ - all merged into a single \"we\" sound.\n\nMost important word with this vowel:\n- <speak='왜'> (why?)\n\nAlso in: <speak='왜냐하면'> (because)"
     },
     "ㅚ": {
-      "base": "**외** · 'oe'\n\nHistorically like German/Swedish 'ö' (front rounded vowel), but in modern Korean sounds **identical** to ㅙ and ㅞ — <speak='외'>.\n\nCommon words:\n- <speak='외국'> (foreign country)\n- <speak='외국어'> (foreign language)\n- <speak='외래어'> (loanword)\n- <speak='최고'> (the best)"
+      "base": "**외** · 'oe'\n\nHistorically like German/Swedish 'ö' (front rounded vowel), but in modern Korean sounds **identical** to ㅙ and ㅞ - <speak='외'>.\n\nCommon words:\n- <speak='외국'> (foreign country)\n- <speak='외국어'> (foreign language)\n- <speak='외래어'> (loanword)\n- <speak='최고'> (the best)"
     },
     "ㅝ": {
-      "base": "**워** · 'wo/weo' — ㅜ + ㅓ fused\n\nCombination of ㅜ and ㅓ — <speak='워'>. Lips start rounded (ㅜ) and glide to unrounded ㅓ. Sound between \"wo\" and \"wuh\".\n\nCommon words:\n- <speak='뭐'> (what? — colloquial)\n- <speak='봐요'> (look, see — polite)\n- <speak='워크숍'> (workshop)"
+      "base": "**워** · 'wo/weo' - ㅜ + ㅓ fused\n\nCombination of ㅜ and ㅓ - <speak='워'>. Lips start rounded (ㅜ) and glide to unrounded ㅓ. Sound between \"wo\" and \"wuh\".\n\nCommon words:\n- <speak='뭐'> (what? - colloquial)\n- <speak='봐요'> (look, see - polite)\n- <speak='워크숍'> (workshop)"
     },
     "ㅞ": {
-      "base": "**웨** · 'we' — ㅜ + ㅔ fused\n\nPronounced as <speak='웨'>. In modern Korean, identical to ㅙ and ㅚ. Very rare in native words — mainly appears in loanwords.\n\nWords:\n- <speak='웨이터'> (waiter — loanword)\n- <speak='웨딩'> (wedding — loanword)"
+      "base": "**웨** · 'we' - ㅜ + ㅔ fused\n\nPronounced as <speak='웨'>. In modern Korean, identical to ㅙ and ㅚ. Very rare in native words - mainly appears in loanwords.\n\nWords:\n- <speak='웨이터'> (waiter - loanword)\n- <speak='웨딩'> (wedding - loanword)"
     },
     "ㅟ": {
-      "base": "**위** · 'wi' — ㅜ + ㅣ fused\n\nHistorically 'ü' (like French \"lune\" or German \"über\"), but most modern Koreans pronounce it as 'wi' — <speak='위'>.\n\nCommon words:\n- <speak='위'> (above / stomach)\n- <speak='위험하다'> (to be dangerous)\n- <speak='귀'> (ear)\n- <speak='쉬다'> (to rest)"
+      "base": "**위** · 'wi' - ㅜ + ㅣ fused\n\nHistorically 'ü' (like French \"lune\" or German \"über\"), but most modern Koreans pronounce it as 'wi' - <speak='위'>.\n\nCommon words:\n- <speak='위'> (above / stomach)\n- <speak='위험하다'> (to be dangerous)\n- <speak='귀'> (ear)\n- <speak='쉬다'> (to rest)"
     },
     "ㅢ": {
-      "base": "**의** · the most complex vowel in Korean!\n\nㅢ is a combination of ㅡ + ㅣ and has **three different pronunciations** depending on context:\n\n**1. At word start:** sounds like 'ui' — <speak='의사'> (doctor), <speak='의자'> (chair)\n\n**2. In non-initial syllables:** simplifies to 'i' — <speak='회의'> sounds [회이] · <speak='주의'> sounds [주이]\n\n**3. As the possessive particle 의 (of, 's):** sounds like 'e' — <speak='나의'> sounds [나에] (my)\n\n**Summary:** 의사[의사] · 회의[회이] · 나의[나에]\n\nThis variation is completely normal and expected in modern Korean!"
+      "base": "**의** · the most complex vowel in Korean!\n\nㅢ is a combination of ㅡ + ㅣ and has **three different pronunciations** depending on context:\n\n**1. At word start:** sounds like 'ui' - <speak='의사'> (doctor), <speak='의자'> (chair)\n\n**2. In non-initial syllables:** simplifies to 'i' - <speak='회의'> sounds [회이] · <speak='주의'> sounds [주이]\n\n**3. As the possessive particle 의 (of, 's):** sounds like 'e' - <speak='나의'> sounds [나에] (my)\n\n**Summary:** 의사[의사] · 회의[회이] · 나의[나에]\n\nThis variation is completely normal and expected in modern Korean!"
     }
   }
 }

@@ -443,7 +443,8 @@ export function generateDungeon(worldIdx) {
     const onEdge   = cell.col === 0 || cell.col === COLS - 1 || cell.row === 0 || cell.row === ROWS - 1;
     return cell.hopDist + (onCorner ? 4 : onEdge ? 2 : 0);
   }
-  const sorted = [...grid].sort((a, b) => edgeScore(b) - edgeScore(a));
+  const bossPool = grid.filter(c => c.hopDist >= 2);
+  const sorted = (bossPool.length ? bossPool : grid).sort((a, b) => edgeScore(b) - edgeScore(a));
   const bossCell = sorted[0];
   bossCell.type = 'boss';
 
@@ -1152,6 +1153,11 @@ export function startNewWorld(worldIdx) {
     if (G.run.worldHistory.length > 6) G.run.worldHistory.shift();
   }
 
+  // Track worlds ever visited (persistent, all-time)
+  const _wid = G.dungeon.worldDef.id;
+  if (!G.seenWorlds) G.seenWorlds = [];
+  if (!G.seenWorlds.includes(_wid)) G.seenWorlds.push(_wid);
+
   // Pre-generate "next worlds" preview (stable until next world transition)
   G.run.nextWorldsPreview = previewNextWorlds(7);
 
@@ -1222,6 +1228,7 @@ export function pickModifierItem(cell, choiceIdx) {
     if (!G.run.permanents.includes(perm.id)) {
       G.run.permanents.push(perm.id);
       perm.onAcquire(G);
+      G.itemsEverAcquired = (G.itemsEverAcquired || 0) + 1;
       flashAnnounce(`${perm.emoji} ${i18n('world.acquired')}`, '#ffcc44');
       // Side effects
       if (perm.id === 'crystal_ball' && typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();
@@ -1260,6 +1267,7 @@ export function shopBuy(cell, entry, price) {
     if (perm) {
       G.run.permanents.push(perm.id);
       perm.onAcquire(G);
+      G.itemsEverAcquired = (G.itemsEverAcquired || 0) + 1;
       flashAnnounce(`${perm.emoji}!`, '#aaffaa');
       // Side effects for special modifiers
       if (perm.id === 'crystal_ball' && typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();

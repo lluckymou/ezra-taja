@@ -289,6 +289,17 @@ export function loadPersistentState() {
   if (savedDojang) {
     try { G.dojangStats = JSON.parse(savedDojang); } catch(e) { G.dojangStats = null; }
   }
+
+  // Load worlds ever visited
+  const savedSeenWorlds = localStorage.getItem('krr_seenWorlds');
+  if (savedSeenWorlds) {
+    try { G.seenWorlds = JSON.parse(savedSeenWorlds); } catch(e) { G.seenWorlds = []; }
+  } else {
+    G.seenWorlds = [];
+  }
+
+  // Load total items ever acquired (consumables + permanents, all-time counter)
+  G.itemsEverAcquired = parseInt(localStorage.getItem('krr_itemsAcquired') || '0');
 }
 
 export function savePersistentState() {
@@ -299,6 +310,8 @@ export function savePersistentState() {
   localStorage.setItem('krr_relThreshold', String(G.relThreshold ?? 90));
   localStorage.setItem('krr_learnedWords', JSON.stringify(G.learnedWords || []));
   if (G.avatar) localStorage.setItem('krr_avatar', JSON.stringify(G.avatar));
+  localStorage.setItem('krr_seenWorlds', JSON.stringify(G.seenWorlds || []));
+  localStorage.setItem('krr_itemsAcquired', String(G.itemsEverAcquired || 0));
 }
 
 // Helper: increment word kill count and update hidden status

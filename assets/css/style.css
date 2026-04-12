@@ -2405,18 +2405,77 @@ body.touch-mode #map-panel:not(.off) {
 }
 /* ── Stats tab ── */
 .dict-stats {
-  display: flex; flex-direction: row; flex-wrap: wrap;
-  justify-content: space-around; align-items: flex-start;
-  padding: 14px 4px; gap: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  justify-items: center;
+  padding: 14px 4px; gap: 10px 4px;
 }
 .dict-stats-ring {
   display: flex; flex-direction: column; align-items: center; gap: 6px;
-  min-width: 88px;
+  width: 100%;
 }
 .dict-stats-label {
   color: rgba(255,255,255,.8); font-size: .78rem; text-align: center;
   line-height: 1.2; max-width: 90px;
 }
+
+/* ── Wiki accordion ──────────────────────────────────────────────── */
+.wiki-accordion {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 0 4px 16px;
+}
+.wiki-section { border: 1px solid rgba(255,255,255,.1); border-radius: 8px; overflow: hidden; }
+.wiki-header {
+  width: 100%; background: rgba(255,255,255,.05); border: none;
+  color: rgba(255,255,255,.9); font-size: .9rem; font-weight: 600;
+  padding: 10px 14px; cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 8px; text-align: left;
+  font-family: inherit; transition: background .15s;
+}
+.wiki-header:hover { background: rgba(255,255,255,.09); }
+.wiki-chevron { font-size: .75rem; transition: transform .2s; flex-shrink: 0; }
+.wiki-section.open > .wiki-header .wiki-chevron { transform: rotate(180deg); }
+.wiki-body {
+  display: none; padding: 8px 10px; gap: 6px;
+  flex-direction: column;
+}
+.wiki-section.open > .wiki-body { display: flex; }
+
+/* ── Wiki cards ──────────────────────────────────────────────────── */
+.wiki-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 10px; border-radius: 7px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  transition: border-color .15s;
+}
+.wiki-card-seen {
+  border-color: rgba(39,174,96,.4);
+  background: rgba(39,174,96,.05);
+}
+.wiki-card-icon {
+  font-size: 1.6rem; line-height: 1; flex-shrink: 0;
+  width: 2.4rem; text-align: center; cursor: default;
+}
+.wiki-card-body { flex: 1; min-width: 0; }
+.wiki-card-title {
+  font-size: .88rem; font-weight: 600; color: rgba(255,255,255,.92);
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+}
+.wiki-card-sub {
+  font-size: .78rem; color: rgba(255,255,255,.5); margin-top: 3px;
+  line-height: 1.4;
+}
+.wiki-badge {
+  font-size: .65rem; font-weight: 700; padding: 1px 6px;
+  border-radius: 4px; text-transform: uppercase; letter-spacing: .04em;
+}
+.wiki-badge-visited { background: rgba(39,174,96,.25); color: #2ecc71; }
+.wiki-price { color: #f0c040; }
+.wiki-price b { font-weight: 800; }
+.wiki-desc { color: rgba(255,255,255,.5); }
+.dj-book-body-inner { display: flex; flex-direction: column; gap: 2px; width: 100%; }
+
 /* Lesson viewer text on dark bg */
 #scr-teacher .md-p,
 #scr-teacher .md-li { color: #b8ccdf; }
@@ -2596,6 +2655,19 @@ body.mobile-fs #mobile-titlebar { display: flex; }
   transition: transform .15s, color .15s;
 }
 #fs-btn:hover, #fs-btn:active { transform: scale(1.12); color: #fff; }
+@keyframes fs-glow {
+  0%   { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+  50%  { transform: scale(1.10); filter: drop-shadow(0 0 18px rgba(255,220,150,0.9)); }
+  100% { transform: scale(1);   filter: drop-shadow(0 0 0 rgba(255,255,255,0)); }
+}
+#fs-btn.glow {
+  animation: fs-glow 1.4s ease-in-out infinite;
+  color: #fff;
+}
+#fs-btn.glow:hover {
+  transform: scale(1.16);
+  filter: drop-shadow(0 0 22px rgba(255,220,150,0.95));
+}
 #fs-prompt {
   margin-top: 16px; font-size: .78rem; color: rgba(255,255,255,.4);
   max-width: 280px; text-align: center; line-height: 1.5;
@@ -2783,6 +2855,9 @@ body.mobile-fs #my-dict-modal.dict-expanded #my-dict-modal-inner {
 @media (max-height: 500px) {
   body.mobile-fs #my-dict-modal-inner {
     padding-top: 28px !important; /* 8px + 20px titlebar */
+  }
+  body.mobile-fs #dict-list {
+    max-height: unset !important;
   }
 }
 /* ===== VERY SMALL HEIGHT (mobile landscape): ultra-compact dict ===== */

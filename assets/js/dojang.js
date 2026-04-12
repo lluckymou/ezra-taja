@@ -255,7 +255,7 @@ export class DojangManager {
         ctx.strokeStyle = 'rgba(255,255,255,0.3)';
       }
 
-      // Circled stroke number — arc and text share the same center
+      // Circled stroke number - arc and text share the same center
       ctx.beginPath();
       ctx.arc(x, circleY, rNum, 0, Math.PI * 2);
       ctx.lineWidth = 1.5;
@@ -308,7 +308,7 @@ export class DojangManager {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    if (this.errors >= MAX_ERRORS - 1) {
+    if (this.errors >= MAX_ERRORS - 1 && this.challenge.globalStrokeIdx > 0) {
       ctx.fillStyle = 'rgba(255,160,80,0.9)';
       ctx.font = `bold ${Math.round(Math.max(16, H * 0.034))}px "Pretendard Variable", sans-serif`;
       ctx.fillText(i18n('dojang.lastTry'), W / 2, instrY);
@@ -325,7 +325,7 @@ export class DojangManager {
       ctx.fillText(msg, W / 2, instrY);
     }
 
-    // Stroke counter dots — sliding window of max 10, centered on current stroke
+    // Stroke counter dots - sliding window of max 10, centered on current stroke
     const MAX_DOTS  = 10;
     const dotY      = isMob ? H * 0.895 : H * 0.856;
     const dotR      = H * 0.013;
@@ -524,7 +524,7 @@ export class DojangManager {
     } else {
       // First stroke of a new jamo: compare against all previous strokes
       refPaths = completedPaths;
-      margin   = size * 0.45; // slightly looser — jamos in a compact syllable
+      margin   = size * 0.45; // slightly looser - jamos in a compact syllable
     }
 
     // Compute bounding box of reference strokes
@@ -562,7 +562,7 @@ export class DojangManager {
       const dev = Math.abs(dy * p.x - dx * p.y + end.x * start.y - end.y * start.x) / len;
       maxDev = Math.max(maxDev, dev);
     }
-    // Allow up to 18% of stroke length as deviation (tighter — rejects wavy strokes)
+    // Allow up to 18% of stroke length as deviation (tighter - rejects wavy strokes)
     return maxDev <= Math.max(12, 0.18 * len);
   }
 
@@ -648,16 +648,22 @@ export class DojangManager {
   }
 
   _onError() {
-    this.errors++;
     this.flash = { type: 'err', t: 0, dur: 0.35 };
 
     // Clear the failed in-progress stroke, but keep completed strokes
     this._clearStrokes();
     this._redrawCompletedStrokes();
 
+    // First stroke of the whole character: free retries, nothing to lose
+    if (this.challenge.globalStrokeIdx === 0) {
+      sfx('doMinorError', 0.3);
+      return;
+    }
+
+    this.errors++;
     if (this.errors >= MAX_ERRORS) {
       sfx('doMajorError', 0.8);
-      // Reset entire character — clear all ink and restart from first jamo
+      // Reset entire character - clear all ink and restart from first jamo
       this.errors = 0;
       this.challenge.jamoIdx   = 0;
       this.challenge.strokeIdx = 0;
@@ -750,7 +756,7 @@ export class DojangManager {
     this._clearStrokes();
   }
 
-  // Re-speak the current character (bound to 🔊 button) — always interrupts
+  // Re-speak the current character (bound to 🔊 button) - always interrupts
   speakCurrent() {
     if (!this.challenge) return;
     this._speakText(this.challenge.char, true);
