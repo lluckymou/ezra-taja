@@ -544,6 +544,11 @@ let _fsPromptTimer      = null;
 let _startFsPromptCycle = () => {};
 let _stopFsPromptCycle  = () => {};
 
+// True when running as an installed PWA (standalone display mode)
+// Evaluated once at load time so _syncMobileFs can use it without rechecking
+const _isPWA = window.matchMedia?.('(display-mode: standalone)').matches === true
+            || navigator.standalone === true;
+
 
 /* ================================================================
    STARTUP MODALS  (donate + TTS warning)
@@ -637,7 +642,6 @@ function runStartupAnimation(onPrepare, onDone) {
     localStorage.setItem('krr_launchCount', String(_lc));
     // On mobile without fullscreen: hide everything until fullscreen is entered
     // Skip if already running as PWA (standalone mode is already fullscreen)
-    const _isPWA = window.matchMedia?.('(display-mode: standalone)').matches || navigator.standalone === true;
     const needsFs = !_isPWA && window.innerHeight < 500 && !(document.fullscreenElement || document.webkitFullscreenElement);
     const _gameEls = needsFs
       ? ['scr-title','gc','wx-canvas','dn-canvas'].map(id => document.getElementById(id)).filter(Boolean)
@@ -2761,12 +2765,16 @@ function _renderStatsContent() {
 
   return `
     <div class="dict-stats">
-      ${ring(doneLessons/totalLessons,    '#27ae60', 'dict.statsLessons',  Math.round(doneLessons/totalLessons*100)+'%',   doneLessons+'/'+totalLessons)}
-      ${ring(unlockedWords/totalWords,    '#3498db', 'dict.statsWords',    Math.round(unlockedWords/totalWords*100)+'%',   unlockedWords+'/'+totalWords)}
-      ${ring(masteredCount/(unlockedWords||1),'#9b59b6','dict.statsMastered',Math.round(masteredCount/(unlockedWords||1)*100)+'%',masteredCount+'/'+(unlockedWords||0))}
-      ${ring(jp_tot/dojangMax,                  '#e67e22', 'dict.statsDojang',  Math.round(jp_tot/dojangMax*100)+'%', jp_tot.toLocaleString())}
-      ${ring(itemsAcq/totalAllItems,            '#e74c3c', 'dict.statsItems',   Math.round(itemsAcq/totalAllItems*100)+'%', itemsAcq+'/'+totalAllItems)}
-      ${ring(seenWorlds.length/totalWorlds,     '#1abc9c', 'dict.statsWorlds',  Math.round(seenWorlds.length/totalWorlds*100)+'%', seenWorlds.length+'/'+totalWorlds)}
+      <div class="dict-stats-group">
+        ${ring(doneLessons/totalLessons,    '#27ae60', 'dict.statsLessons',  Math.round(doneLessons/totalLessons*100)+'%',   doneLessons+'/'+totalLessons)}
+        ${ring(unlockedWords/totalWords,    '#3498db', 'dict.statsWords',    Math.round(unlockedWords/totalWords*100)+'%',   unlockedWords+'/'+totalWords)}
+        ${ring(masteredCount/(unlockedWords||1),'#9b59b6','dict.statsMastered',Math.round(masteredCount/(unlockedWords||1)*100)+'%',masteredCount+'/'+(unlockedWords||0))}
+      </div>
+      <div class="dict-stats-group">
+        ${ring(jp_tot/dojangMax,               '#e67e22', 'dict.statsDojang',  Math.round(jp_tot/dojangMax*100)+'%', jp_tot.toLocaleString())}
+        ${ring(itemsAcq/totalAllItems,         '#e74c3c', 'dict.statsItems',   Math.round(itemsAcq/totalAllItems*100)+'%', itemsAcq+'/'+totalAllItems)}
+        ${ring(seenWorlds.length/totalWorlds,  '#1abc9c', 'dict.statsWorlds',  Math.round(seenWorlds.length/totalWorlds*100)+'%', seenWorlds.length+'/'+totalWorlds)}
+      </div>
     </div>
     <div class="wiki-accordion">
       ${accordion('dojang','dict.wikiDojang', `<div class="dj-book-body-inner">${dojangRows}</div>`)}
@@ -4353,12 +4361,14 @@ function applyTouchMode() {
 function _syncMobileFs() {
   const isMobile = window.innerHeight < 500;
   const inFs = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  document.body.classList.toggle('mobile-fs', isMobile && inFs);
+  // PWA (standalone) is always considered fullscreen — no overlay needed
+  const effectivelyFullscreen = inFs || _isPWA;
+  document.body.classList.toggle('mobile-fs', isMobile && effectivelyFullscreen);
   const fsOverlay = document.getElementById('fs-overlay');
   const fsBtn = document.getElementById('fs-btn');
   if (!fsOverlay) return;
-  if (!isMobile) {
-    // Screen large enough: hide overlay unconditionally
+  if (!isMobile || _isPWA) {
+    // Screen large enough or running as PWA: hide overlay unconditionally
     fsOverlay.classList.add('off');
     _stopFsPromptCycle();
     fsBtn?.classList.remove('glow');
