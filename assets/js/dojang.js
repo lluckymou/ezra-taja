@@ -16,7 +16,7 @@ import { play as sfx } from './sfx.js';
 
 const STORAGE_KEY = 'krr_dojang';
 const MAX_ERRORS  = 3;     // errors before resetting current character
-const MIN_STROKE_LEN = 18; // minimum stroke px to count (avoids taps)
+const MIN_STROKE_LEN = 10; // minimum stroke px to count (avoids taps)
 const CIRCLE_CLOSE_RATIO = 0.45; // end/start dist must be < ratio * total length
 
 // ── Persistent stats schema ──────────────────────────────────

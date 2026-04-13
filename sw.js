@@ -1,4 +1,4 @@
-const CACHE = 'ezra-taja-offline';
+const CACHE = 'ezra-taja-v3';
 
 // On install: cache only the bare minimum to allow offline play
 const OFFLINE_SHELL = [
@@ -13,7 +13,12 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(self.clients.claim());
+  // Delete all old caches that don't match current version
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
+  );
 });
 
 // Network-first: always try the network, fall back to cache if offline

@@ -245,7 +245,8 @@ export function parseLessonMarkdown(md) {
   if (!md) return '<p><em>-</em></p>';
 
   // 1. Process <speak='word'> tags (self-closing, with or without backtick wrapping)
-  const _ttsAvailable = (typeof speechSynthesis !== 'undefined') && speechSynthesis !== null;
+  // Use G.ttsEnabled: false when browser has no Korean voices or user disabled TTS
+  const _ttsAvailable = G.ttsEnabled !== false && typeof speechSynthesis !== 'undefined';
   md = md.replace(/`?<speak='([^']+)'>`?/g, (_, word) => {
     if (!_ttsAvailable) return `<span class="md-speak-word">${word}</span>`;
     const safe = word.replace(/'/g, "\\'");

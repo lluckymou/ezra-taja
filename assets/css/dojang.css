@@ -117,6 +117,9 @@ body:not(.phase-dojang) #dojang-canvas {
   opacity: 0;
   pointer-events: none;
 }
+#scr-dojang.off * {
+  pointer-events: none !important;
+}
 
 /* ── Dojang HUD ──────────────────────────────────────────────── */
 #dojang-hud {

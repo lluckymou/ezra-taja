@@ -245,7 +245,11 @@
         <div class="credits-by" data-i18n="credits.byLine">🫰 By Lucas Nascimento</div>
         <div class="credits-thanks" data-i18n="credits.thanks">Special thanks to Roh HaYoung and KIT for showing me Korean culture and language, I'm eternally grateful to all of you. You have changed my life forever. I hope this project inspires more people to study your language and connect to your beautiful and inspiring culture.</div>
       </div>
-      <div style="text-align:center; margin-top: auto; padding-top: 12px;">
+      <div style="text-align:center; margin-top: auto; padding-top: 12px;font-size:.7rem;color:rgba(255,255,255,.35);">
+        <button id="export-progress-btn" data-i18n="progress.export" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">Export Progress</button>
+        <span style="margin: 0 10px">·</span>
+        <button id="import-progress-btn" data-i18n="progress.import" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">Import Progress</button>
+        <span style="margin: 0 10px">·</span>
         <button id="title-reset-btn" style="background:none;border:none;color:rgba(255,255,255,.35);font-size:.7rem;cursor:pointer;font-family:inherit;">↺ Reset progress</button>
       </div>
     </div>
@@ -850,5 +854,18 @@
   }
   document.addEventListener('dragstart',   e => e.preventDefault());
 </script>
+<!-- ── PROGRESS EXPORT/IMPORT MODAL ──────────────────────── -->
+<div id="progress-modal" class="off">
+  <div id="progress-modal-inner">
+    <button id="progress-modal-close"><span class="icon-close"></span></button>
+    <div id="progress-modal-title"></div>
+    <p id="progress-modal-desc"></p>
+    <textarea id="progress-modal-code" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+    <div id="progress-modal-actions">
+      <button id="progress-modal-copy" class="off" data-i18n="progress.copy">Copy</button>
+      <button id="progress-modal-load" class="off" data-i18n="progress.load">Load</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

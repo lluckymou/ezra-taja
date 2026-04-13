@@ -1704,6 +1704,20 @@
     "byLine": "🫰 Por Lucas Nascimento",
     "thanks": "Um agradecimento especial a Roh HaYoung e ao KIT por me apresentarem à cultura e à língua coreana. Sou eternamente grato a todos vocês. Vocês mudaram a minha vida para sempre. Espero que este projeto inspire mais pessoas a estudar o seu idioma e a se conectar com a sua bela e inspiradora cultura."
   },
+  "progress": {
+    "export": "↑ Exportar Progresso",
+    "import": "↓ Importar Progresso",
+    "exportTitle": "📤 Exportar Progresso",
+    "exportDesc": "Copie este código e guarde em algum lugar seguro. Cole de volta para restaurar seu progresso em outro dispositivo.",
+    "importTitle": "📥 Importar Progresso",
+    "importDesc": "Cole seu código de progresso abaixo e clique em Carregar.",
+    "copy": "Copiar",
+    "load": "Carregar",
+    "copied": "Copiado!",
+    "importSuccess": "Progresso carregado! Recarregando…",
+    "importError": "Não foi possível ler o código.",
+    "importWrongFormat": "Código inválido. Certifique-se de ter copiado o export completo."
+  },
   "dojang": {
     "entryTitle": "Pronto, guerreiro?",
     "entrySub": "Quer treinar no Hangul Dojang antes da sua aventura?",

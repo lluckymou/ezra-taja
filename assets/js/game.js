@@ -2411,6 +2411,73 @@ function buildTitleScreen() {
     });
   })();
 
+  // ── Export / Import progress (copy-paste code) ───────────────
+  (() => {
+    const MAGIC = 'EZRA1:';
+    const modal     = document.getElementById('progress-modal');
+    const titleEl   = document.getElementById('progress-modal-title');
+    const descEl    = document.getElementById('progress-modal-desc');
+    const codeEl    = document.getElementById('progress-modal-code');
+    const copyBtn   = document.getElementById('progress-modal-copy');
+    const loadBtn   = document.getElementById('progress-modal-load');
+    const closeBtn  = document.getElementById('progress-modal-close');
+
+    function openModal(mode) {
+      copyBtn.classList.toggle('off', mode !== 'export');
+      loadBtn.classList.toggle('off', mode !== 'import');
+      if (mode === 'export') {
+        titleEl.textContent = i18n('progress.exportTitle');
+        descEl.textContent  = i18n('progress.exportDesc');
+        const data = {};
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && k.startsWith('krr_')) data[k] = localStorage.getItem(k);
+        }
+        codeEl.value    = MAGIC + btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+        codeEl.readOnly = true;
+      } else {
+        titleEl.textContent = i18n('progress.importTitle');
+        descEl.textContent  = i18n('progress.importDesc');
+        codeEl.value    = '';
+        codeEl.readOnly = false;
+      }
+      modal.classList.remove('off');
+      if (mode === 'export') { codeEl.focus(); codeEl.select(); }
+      else codeEl.focus();
+    }
+
+    closeBtn?.addEventListener('click', () => modal.classList.add('off'));
+    modal?.addEventListener('click', e => { if (e.target === modal) modal.classList.add('off'); });
+
+    copyBtn?.addEventListener('click', () => {
+      navigator.clipboard?.writeText(codeEl.value).then(() => {
+        copyBtn.textContent = i18n('progress.copied');
+        setTimeout(() => { copyBtn.textContent = i18n('progress.copy'); }, 2000);
+      }).catch(() => { codeEl.select(); document.execCommand('copy'); });
+    });
+
+    loadBtn?.addEventListener('click', () => {
+      const raw = codeEl.value.trim();
+      if (!raw.startsWith(MAGIC)) { alert(i18n('progress.importWrongFormat')); return; }
+      try {
+        const data = JSON.parse(decodeURIComponent(escape(atob(raw.slice(MAGIC.length)))));
+        for (const [k, v] of Object.entries(data)) {
+          if (k.startsWith('krr_')) localStorage.setItem(k, v);
+        }
+        alert(i18n('progress.importSuccess'));
+        location.reload();
+      } catch {
+        alert(i18n('progress.importError'));
+      }
+    });
+
+    // Use event delegation on document — same pattern as the SFX handler that always fires
+    document.addEventListener('click', e => {
+      if (e.target.closest('#export-progress-btn')) openModal('export');
+      else if (e.target.closest('#import-progress-btn')) openModal('import');
+    });
+  })();
+
   // inv-slot click
   document.getElementById('inv-use-hover')?.addEventListener('click', () => {
     invUse(); refreshInventoryUI();

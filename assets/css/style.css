@@ -341,7 +341,7 @@ body {
   background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
   display: flex; align-items: center; justify-content: center;
 }
-#my-dict-modal.off, #settings-modal.off, #donate-modal.off, #tts-modal.off { display: none; }
+#my-dict-modal.off, #settings-modal.off, #donate-modal.off, #tts-modal.off, #progress-modal.off { display: none; }
 #my-dict-modal-inner, #settings-modal-inner {
   background: #0f0f1c; border-radius: 20px; padding: 24px;
   width: min(680px, 96vw); max-height: 88vh;
@@ -2916,11 +2916,42 @@ body.touch-mode.mobile-fs #map-panel:not(.off) {
 }
 
 /* ===== DONATE MODAL ===== */
-#donate-modal, #tts-modal {
+#donate-modal, #tts-modal, #progress-modal {
   position: fixed; inset: 0; z-index: 510;
   background: rgba(0,0,0,.65); backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
 }
+#progress-modal-inner {
+  background: #0f0f1c; border-radius: 20px; padding: 32px 24px 24px;
+  width: min(420px, 92vw); display: flex; flex-direction: column;
+  gap: 12px; color: rgba(255,255,255,.88);
+  border: 1px solid rgba(255,255,255,.1);
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  position: relative;
+}
+#progress-modal-close {
+  position: absolute; top: 10px; right: 14px;
+  background: none; border: none; color: rgba(255,255,255,.35);
+  font-size: 1.1rem; cursor: pointer; font-family: inherit; padding: 4px 6px;
+}
+#progress-modal-close:hover { color: rgba(255,255,255,.8); }
+#progress-modal-title { font-size: 1.1rem; font-weight: 700; color: #fff; }
+#progress-modal-desc { font-size: .82rem; color: rgba(255,255,255,.5); margin: 0; line-height: 1.4; }
+#progress-modal-code {
+  width: 100%; box-sizing: border-box;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px; padding: 10px; color: #7ecfff;
+  font-family: monospace; font-size: .72rem;
+  resize: vertical; min-height: 80px; max-height: 160px;
+  word-break: break-all;
+}
+#progress-modal-actions { display: flex; gap: 8px; }
+#progress-modal-copy, #progress-modal-load {
+  flex: 1; padding: 10px; border-radius: 10px; border: none; cursor: pointer;
+  font-family: inherit; font-size: .9rem; font-weight: 600;
+  background: rgba(255,255,255,.1); color: #fff; transition: background .15s;
+}
+#progress-modal-copy:hover, #progress-modal-load:hover { background: rgba(255,255,255,.2); }
 #donate-modal-inner, #tts-modal-inner {
   background: #0f0f1c; border-radius: 20px; padding: 32px 24px 24px;
   width: min(420px, 92vw); max-height: 88vh; overflow-y: auto;
