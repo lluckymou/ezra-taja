@@ -191,7 +191,8 @@
     "legendTreasure": "Tesouro",
     "legendCasino": "Cassino",
     "legendCamp": "Abrigo",
-    "legendTeacher": "Professor"
+    "legendTeacher": "Professor",
+    "legendPartner": "Parceiro(a)"
   },
   "announce": {
     "flee": "Fuga! 🏃",
@@ -1719,7 +1720,7 @@
     "importWrongFormat": "Código inválido. Certifique-se de ter copiado o export completo."
   },
   "dojang": {
-    "entryTitle": "Pronto, guerreiro?",
+    "entryTitle": "Pronto, aventureiro?",
     "entrySub": "Quer treinar no Hangul Dojang antes da sua aventura?",
     "btnDojang": "Hangul Dojang",
     "btnDojangSub": "Aprender a escrever Hangul",
@@ -1752,6 +1753,42 @@
     "phaseCV": "Estágio 3 · Sílabas CV",
     "phase3": "Estágio 4 · Batchim",
     "phase4": "Estágio 5 · Palavras"
+  },
+  "multiplayer": {
+    "btnCoop": "Aventura Co-op",
+    "btnCoopSub": "Jogue com um amigo",
+    "title": "Aventura Co-op",
+    "yourCode": "Seu código de sala",
+    "copyHint": "Clique para copiar",
+    "copied": "Copiado!",
+    "joinRoom": "Entrar em uma sala",
+    "joinPlaceholder": "XXXX-XXXX",
+    "joinBtn": "Entrar",
+    "you": "Você",
+    "guest": "Convidado",
+    "waiting": "Aguardando parceiro...",
+    "hostSettings": "Configurações da Sessão",
+    "startBtn": "⚔️ Começar Aventura!",
+    "readyBtn": "✓ Pronto!",
+    "disconnected": "Parceiro desconectado",
+    "disconnectedSub": "Compartilhe o código para reconectar: {code}",
+    "leaveSession": "Sair da sessão",
+    "errorConnect": "Falha ao conectar. Verifique o código da sala.",
+    "invalidCode": "Formato de código inválido.",
+    "connecting": "Conectando...",
+    "waitingHost": "Aguardando o anfitrião iniciar...",
+    "partnerDied": "Seu parceiro caiu. A corrida acabou.",
+    "hostLeft": "O anfitrião saiu da sessão.",
+    "selfConnect": "Você não pode entrar na sua própria sala!",
+    "leaveRoom": "Desconectar",
+    "host": "Anfitrião",
+    "settingDiff": "Dificuldade",
+    "settingHanja": "🀄 Hanja Power-ups",
+    "settingTrans": "💬 Traduções",
+    "settingDict": "🔓 Desativar Progressão do Dicionário",
+    "bothMustPass": "Ambos os jogadores devem passar para desbloquear vocabulário.",
+    "p2Passed": "Parceiro passou! Sua vez.",
+    "youPassed": "Você passou! Aguardando parceiro..."
   },
   "jamo_desc": {
     "ㄱ": {

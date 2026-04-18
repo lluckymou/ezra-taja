@@ -191,7 +191,8 @@
     "legendTreasure": "보물",
     "legendCasino": "카지노",
     "legendCamp": "야영",
-    "legendTeacher": "선생님"
+    "legendTeacher": "선생님",
+    "legendPartner": "파트너"
   },
   "announce": {
     "flee": "도망! 🏃",
@@ -818,7 +819,7 @@
     "importWrongFormat": "올바르지 않은 코드입니다. 전체 내보내기를 복사했는지 확인해 주세요."
   },
   "dojang": {
-    "entryTitle": "준비됐나요, 용사여?",
+    "entryTitle": "준비됐나요, 모험가여?",
     "entrySub": "모험을 시작하기 전에 한글 도장에서 훈련하시겠어요?",
     "btnDojang": "한글 도장",
     "btnDojangSub": "한글 쓰기 배우기",
@@ -851,6 +852,42 @@
     "phaseCV": "3단계 · CV 음절",
     "phase3": "4단계 · 받침",
     "phase4": "5단계 · 단어"
+  },
+  "multiplayer": {
+    "btnCoop": "협동 모험",
+    "btnCoopSub": "친구와 함께 플레이",
+    "title": "협동 모험",
+    "yourCode": "내 방 코드",
+    "copyHint": "클릭하여 복사",
+    "copied": "복사됨!",
+    "joinRoom": "방 입장",
+    "joinPlaceholder": "XXXX-XXXX",
+    "joinBtn": "입장",
+    "you": "나",
+    "guest": "게스트",
+    "waiting": "파트너를 기다리는 중...",
+    "hostSettings": "세션 설정",
+    "startBtn": "⚔️ 모험 시작!",
+    "readyBtn": "✓ 준비 완료!",
+    "disconnected": "파트너 연결 끊김",
+    "disconnectedSub": "재연결 코드: {code}",
+    "leaveSession": "세션 나가기",
+    "errorConnect": "연결 실패. 방 코드를 확인하세요.",
+    "invalidCode": "유효하지 않은 방 코드 형식.",
+    "connecting": "연결 중...",
+    "waitingHost": "호스트가 시작하기를 기다리는 중...",
+    "partnerDied": "파트너가 쓰러졌습니다. 런이 종료됩니다.",
+    "hostLeft": "호스트가 세션을 떠났습니다.",
+    "selfConnect": "자신의 방에는 참가할 수 없습니다!",
+    "leaveRoom": "연결 끊기",
+    "host": "호스트",
+    "settingDiff": "난이도",
+    "settingHanja": "🀄 한자 파워업",
+    "settingTrans": "💬 번역",
+    "settingDict": "🔓 사전 진행 비활성화",
+    "bothMustPass": "어휘를 해금하려면 두 플레이어 모두 통과해야 합니다.",
+    "p2Passed": "파트너가 통과했습니다! 이제 당신 차례.",
+    "youPassed": "통과했습니다! 파트너를 기다리는 중..."
   },
   "jamo_desc": {
     "ㄱ": {

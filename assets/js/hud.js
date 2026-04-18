@@ -743,6 +743,8 @@ function finishTest() {
     }
     if (G.run) G.run.wallet += _testState.won;
     savePersistentState();
+    // Co-op: notify partner that local player passed
+    window._onTeacherPass?.('challenge');
 
     container.innerHTML = `
       <h1 style="color:#27ae60">${i18n('teacher.passed')}</h1>
@@ -820,8 +822,24 @@ export function renderTeacherScreen(cell) {
       </div>`;
   }
 
+  // Co-op: build partner status banner
+  let mpBannerHtml = '';
+  if (G.mp?.active && G.mp.connected) {
+    const p2Emoji = G.mp.p2?.emoji || '🤺';
+    const p2Passed = G.mp._p2TeacherPasses?.size > 0;
+    const bothNeeded = i18n('multiplayer.bothMustPass') || 'Both players must pass to unlock vocabulary.';
+    const p2Status = p2Passed
+      ? `<span style="color:#27ae60">✅ ${p2Emoji} ${i18n('multiplayer.p2Passed') || 'Partner passed!'}</span>`
+      : `<span style="color:#f39c12">⏳ ${p2Emoji} ${i18n('multiplayer.waitingHost') || 'Partner still testing...'}</span>`;
+    mpBannerHtml = `
+      <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:8px 14px;margin-top:10px;font-size:.85rem;text-align:center">
+        ${p2Status}<br><span style="opacity:.6;font-size:.78rem">${bothNeeded}</span>
+      </div>`;
+  }
+
   container.innerHTML = `
     <p class="teacher-warning-msg">${i18n('teacher.difficultyWarning')}</p>
+    ${mpBannerHtml}
     <div id="teacher-main-ui" style="display:flex; gap:15px; margin-top:16px; justify-content:center; flex-wrap:wrap;">
       ${lessonCardHtml}
       <div class="item-choice-card teacher-challenge-card${gaveUp ? ' teacher-challenge-done' : ''}" id="btn-start-challenge">

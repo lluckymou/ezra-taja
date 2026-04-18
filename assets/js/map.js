@@ -3,6 +3,7 @@
 ================================================================ */
 import { G } from './state.js';
 import { getCell, COLS, ROWS } from './world.js';
+import { MP } from './multiplayer.js';
 import { getGameHour } from './renderer.js';
 import { PERMANENTS } from '../data/items.js';
 import { get as i18n } from './i18n.js';
@@ -194,7 +195,10 @@ export function updateMap() {
   }
 
   // Overlay player hero on current cell
-  _cellEls.forEach(el => el.querySelector('.map-cell-hero')?.remove());
+  _cellEls.forEach(el => {
+    el.querySelector('.map-cell-hero')?.remove();
+    el.classList.remove('mp-p2-here');
+  });
   if (curCol >= 0 && curRow >= 0) {
     const curEl = _cellEls[curRow * COLS + curCol];
     if (curEl && !curEl.classList.contains('fog')) {
@@ -208,6 +212,17 @@ export function updateMap() {
         heroEl.textContent = G.hero || '😊';
       }
       curEl.appendChild(heroEl);
+    }
+  }
+
+  // ── Multiplayer: show P2 position on the minimap ─────────────
+  if (MP.active && MP.p2.currentRoom) {
+    const { col: p2c, row: p2r } = MP.p2.currentRoom;
+    if (p2c >= 0 && p2c < COLS && p2r >= 0 && p2r < ROWS) {
+      const p2El = _cellEls[p2r * COLS + p2c];
+      if (p2El && !p2El.classList.contains('fog')) {
+        p2El.classList.add('mp-p2-here');
+      }
     }
   }
 }

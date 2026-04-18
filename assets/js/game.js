@@ -1,7 +1,7 @@
 /* ================================================================
    GAME - main RAF loop, title screen, input, mobile
 ================================================================ */
-import { G, resetRunState, loadPersistentState, savePersistentState } from './state.js';
+import { G, resetRunState, loadPersistentState, savePersistentState, incrementWordKillCount, incrementWordConjugationCount } from './state.js';
 import {
   tickMonsters, tickProjs, tickParts, tickCoins,
   tickGroundItems, tickActiveEffect,
@@ -16,6 +16,7 @@ import {
   mkMonster, spawnGroundItem, startFleeEffects,
   spawnMissParticles, collectCoins, explodeCoins,
   initRoomSpawner, setRoomClearedCallback, setCoinsCollectedCallback, rollConjugation,
+  onMonsterRemoved,
 } from './combat.js';
 import {
   drawBackground, drawDoors, drawNavPrompt, drawMenuBackground,
@@ -33,6 +34,8 @@ import {
   tryNpcInteract, openAllConnections,
   peekNextWorldDef,
   WORLDS, ALL_WEATHERS, COLS, ROWS,
+  serializeDungeon, reconstructDungeon, generateDungeon, generateWorldSequence,
+  onMpTemplatesReceived,
 } from './world.js';
 import {
   renderShopScreen, renderModifierScreen, renderTreasureScreen, renderCasinoScreen, renderTeacherScreen,
@@ -45,6 +48,10 @@ import { WORD_DICT } from '../data/words.js';
 import { POWERUP_DEFS, POWERUP_KEYS, PERMANENTS, formatKoreanNumber } from '../data/items.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { dojangManager, loadDojangStats } from './dojang.js';
+import {
+  MP, mpSend, startHost, startGuest, leaveMultiplayer, genRoomCode,
+  getHostPersistentSnapshot, applyHostPersistentState, storeMpTemplates,
+} from './multiplayer.js';
 import { computeHangulStage, PHASE1_JAMOS, MAX_JAMO_COUNT, JAMO_INFO, JAMO_STROKES, JAMO_HAS_BATCHIM, BATCHIM_UNLOCK_COUNT } from '../data/dojang-data.js';
 import { play as sfx, preloadSFX, getVolume, setVolume } from './sfx.js';
 
@@ -1243,7 +1250,8 @@ function loop(ts) {
       if (!document.getElementById('map-panel')?.classList.contains('off')) updateMapExtras();
     }
     if (!G.ctrlPanelOpen) _weatherCycleTimer += dt;
-    if (_weatherCycleTimer >= 120) {
+    // In MP, only host drives weather changes; guest receives them via time_sync
+    if (_weatherCycleTimer >= 120 && (!G.mp?.active || G.mp.isHost)) {
       _weatherCycleTimer = 0;
       if (Math.random() < 0.5 && G.weatherEnabled && G.dungeon) {
         const worldDef = G.dungeon.worldDef;
@@ -1254,6 +1262,9 @@ function loop(ts) {
         }
       }
     }
+
+    // ── Multiplayer periodic sync ─────────────────────────────
+    _mpTickSync(dt);
 
     if (G.autoShoot && G.mode === 'combat') {
       _autoTimer = (_autoTimer || 0) + dt;
@@ -1315,7 +1326,7 @@ function tickTransition(dt) {
    WORLD TRANSITION CINEMATIC
    Phases: wipe_in (bar L→R) → emoji (transport crosses screen) → wipe_out (bar shrinks L→R from right anchor)
 ================================================================ */
-function triggerWorldTransition(worldIdx) {
+function triggerWorldTransition(worldIdx, guestEmoji) {
   if (G.worldTransition || G.phase !== 'run') return;
   sfx('worldClear');
   // Clear current room so player takes no damage during animation
@@ -1329,9 +1340,14 @@ function triggerWorldTransition(worldIdx) {
   wxCanvas.style.transition = 'opacity 0.4s';
   wxCanvas.style.opacity    = '0';
 
-  // Get transport emoji from the target world (peek without mutating)
+  // Get transport emoji — host uses world sequence, guest uses emoji sent by host
   const targetDef = peekNextWorldDef(worldIdx);
-  const emoji = targetDef?.transport || '🚀';
+  const emoji = guestEmoji || targetDef?.transport || '🚀';
+
+  // Multiplayer host: tell guest to start the same animation
+  if (G.mp?.active && G.mp.isHost) {
+    mpSend({ type: 'world_transition_start', emoji, worldIdx });
+  }
 
   // Random direction: 0=top→bot, 1=bot→top, 2=left→right, 3=right→left
   const dir = Math.floor(Math.random() * 4);
@@ -1361,6 +1377,7 @@ function triggerWorldTransition(worldIdx) {
   };
 }
 window._triggerWorldTransition = triggerWorldTransition;
+window._applyMonsterSync = _applyMonsterSync;
 
 /* ================================================================
    LORE ANIMATION - plays once when user clicks Play, before world transition
@@ -1382,7 +1399,26 @@ function runLoreAnimation(onComplete) {
   const villainInner = document.getElementById('lore-villain-inner');
   const speechEl     = document.getElementById('lore-speech');
   const particlesEl  = document.getElementById('lore-particles');
+  // P2 follower (only shown in multiplayer co-op)
+  const p2Outer      = document.getElementById('lore-p2-outer');
+  const p2Inner      = document.getElementById('lore-p2-inner');
   if (!overlay) { onComplete(); return; }
+
+  // P2 lore setup: show only when multiplayer is active with a connected peer
+  const _mp2Active = G.mp?.active && G.mp?.p2?.avatar;
+  if (p2Outer) {
+    if (_mp2Active) {
+      p2Outer.style.display = '';
+      p2Outer.style.left    = (-CHAR_SIZE) + 'px';
+      p2Outer.style.opacity = '0.85';
+      if (p2Inner) {
+        p2Inner.classList.remove('lore-walking');
+        p2Inner.innerHTML = _makeAvatarSvg(G.mp.p2.avatar) || G.mp.p2.emoji || '🧑';
+      }
+    } else {
+      p2Outer.style.display = 'none';
+    }
+  }
 
   // Reset display (may have been hidden by previous run's _cleanup)
   playerOuter.style.display  = '';
@@ -1418,6 +1454,12 @@ function runLoreAnimation(onComplete) {
     playerOuter.style.width  = CHAR_SIZE + 'px';
     playerOuter.style.height = (CHAR_SIZE + 20) + 'px';
     playerOuter.style.bottom = '-' + Math.min(Math.round(CHAR_SIZE * 0.28), 32) + 'px';
+    if (p2Outer && _mp2Active) {
+      const p2Size = Math.round(CHAR_SIZE * 0.85);
+      p2Outer.style.width  = p2Size + 'px';
+      p2Outer.style.height = (p2Size + 20) + 'px';
+      p2Outer.style.bottom = '-' + Math.min(Math.round(p2Size * 0.28), 32) + 'px';
+    }
     villainOuter.style.width  = CHAR_SIZE + 'px';
     villainOuter.style.height = CHAR_SIZE + 'px';
     villainOuter.style.marginTop = -(CHAR_SIZE / 2) + 'px';
@@ -1453,6 +1495,11 @@ function runLoreAnimation(onComplete) {
     const opts = { ...G.avatar, ...overrides };
     const svg = _makeAvatarSvg(opts);
     playerInner.innerHTML = svg || '';
+    // P2 mirrors the same expression using their own avatar base
+    if (p2Inner && _mp2Active && G.mp?.p2?.avatar) {
+      const p2opts = { ...G.mp.p2.avatar, ...overrides };
+      p2Inner.innerHTML = _makeAvatarSvg(p2opts) || '';
+    }
   }
 
   // --- Lore phrases (i18n) ---
@@ -1513,9 +1560,11 @@ function runLoreAnimation(onComplete) {
     if (name === 'walk_in') {
       renderAvatar({ eyes: 'happy', eyebrows: 'defaultNatural', mouth: 'smile' });
       playerInner.classList.add('lore-walking');
+      if (p2Inner && _mp2Active) p2Inner.classList.add('lore-walking');
     } else if (name === 'surprised') {
       renderAvatar({ eyes: 'surprised', eyebrows: 'raisedExcited', mouth: 'screamOpen' });
       playerInner.classList.remove('lore-walking');
+      if (p2Inner && _mp2Active) p2Inner.classList.remove('lore-walking');
     } else if (name === 'books') {
       spawnBooks();
     } else if (name === 'disbelief') {
@@ -1561,6 +1610,7 @@ function runLoreAnimation(onComplete) {
     } else if (name === 'player_exit') {
       renderAvatar(G.avatar); // restore user's chosen look
       playerInner.classList.add('lore-walking');
+      if (p2Inner && _mp2Active) p2Inner.classList.add('lore-walking');
     }
   }
 
@@ -1762,6 +1812,7 @@ function runLoreAnimation(onComplete) {
     particlesEl.innerHTML = '';
     speechEl.innerHTML    = '';
     playerOuter.style.display = 'none';
+    if (p2Outer) { p2Outer.style.display = 'none'; if (p2Inner) p2Inner.classList.remove('lore-walking'); }
     villainOuter.style.display = 'none';
     playerInner.classList.remove('lore-walking');
     if (villainSpeechEl) { villainSpeechEl.remove(); villainSpeechEl = null; }
@@ -1804,13 +1855,18 @@ function runLoreAnimation(onComplete) {
   _loreCancel = cancel;
 
   // Hidden skip: pressing Enter while lore is actively playing jumps straight to gameplay.
-  function onSkipKey(e) { if (e.key === 'Enter' && G.phase === 'lore') { e.preventDefault(); finish(); } }
+  // Disabled in co-op (both players must experience the lore together)
+  const _mpActive = G.mp?.active;
+  function onSkipKey(e) {
+    if (_mpActive) return; // no skip in co-op
+    if (e.key === 'Enter' && G.phase === 'lore') { e.preventDefault(); finish(); }
+  }
   window.addEventListener('keydown', onSkipKey);
 
-  // Visible skip button - shown from 2nd play onwards
+  // Visible skip button - shown from 2nd play onwards, hidden in co-op
   let _skipBtn = null;
   const _launchCount = parseInt(localStorage.getItem('krr_launchCount') || '0');
-  if (_launchCount > 0) {
+  if (_launchCount > 0 && !_mpActive) {
     _skipBtn = document.createElement('button');
     _skipBtn.id = 'lore-skip-btn';
     _skipBtn.textContent = i18n('lore.skip');
@@ -1834,6 +1890,7 @@ function runLoreAnimation(onComplete) {
         const t  = Math.min(phaseT / 2.0, 1);
         playerX  = -CHAR_SIZE + (PLAYER_WALK_TARGET - (-CHAR_SIZE)) * easeOut(t);
         playerOuter.style.left = playerX + 'px';
+        if (p2Outer && _mp2Active) p2Outer.style.left = Math.max(-CHAR_SIZE, playerX - 80) + 'px';
         if (t >= 1) startPhase('surprised');
         break;
       }
@@ -1934,6 +1991,7 @@ function runLoreAnimation(onComplete) {
         const t  = Math.min(phaseT / 2.0, 1);
         playerX  = PLAYER_WALK_TARGET + (W + CHAR_SIZE * 2 - PLAYER_WALK_TARGET) * easeIn(t);
         playerOuter.style.left = playerX + 'px';
+        if (p2Outer && _mp2Active) p2Outer.style.left = (playerX - 80) + 'px';
         if (t >= 1) { finish(); return; }
         break;
       }
@@ -1984,8 +2042,18 @@ function triggerMenuPlayTransition() {
   };
 }
 
-function triggerSleepAnimation() {
+function triggerSleepAnimation(partnerSide = false) {
   if (G.worldTransition || G.phase !== 'run') return;
+  // Block sleep if either player is in active combat
+  if (!partnerSide) {
+    if (G.mode === 'combat') return;
+    if (G.mp?.active && G.mp.p2?.inCombat) {
+      flashAnnounce(i18n('announce.partnerInCombat') || '⚔️ Partner in combat!', '#ff8866');
+      return;
+    }
+    // Broadcast sleep to partner before animating
+    if (G.mp?.active) mpSend({ type: 'sleep' });
+  }
   // Weighted sleep emoji: 16 singles + moon-phase group (counts as 1 total weight = 17)
   const SINGLES = ['😴','🧸','🌙','😪','🥱','💤','🛌🏼','🐑','💭','🏕️','⛺','🌚','🎑','⏳','⏰','😵‍💫'];
   const MOONS   = ['🌑','🌒','🌓','🌔','🌕'];
@@ -2013,17 +2081,19 @@ function triggerSleepAnimation() {
     pendingWorldIdx: null,
     pendingAnnounce: null,
     onBlack: () => {
-      // Reset time to 8am, change weather, heal player
+      // Reset time to 8am; weather + HP restore only on the player who actually slept
       G.gameTime = 140; // 8/24 * 420 = 140s
-      if (G.weatherEnabled && G.dungeon) {
-        const worldDef = G.dungeon.worldDef;
-        const forbidden = new Set([...(worldDef.forbiddenWeathers || [])]);
-        const available = ['clear','drizzle','raining','snowing','blizzard','fall','blossom'].filter(w => !forbidden.has(w));
-        if (available.length) startWeatherFade(available[Math.floor(Math.random() * available.length)]);
+      if (!partnerSide) {
+        if (G.weatherEnabled && G.dungeon) {
+          const worldDef = G.dungeon.worldDef;
+          const forbidden = new Set([...(worldDef.forbiddenWeathers || [])]);
+          const available = ['clear','drizzle','raining','snowing','blizzard','fall','blossom'].filter(w => !forbidden.has(w));
+          if (available.length) startWeatherFade(available[Math.floor(Math.random() * available.length)]);
+        }
+        G.playerHP = Math.min(G.playerMax, G.playerHP + 2);
+        refreshLives();
+        if (G.run) G.run.tentCooldown = 120;
       }
-      G.playerHP = Math.min(G.playerMax, G.playerHP + 2);
-      refreshLives();
-      if (G.run) G.run.tentCooldown = 120;
     },
     onComplete: () => {
       flashAnnounce(i18n('announce.healFull'), '#aaffcc');
@@ -2076,6 +2146,8 @@ function tickWorldTransition(dt) {
       if (deferredTemplates) {
         G.room._deferredTemplates = null;
         initRoomSpawner(deferredTemplates);
+      } else if (G.room?.wPhase === 'waiting_templates') {
+        // Guest is still waiting for host's room_templates — onMpTemplatesReceived will spawn when they arrive
       }
       // Optional post-animation callback (used by sleep/tent)
       if (wt.onComplete) wt.onComplete();
@@ -2246,6 +2318,10 @@ function buildTitleScreen() {
   document.getElementById('dojang-entry-skip')?.addEventListener('click', () => {
     _hideDojangEntryModal();
     runLoreAnimation(() => triggerMenuPlayTransition());
+  });
+  document.getElementById('dojang-entry-coop')?.addEventListener('click', () => {
+    _hideDojangEntryModal();
+    _showMultiplayerModal();
   });
 
   // Dojang in-session buttons (wired when entering dojang for first time)
@@ -2605,6 +2681,7 @@ function showTitleScreen() {
   G.phase = 'title';
   document.body.classList.add('phase-title');
   G.gameTime = 210; // reset to midday so menu is always bright
+  _applyDayNightEmoji(); // immediately clear any night-time brightness filter
   // Mobile (height < 500px): always enable touch mode and clickable doors
   if (window.innerHeight < 500) {
     G.touchMode = true;
@@ -3298,6 +3375,8 @@ function startNewRun() {
   if (typingEl) typingEl.value = '';
   _imeCommitted = ''; _imeComposer.reset();
   typingEl?.focus();
+  // Sync dungeon blueprint to guest if in multiplayer session
+  if (window._mpOnRunStart) window._mpOnRunStart();
 }
 
 /* ================================================================
@@ -3405,6 +3484,13 @@ window.pauseGame = function() {
   }
   if (G.phase !== 'run') return;
   if (G.ctrlPanelOpen) closeCtrlPanel();
+  // In co-op: show pause UI but keep game loop running (game must not freeze)
+  if (G.mp?.active) {
+    screenOn('scr-pause');
+    _renderPauseStats();
+    _syncPauseToggles();
+    return;
+  }
   G.phase = 'paused';
   screenOn('scr-pause');
   _renderPauseStats();
@@ -3464,6 +3550,12 @@ function resumeGame() {
     screenOff('scr-pause');
     return;
   }
+  // Co-op: close pause screen without touching ctrlPanelOpen (game was never paused)
+  if (G.mp?.active && G.phase === 'run') {
+    screenOff('scr-pause');
+    typingEl?.focus();
+    return;
+  }
   if (G.phase !== 'paused') return;
   G.phase = 'run';
   screenOff('scr-pause');
@@ -3473,6 +3565,12 @@ function resumeGame() {
 function goToMenu() {
   if (_loreCancel) { _loreCancel(); }
   window._hideTutorial?.(true);
+  // Disconnect multiplayer session cleanly
+  if (G.mp?.active) {
+    mpSend({ type: 'game_over', reason: 'host_left' });
+    setTimeout(() => leaveMultiplayer(), 100);
+    _hideMpDisconnectOverlay();
+  }
   G.phase = 'title';
   // Reset IME to off (normal title screen state), then clean up DOM
   if (_imeEnabled) _imeToggle();
@@ -3527,6 +3625,7 @@ function _applyDayNightEmoji() {
   if (plEmoji) plEmoji.style.filter = f ? `drop-shadow(0 4px 8px rgba(0,0,0,.5)) ${f}` : 'drop-shadow(0 4px 8px rgba(0,0,0,.5))';
   const spellIco = document.getElementById('spell-ico');
   if (spellIco) spellIco.style.filter = f ? `drop-shadow(0 1px 3px rgba(0,0,0,.6)) ${f}` : 'drop-shadow(0 1px 3px rgba(0,0,0,.6))';
+  _mpSyncP2Brightness();
 }
 
 let _chevronCoinsTimeout = null;
@@ -4645,9 +4744,10 @@ function onInput() {
   // Ground items can always be collected (combat or navigate)
   if (tryCollectGroundItem(val)) { typingEl.value = ''; return; }
 
-  // Cheat code (+ alias: "cheatcode" written on wrong keyboard layout)
+  // Cheat code (+ alias: "cheatcode" written on wrong keyboard layout) — host only in co-op
   if (val === 'cheatcode' || val === '촏ㅁㅅ챙ㄷ') {
     typingEl.value = '';
+    if (G.mp?.active && !G.mp.isHost) return; // guests can't cheat
     openCheatMenu();
     return;
   }
@@ -4856,6 +4956,10 @@ document.addEventListener('keydown', e => {
     }
   }
   if (e.key === 'Escape') {
+    if (!document.getElementById('progress-modal')?.classList.contains('off')) {
+      document.getElementById('progress-modal')?.classList.add('off');
+      return;
+    }
     if (!document.getElementById('my-dict-modal')?.classList.contains('off')) {
       document.getElementById('my-dict-modal')?.classList.add('off');
       return;
@@ -5477,6 +5581,998 @@ function screenOff(id) {
   }
   window.addEventListener('resize', checkOrientation);
   checkOrientation();
+})();
+
+/* ================================================================
+   MULTIPLAYER - Modal, P2P session management, game event handlers
+================================================================ */
+
+// ── Helper: get current difficulty label ─────────────────────────
+function _difficultyLabel() {
+  const sel = document.getElementById('sel-difficulty');
+  return sel ? sel.options[sel.selectedIndex]?.text : '⚔️ Normal: 10 ❤️';
+}
+
+// ── Modal open/close ─────────────────────────────────────────────
+let _mpCurrentCode = null;
+
+async function _showMultiplayerModal() {
+  const modal = document.getElementById('mp-modal');
+  if (!modal) return;
+
+  // Reset guest role and code row
+  modal.classList.remove('mp-role-guest');
+  _mpSetCodeRowMode(false);
+
+  // Generate a new room code and start hosting
+  _mpCurrentCode = genRoomCode();
+  const codeEl = document.getElementById('mp-room-code');
+  if (codeEl) codeEl.textContent = _mpCurrentCode;
+
+  // Show P1 avatar (own) and reset label to "You"
+  const p1AvEl = document.getElementById('mp-p1-avatar');
+  if (p1AvEl) {
+    if (G.avatar && typeof Avataaars !== 'undefined') {
+      p1AvEl.innerHTML = Avataaars.create({ style: 'transparent', ...G.avatar });
+    } else {
+      p1AvEl.textContent = G.hero || '😊';
+    }
+  }
+  const p1Label = document.querySelector('#mp-slot-p1 .mp-slot-label');
+  if (p1Label) { p1Label.dataset.i18n = 'multiplayer.you'; p1Label.textContent = i18n('multiplayer.you'); }
+
+  // P2 slot: waiting state
+  _mpResetP2Slot();
+
+  // Init session settings from local prefs
+  const mpDiffEl = document.getElementById('mp-difficulty');
+  if (mpDiffEl) mpDiffEl.value = document.getElementById('sel-difficulty')?.value || 'normal';
+  const mpHanjaEl = document.getElementById('mp-chk-hanja');
+  if (mpHanjaEl) mpHanjaEl.checked = G.hanjaEnabled ?? true;
+  const mpTransEl = document.getElementById('mp-chk-trans');
+  if (mpTransEl) mpTransEl.checked = G.translationEnabled ?? true;
+  const mpDictEl = document.getElementById('mp-chk-dict-prog');
+  if (mpDictEl) mpDictEl.checked = G.dictProgressionDisabled ?? false;
+
+  // Start button disabled until P2 connects
+  const startBtn = document.getElementById('mp-start-btn');
+  if (startBtn) { startBtn.disabled = true; startBtn.classList.remove('mp-guest-ready'); startBtn.dataset.i18n = 'multiplayer.startBtn'; startBtn.textContent = i18n('multiplayer.startBtn'); }
+
+  modal.classList.remove('off');
+
+  // Connect as host
+  try {
+    await startHost(_mpCurrentCode);
+    G.mp = MP;
+    _mpSetupCallbacks();
+  } catch (e) {
+    console.error('[MP] Failed to start host:', e);
+    const js = document.getElementById('mp-join-status');
+    if (js) js.textContent = i18n('multiplayer.errorConnect');
+  }
+
+  // Room code: click to copy
+  if (codeEl) {
+    codeEl.onclick = () => {
+      navigator.clipboard?.writeText(_mpCurrentCode).catch(() => {});
+      const hint = document.getElementById('mp-copy-hint');
+      if (hint) { hint.textContent = i18n('multiplayer.copied'); setTimeout(() => { if (hint) hint.textContent = i18n('multiplayer.copyHint'); }, 1500); }
+    };
+  }
+}
+
+function _hideMultiplayerModal() {
+  document.getElementById('mp-modal')?.classList.add('off');
+}
+
+function _mpSetCodeRowMode(inRoom) {
+  document.getElementById('mp-code-row')?.classList.toggle('in-room', inRoom);
+}
+
+function _mpCleanup() {
+  document.body.classList.remove('mp-active');
+  const legendPartner = document.getElementById('map-legend-partner');
+  if (legendPartner) legendPartner.style.display = 'none';
+  _mpRestoreGuestSettings();
+}
+
+function _mpGetSessionSettings() {
+  return {
+    difficulty:              document.getElementById('mp-difficulty')?.value || 'normal',
+    hanjaEnabled:            document.getElementById('mp-chk-hanja')?.checked ?? (G.hanjaEnabled ?? true),
+    translationEnabled:      document.getElementById('mp-chk-trans')?.checked ?? (G.translationEnabled ?? true),
+    dictProgressionDisabled: document.getElementById('mp-chk-dict-prog')?.checked ?? (G.dictProgressionDisabled ?? false),
+  };
+}
+
+// Reads host's session settings into the guest read-only display spans.
+function _mpApplyGuestSettingsDisplay(s) {
+  const DIFF_LABELS = {
+    baby: '🍼 Baby: 50 ❤️', easy: '😊 Easy: 20 ❤️', normal: '⚔️ Normal: 10 ❤️',
+    hard: '💪 Hard: 5 ❤️',  hardcore: '💀 Hardcore: 1 ❤️',
+  };
+  const yn = (v) => v ? '✅' : '❌';
+  const el = (id, txt) => { const e = document.getElementById(id); if (e) e.textContent = txt; };
+  el('mp-diff-guest',  DIFF_LABELS[s.difficulty] || s.difficulty);
+  el('mp-hanja-guest', yn(s.hanjaEnabled));
+  el('mp-trans-guest', yn(s.translationEnabled));
+  el('mp-dict-guest',  yn(s.dictProgressionDisabled)); // ✅ when the "disable" toggle is ON
+}
+
+// Swaps the modal player slots so host is on the left and self (guest) on the right.
+function _mpSwapSlotsForGuest() {
+  // Left slot → show host (MP.p2 = host from guest's perspective)
+  const p1Av = document.getElementById('mp-p1-avatar');
+  if (p1Av) {
+    if (MP.p2.avatar && typeof Avataaars !== 'undefined') {
+      p1Av.innerHTML = Avataaars.create({ style: 'transparent', ...MP.p2.avatar });
+    } else {
+      p1Av.textContent = MP.p2.emoji || '🤺';
+    }
+  }
+  const p1Label = document.querySelector('#mp-slot-p1 .mp-slot-label');
+  if (p1Label) { delete p1Label.dataset.i18n; p1Label.textContent = i18n('multiplayer.host') || 'Host'; }
+  const p1Status = document.getElementById('mp-p1-status');
+  if (p1Status) p1Status.textContent = '✅';
+
+  // Right slot → show self (guest)
+  const p2Inner = document.getElementById('mp-p2-avatar-inner');
+  if (p2Inner) {
+    if (G.avatar && typeof Avataaars !== 'undefined') {
+      p2Inner.innerHTML = Avataaars.create({ style: 'transparent', ...G.avatar });
+    } else {
+      p2Inner.textContent = G.hero || '😊';
+    }
+  }
+  const p2Slot = document.getElementById('mp-slot-p2');
+  if (p2Slot) { p2Slot.classList.remove('mp-slot-waiting'); p2Slot.classList.add('mp-slot-connected'); }
+  const p2Av = document.getElementById('mp-p2-avatar');
+  if (p2Av) p2Av.classList.remove('mp-waiting-pulse');
+  const p2Label = document.querySelector('#mp-slot-p2 .mp-slot-label');
+  if (p2Label) { p2Label.dataset.i18n = 'multiplayer.you'; p2Label.textContent = i18n('multiplayer.you'); }
+  const p2Status = document.getElementById('mp-p2-status');
+  if (p2Status) { p2Status.classList.remove('mp-waiting-pulse'); p2Status.textContent = '✅'; }
+}
+
+// Save / restore guest's local settings when overridden by host session.
+let _guestSavedSettings = null;
+function _mpSaveGuestSettings() {
+  _guestSavedSettings = {
+    hanjaEnabled:            G.hanjaEnabled,
+    translationEnabled:      G.translationEnabled,
+    dictProgressionDisabled: G.dictProgressionDisabled,
+  };
+}
+function _mpRestoreGuestSettings() {
+  if (!_guestSavedSettings) return;
+  G.hanjaEnabled            = _guestSavedSettings.hanjaEnabled;
+  G.translationEnabled      = _guestSavedSettings.translationEnabled;
+  G.dictProgressionDisabled = _guestSavedSettings.dictProgressionDisabled;
+  _guestSavedSettings = null;
+}
+
+function _mpResetP2Slot() {
+  const slot = document.getElementById('mp-slot-p2');
+  const ava  = document.getElementById('mp-p2-avatar');
+  const inner = document.getElementById('mp-p2-avatar-inner');
+  const status = document.getElementById('mp-p2-status');
+  if (slot) { slot.classList.remove('mp-slot-connected'); slot.classList.add('mp-slot-waiting'); }
+  if (ava)  { ava.classList.add('mp-waiting-pulse'); }
+  if (inner) inner.textContent = '⌛';
+  if (status) { status.classList.add('mp-waiting-pulse'); status.dataset.i18n = 'multiplayer.waiting'; status.textContent = i18n('multiplayer.waiting'); }
+}
+
+// ── MP event callbacks ───────────────────────────────────────────
+function _mpSetupCallbacks() {
+  document.body.classList.add('mp-active');
+  const legendPartner = document.getElementById('map-legend-partner');
+  if (legendPartner) legendPartner.style.display = '';
+  MP.onP2Join = (_peerId) => {
+    if (MP.isHost) {
+      if (G.phase === 'run' || G.phase === 'paused' || G.phase === 'transition') {
+        // Game already running: send full resume payload so guest can rejoin
+        const diff = document.getElementById('sel-difficulty')?.value || 'normal';
+        mpSend({
+          type:            'resume',
+          hostAvatar:      G.avatar,
+          hostEmoji:       G.hero,
+          persistentState: getHostPersistentSnapshot(),
+          difficulty:      diff,
+          blueprint:       G.dungeon ? serializeDungeon(G.dungeon, G.run?.worldIdx || 0) : null,
+          currentRoom:     G.currentRoom,
+          gameTime:        G.gameTime,
+          weather:         G.weather,
+        });
+        _hideMpDisconnectOverlay();
+      } else {
+        // Lobby: send our identity + session settings to guest
+        mpSend({
+          type:            'welcome',
+          avatar:          G.avatar,
+          emoji:           G.hero,
+          lang:            G.lang,
+          sessionSettings: _mpGetSessionSettings(),
+        });
+      }
+    } else {
+      // Guest: announce ourselves to host
+      mpSend({
+        type:   'hello',
+        avatar: G.avatar,
+        emoji:  G.hero,
+        lang:   G.lang,
+      });
+    }
+    refreshLives();
+  };
+
+  MP.onP2Leave = () => {
+    if (G.phase === 'run' || G.phase === 'paused' || G.phase === 'transition') {
+      _showMpDisconnectOverlay();
+    }
+    refreshLives();
+    if (typeof window._mapUpdate === 'function') window._mapUpdate();
+  };
+
+  MP.onMessage = _mpHandleMessage;
+}
+
+// ── Message dispatch ─────────────────────────────────────────────
+function _mpHandleMessage(msg) {
+  switch (msg.type) {
+
+    case 'hello': {
+      // Host receives guest identity
+      MP.p2.avatar  = msg.avatar || null;
+      MP.p2.emoji   = msg.emoji  || '🤺';
+      MP.p2.lang    = msg.lang   || 'en';
+      MP.p2.ready   = true;
+      _mpUpdateP2Slot();
+      // Enable start button
+      const btn = document.getElementById('mp-start-btn');
+      if (btn) btn.disabled = false;
+      break;
+    }
+
+    case 'welcome': {
+      // Guest receives host identity + session settings
+      MP.p2.avatar = msg.avatar || null;
+      MP.p2.emoji  = msg.emoji  || '🤺';
+      MP.p2.lang   = msg.lang   || 'en';
+      MP.p2.ready  = true;
+
+      // Switch modal to guest role: host on left, self on right
+      document.getElementById('mp-modal')?.classList.add('mp-role-guest');
+      _mpSwapSlotsForGuest();
+
+      // Show host's settings as read-only
+      if (msg.sessionSettings) _mpApplyGuestSettingsDisplay(msg.sessionSettings);
+
+      // Start button: visible but non-interactive (host controls start)
+      const btn = document.getElementById('mp-start-btn');
+      if (btn) {
+        btn.disabled = true;
+        btn.classList.add('mp-guest-ready');
+        btn.dataset.i18n = 'multiplayer.readyBtn';
+        btn.textContent = i18n('multiplayer.readyBtn');
+      }
+      break;
+    }
+
+    case 'start': {
+      // Guest: host started the game → apply host's state and run
+      if (MP.isHost) break;
+      applyHostPersistentState(msg.persistentState);
+      if (msg.difficulty) {
+        const DIFF = { baby:50, easy:20, normal:10, hard:5, hardcore:1 };
+        G.playerMax = DIFF[msg.difficulty] || 10;
+      }
+      // Save guest's local settings then apply host's session settings
+      _mpSaveGuestSettings();
+      if (msg.hanjaEnabled            !== undefined) G.hanjaEnabled            = msg.hanjaEnabled;
+      if (msg.translationEnabled      !== undefined) G.translationEnabled      = msg.translationEnabled;
+      if (msg.dictProgressionDisabled !== undefined) G.dictProgressionDisabled = msg.dictProgressionDisabled;
+      if (msg.dungeonBlueprint) MP._blueprintPending = msg.dungeonBlueprint;
+      _hideMultiplayerModal();
+      runLoreAnimation(() => triggerMenuPlayTransition());
+      break;
+    }
+
+    case 'resume': {
+      // Guest reconnected mid-run; host sends current game state to resume
+      if (MP.isHost) break;
+      MP.p2.avatar = msg.hostAvatar || null;
+      MP.p2.emoji  = msg.hostEmoji  || '🤺';
+      if (msg.persistentState) applyHostPersistentState(msg.persistentState);
+      if (msg.difficulty) {
+        const DIFF = { baby:50, easy:20, normal:10, hard:5, hardcore:1 };
+        G.playerMax = DIFF[msg.difficulty] || 10;
+        G.playerHP  = Math.min(G.playerHP || G.playerMax, G.playerMax);
+      }
+      if (msg.blueprint) {
+        G.dungeon      = reconstructDungeon(msg.blueprint);
+        G.currentRoom  = msg.currentRoom || { ...G.dungeon.start };
+      }
+      if (msg.gameTime !== undefined) G.gameTime = msg.gameTime;
+      if (msg.weather) startWeatherFade(msg.weather);
+      // If guest is on title screen, start the run directly (skip lore)
+      if (G.phase === 'title' || G.phase === 'gameover') {
+        _hideMultiplayerModal(); // close join modal if open (reconnect flow)
+        _hideMpDisconnectOverlay();
+        resetRunState();
+        screenOff('scr-title'); screenOff('scr-over');
+        if (hudEl) hudEl.style.display = 'flex';
+        if (paEl)  { paEl.style.display = 'flex'; paEl.style.opacity = '1'; }
+        G.phase = 'run';
+        document.body.classList.remove('phase-title');
+        startRun(); // generates local dungeon (will be overwritten below)
+        G.dungeon     = reconstructDungeon(msg.blueprint);
+        G.currentRoom = msg.currentRoom || { ...G.dungeon.start };
+        MP._incomingEnter = true;
+        enterRoom(G.currentRoom.col, G.currentRoom.row);
+        refreshLives();
+        refreshInventoryUI();
+        updateHudAll();
+        typingEl?.focus();
+      } else if (G.phase === 'run' || G.phase === 'paused') {
+        // Already in-game: just teleport to host's room
+        _hideMpDisconnectOverlay();
+        MP._incomingEnter = true;
+        enterRoom(G.currentRoom.col, G.currentRoom.row);
+        if (G.phase === 'paused') G.phase = 'run';
+      }
+      break;
+    }
+
+    case 'room_enter': {
+      // Partner moved to a different room — update their minimap marker
+      const prevP2Room = MP.p2.currentRoom ? { ...MP.p2.currentRoom } : null;
+      MP.p2.currentRoom = { col: msg.col, row: msg.row };
+      if (msg.inCombat !== undefined) MP.p2.inCombat = msg.inCombat;
+      if (typeof window._mapUpdate === 'function') window._mapUpdate();
+
+      const myCol = G.currentRoom?.col, myRow = G.currentRoom?.row;
+      const p2IsNowHere  = msg.col === myCol && msg.row === myRow;
+      const p2WasHere    = prevP2Room?.col === myCol && prevP2Room?.row === myRow;
+
+      if (p2IsNowHere && !p2WasHere) {
+        // P2 just arrived in our room — play entrance animation
+        _mpUpdateP2Sprite('mp-entering');
+        // Host: if combat active, send current monster positions to guest
+        if (MP.isHost && G.phase === 'run' && G.room?.wPhase === 'spawning') {
+          const states = G.room.monsters
+            .filter(m => !m.dead && !m.isProjectileMonster)
+            .map(m => ({ mpId: m._mpId, nx: m.x / G.W, ny: m.y / G.vH, hp: m.hp, spawnDone: !m.spawnAnim }));
+          if (states.length) mpSend({ type: 'monster_sync', col: G.currentRoom.col, row: G.currentRoom.row, states });
+        }
+      } else if (!p2IsNowHere && p2WasHere) {
+        // P2 just left our room — play exit animation then hide
+        _mpUpdateP2Sprite('mp-exiting');
+      } else {
+        _mpUpdateP2Sprite();
+      }
+      break;
+    }
+
+    case 'room_templates': {
+      // Store templates and kick off spawning if guest was waiting for this room
+      storeMpTemplates(msg.col, msg.row, msg.templates);
+      onMpTemplatesReceived(msg.col, msg.row, msg.templates);
+      break;
+    }
+
+    case 'proj_fire': {
+      // Partner fired a projectile — add ghost proj to our room if we're in the same room
+      if (!G.room?.monsters || !G.mp?.p2?.currentRoom) break;
+      const sameRoom = G.currentRoom?.col === G.mp.p2.currentRoom.col &&
+                       G.currentRoom?.row === G.mp.p2.currentRoom.row;
+      if (!sameRoom) break;
+      // Find the target monster by _mpId
+      const target = G.room.monsters.find(m => !m.dead && m._mpId === msg.mpId);
+      if (!target) break;
+      // Compute velocity from P2's spawn position toward the monster
+      const px = msg.px ?? G.W / 2;
+      const py = msg.py ?? (G.vH - 90);
+      const dx = target.x - px, dy = target.y - py;
+      const d  = Math.hypot(dx, dy) || 1;
+      const spd = 520;
+      G.room.projs.push({
+        x: px, y: py,
+        emoji: msg.emoji || '🔮',
+        tid: target.id,
+        vx: dx/d * spd, vy: dy/d * spd,
+        rot: 0, rs: (Math.random() - 0.5) * 18,
+        size: Math.round(48 * G.vH / 1080),
+        dead: false,
+        born: performance.now(),
+        _fromP2: true, // ghost projectile — no local hitMonster on impact
+      });
+      break;
+    }
+
+    case 'monster_kill': {
+      // P2 killed a monster - remove matching monster from our room + sync vocabulary
+      if (!G.room?.monsters) break;
+      const target = G.room.monsters.find(m =>
+        !m.dead &&
+        !m.isProjectileMonster &&
+        (msg.mpId != null
+          ? m._mpId === msg.mpId
+          : m.words[0] === (msg.words || [])[0])
+      );
+      if (target) {
+        target.dead = true;
+        // Advance wave counter and maybe trigger room clear — same as local kill
+        onMonsterRemoved(target);
+      }
+      // Always sync vocabulary progress regardless of same room (words carry cross-run)
+      if (msg.wordEntries?.length) {
+        if (!G.learnedWords) G.learnedWords = [];
+        let changed = false;
+        for (const entry of msg.wordEntries) {
+          const { text, emoji, category, conjKey, verbDictWord } = entry;
+          if (category !== 'verb' && category !== 'adjective') {
+            incrementWordKillCount(text); // handles save internally
+          } else if (conjKey) {
+            incrementWordConjugationCount(verbDictWord || text, conjKey);
+          }
+          if (!G.learnedWords.find(lw => lw.text === text)) {
+            G.learnedWords.push({ text, emoji: emoji || '' });
+            changed = true;
+          }
+        }
+        if (changed) savePersistentState();
+      }
+      break;
+    }
+
+    case 'player_state': {
+      // P2 HP / wallet / spell update
+      MP.p2.hp     = msg.hp     ?? MP.p2.hp;
+      MP.p2.hpMax  = msg.hpMax  ?? MP.p2.hpMax;
+      MP.p2.wallet = msg.wallet ?? MP.p2.wallet;
+      if (msg.spellEmoji) MP.p2.spellEmoji = msg.spellEmoji;
+      refreshLives();
+      break;
+    }
+
+    case 'item_use_both': {
+      // An item P2 used that affects both players
+      import('./combat.js').then(({ useItemEffect }) => {
+        if (typeof useItemEffect === 'function') useItemEffect(msg.item);
+      }).catch(() => {});
+      break;
+    }
+
+    case 'permanent_acquired': {
+      // P2 acquired a permanent that doesn't affect our run (individual)
+      break;
+    }
+
+    case 'teacher_lesson': {
+      // Lesson completed by P2 - apply to our state too
+      if (!G.completedLessons.includes(msg.lessonId)) {
+        G.completedLessons.push(msg.lessonId);
+        if (msg.relThreshold !== undefined) G.relThreshold = msg.relThreshold;
+        savePersistentState();
+      }
+      break;
+    }
+
+    case 'teacher_pass': {
+      // P2 passed a teacher test — mark and refresh local teacher UI banner
+      MP._p2TeacherPasses.add(msg.lessonId || 'challenge');
+      const teacherScr = document.getElementById('scr-teacher');
+      if (teacherScr && !teacherScr.classList.contains('off')) {
+        // Refresh the teacher screen so the banner updates
+        if (typeof window._teacherRefresh === 'function') window._teacherRefresh();
+        else if (typeof window._teacherBack === 'function') window._teacherBack();
+      }
+      break;
+    }
+
+    case 'game_over': {
+      // P2 died or host left → game over for both
+      const reason = msg.reason === 'host_left'
+        ? i18n('multiplayer.hostLeft') || 'Host left the session.'
+        : i18n('multiplayer.partnerDied');
+      if (G.phase === 'run' || G.phase === 'paused') {
+        flashAnnounce(reason, '#ff4444');
+        _mpCleanup();
+        leaveMultiplayer();
+        G.mp = null;
+        setTimeout(() => {
+          if (typeof window._gameOver === 'function') window._gameOver();
+        }, 1500);
+      } else {
+        // Lobby: host closed modal → kick guest back
+        _hideMultiplayerModal();
+        _mpCleanup();
+        leaveMultiplayer();
+        G.mp = null;
+        flashAnnounce(reason, '#ff8844');
+      }
+      break;
+    }
+
+    case 'world_transition_start': {
+      // Host started the world wipe — guest triggers the same animation
+      if (MP.isHost) break;
+      if (G.phase !== 'run' || G.worldTransition) break;
+      triggerWorldTransition(msg.worldIdx ?? 0, msg.emoji);
+      // Override onBlack: apply dungeon from upcoming world_change when it arrives
+      if (G.worldTransition) {
+        G.worldTransition._guestAwaitingBlueprint = true;
+      }
+      break;
+    }
+
+    case 'world_change': {
+      // Guest follows host to the new world (same dungeon, independent navigation)
+      if (MP.isHost) break;
+      if (msg.blueprint) {
+        G.dungeon = reconstructDungeon(msg.blueprint);
+        G.currentRoom = { ...G.dungeon.start };
+      }
+      if (msg.weather) startWeatherFade(msg.weather);
+      // If the guest is mid-animation (triggered by world_transition_start), let it finish
+      // and enter the room when wipe_out completes; otherwise enter now.
+      if (G.worldTransition?._guestAwaitingBlueprint) {
+        G.worldTransition._guestAwaitingBlueprint = false;
+        // Patch onBlack to enter the start room at the right moment
+        const _prevOnBlack = G.worldTransition.onBlack;
+        G.worldTransition.onBlack = () => {
+          if (_prevOnBlack) _prevOnBlack();
+          MP._incomingEnter = true;
+          enterRoom(G.dungeon.start.col, G.dungeon.start.row);
+        };
+      } else {
+        // No animation running — enter immediately
+        MP._incomingEnter = true;
+        enterRoom(G.dungeon.start.col, G.dungeon.start.row);
+      }
+      break;
+    }
+
+    case 'time_sync': {
+      // Sync game time + weather from host
+      if (!MP.isHost) {
+        if (msg.gameTime !== undefined) G.gameTime = msg.gameTime;
+        if (msg.weather && msg.weather !== G.weather) startWeatherFade(msg.weather);
+      }
+      break;
+    }
+
+    case 'session_settings': {
+      // Host changed a lobby setting — update guest's read-only display
+      if (MP.isHost) break;
+      if (msg.sessionSettings) _mpApplyGuestSettingsDisplay(msg.sessionSettings);
+      break;
+    }
+
+    case 'monster_sync': {
+      // Host sent current monster positions when guest entered the room mid-combat
+      if (MP.isHost) break;
+      // Validate this sync is for the current room (stale syncs from rooms we fled would corrupt state)
+      if (msg.col != null && msg.row != null) {
+        if (G.currentRoom?.col !== msg.col || G.currentRoom?.row !== msg.row) break;
+      }
+      if (!G.room?.monsters || !G.room.monsters.length) {
+        // Monsters not yet spawned — store for application once they exist
+        MP._pendingMonsterSync = { col: msg.col, row: msg.row, states: msg.states };
+        break;
+      }
+      _applyMonsterSync(msg.states);
+      break;
+    }
+
+    case 'dungeon_ready': {
+      // Host is in the game; guest reconstructs dungeon if blueprint pending
+      break;
+    }
+
+    case 'room_cleared': {
+      // Partner cleared a combat room — mark it cleared in our dungeon too
+      if (!G.dungeon) break;
+      const cell = G.dungeon.grid.find(c => c.col === msg.col && c.row === msg.row);
+      if (cell && !cell.cleared) {
+        cell.cleared = true;
+        // Clean up any stale fled-room snapshot so re-entry is clean
+        delete cell._savedRoom;
+        if (typeof window._mapUpdate === 'function') window._mapUpdate();
+        // If we're currently in this room (e.g. mid-wait), unblock to navigate mode
+        if (G.currentRoom?.col === msg.col && G.currentRoom?.row === msg.row &&
+            G.mode !== 'navigate') {
+          G.mode = 'navigate';
+          G.room.wPhase = 'clear';
+          G.room.monsters = [];
+          G.room.projs    = [];
+        }
+      }
+      // Partner is no longer in combat
+      if (MP.p2.currentRoom?.col === msg.col && MP.p2.currentRoom?.row === msg.row) {
+        MP.p2.inCombat = false;
+      }
+      break;
+    }
+
+    case 'room_npc': {
+      // Partner placed/spawned an NPC (tent, next-world portal) — mirror it here
+      if (!G.dungeon || !G.room) break;
+      const sameRoom = G.currentRoom?.col === msg.col && G.currentRoom?.row === msg.row;
+      if (sameRoom && msg.npc) {
+        G.room.npc = { ...msg.npc, x: G.W / 2, y: G.vH * 0.42, active: true };
+      }
+      break;
+    }
+
+    case 'tent_placed': {
+      // Partner set up a tent — mark the cell in our dungeon and spawn NPC if in same room
+      if (!G.dungeon) break;
+      const tentCell = G.dungeon.grid.find(c => c.col === msg.col && c.row === msg.row);
+      if (!tentCell || tentCell.isTent) break;
+      tentCell.isTent = true;
+      tentCell.type   = 'tent';
+      if (typeof window._mapUpdate === 'function') window._mapUpdate();
+      const sameRoom = G.currentRoom?.col === msg.col && G.currentRoom?.row === msg.row;
+      if (sameRoom) {
+        // Trigger the NPC to appear in the current room view
+        window._reopenTentNpc?.();
+      }
+      break;
+    }
+
+    case 'sleep': {
+      // Partner started sleeping — play the sleep animation here too (no restore)
+      if (typeof window._triggerSleepAnimation === 'function') {
+        window._triggerSleepAnimation(true); // true = partner sleeping, skip HP restore
+      }
+      break;
+    }
+
+    case 'inv_nav': {
+      // Partner cycled their equipped spell — store and update P2 spell-ico if visible
+      if (msg.emoji) {
+        MP.p2.spellEmoji = msg.emoji;
+        const ico = document.getElementById('mp-p2-spell-ico');
+        if (ico && ico.style.display !== 'none') ico.textContent = msg.emoji;
+      }
+      break;
+    }
+  }
+}
+
+// ── Update P2 avatar slot in modal ───────────────────────────────
+function _mpUpdateP2Slot() {
+  const slot   = document.getElementById('mp-slot-p2');
+  const ava    = document.getElementById('mp-p2-avatar');
+  const inner  = document.getElementById('mp-p2-avatar-inner');
+  const status = document.getElementById('mp-p2-status');
+  if (slot)   { slot.classList.remove('mp-slot-waiting'); slot.classList.add('mp-slot-connected'); }
+  if (ava)    { ava.classList.remove('mp-waiting-pulse'); }
+  if (inner) {
+    if (MP.p2.avatar && typeof Avataaars !== 'undefined') {
+      inner.innerHTML = Avataaars.create({ style: 'transparent', ...MP.p2.avatar });
+    } else {
+      inner.textContent = MP.p2.emoji || '🤺';
+    }
+  }
+  if (status) {
+    status.classList.remove('mp-waiting-pulse');
+    status.textContent = '✅';
+  }
+  // Also update the in-game P2 sprite placeholder
+  _mpUpdateP2Sprite();
+}
+
+// ── P2 in-game sprite ────────────────────────────────────────────
+function _applyMonsterSync(states) {
+  if (!G.room?.monsters) return;
+  for (const state of states) {
+    const m = G.room.monsters.find(m => !m.dead && m._mpId === state.mpId);
+    if (!m) continue;
+    m.spawnAnim = null; // always clear spawn animation — use host's actual position
+    m.x = state.nx * G.W;
+    m.y = state.ny * G.vH;
+    if (state.hp !== undefined && state.hp < m.hp) m.hp = state.hp;
+  }
+}
+
+function _mpUpdateP2Sprite(animClass) {
+  const el = document.getElementById('mp-p2-sprite');
+  if (!el) return;
+
+  const hide = !MP.active || G.phase !== 'run' || G.worldTransition || G.transition;
+
+  // Exit animation: play it even though sameRoom is already false (currentRoom updated first)
+  if (animClass === 'mp-exiting' && !hide && el.style.display !== 'none') {
+    el.classList.remove('mp-entering', 'mp-exiting');
+    void el.offsetWidth;
+    el.classList.add('mp-exiting');
+    setTimeout(() => { if (el.classList.contains('mp-exiting')) el.style.display = 'none'; }, 260);
+    return;
+  }
+
+  const p2Room = G.mp?.p2?.currentRoom;
+  const sameRoom = !p2Room || (
+    G.currentRoom?.col === p2Room.col && G.currentRoom?.row === p2Room.row
+  );
+
+  const spellEl = document.getElementById('mp-p2-spell-ico');
+
+  if (hide || !sameRoom) {
+    el.style.display = 'none';
+    if (spellEl) spellEl.style.display = 'none';
+    return;
+  }
+
+  // Set content if needed
+  if (!el.innerHTML || el.innerHTML.trim() === '') {
+    if (MP.p2.avatar && typeof Avataaars !== 'undefined') {
+      el.innerHTML = Avataaars.create({ style: 'transparent', ...MP.p2.avatar });
+    } else {
+      el.innerHTML = MP.p2.emoji || '🤺';
+    }
+  }
+
+  el.style.display = 'flex';
+
+  // Show partner's spell-ico if they have one
+  if (spellEl) {
+    const spell = MP.p2.spellEmoji;
+    if (spell) {
+      spellEl.textContent = spell;
+      spellEl.style.display = 'inline';
+    } else {
+      spellEl.style.display = 'none';
+    }
+  }
+
+  // Entrance animation
+  if (animClass === 'mp-entering') {
+    el.classList.remove('mp-entering', 'mp-exiting');
+    void el.offsetWidth;
+    el.classList.add('mp-entering');
+  }
+}
+
+// Apply day/night brightness to P2 sprite alongside P1
+function _mpSyncP2Brightness() {
+  const el = document.getElementById('mp-p2-sprite');
+  const p1 = document.getElementById('pl-emoji');
+  if (el && p1) el.style.filter = p1.style.filter || 'drop-shadow(0 4px 8px rgba(0,0,0,.5))';
+}
+
+// ── Wire teacher pass callback for multiplayer ────────────────────
+window._onTeacherPass = (lessonId) => {
+  if (!G.mp?.active) return;
+  mpSend({ type: 'teacher_pass', lessonId: lessonId || 'challenge' });
+  // Also mark locally so the banner shows "you passed" correctly
+  // (teacher_pass is only sent TO partner, local state is tracked separately)
+};
+
+// ── Modal button wiring (called at DOMContentLoaded) ─────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Close button
+  document.getElementById('mp-modal-close')?.addEventListener('click', () => {
+    if (MP.active && MP.isHost && MP.connected) mpSend({ type: 'game_over', reason: 'host_left' });
+    _mpCleanup();
+    _hideMultiplayerModal();
+    leaveMultiplayer();
+    G.mp = null;
+    _showDojangEntryModal();
+  });
+
+  // Join button
+  document.getElementById('mp-join-btn')?.addEventListener('click', _mpTryJoin);
+  document.getElementById('mp-join-input')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') _mpTryJoin();
+  });
+
+  // Session settings: sync to guest in real-time when host changes anything
+  document.addEventListener('change', e => {
+    if (!MP.active || !MP.isHost || !MP.connected) return;
+    if (!e.target.closest('#mp-session-settings')) return;
+    mpSend({ type: 'session_settings', sessionSettings: _mpGetSessionSettings() });
+  });
+
+  // Start button
+  document.getElementById('mp-start-btn')?.addEventListener('click', _mpStartGame);
+
+  // In-room disconnect button (shown in mp-code-row when guest joined a room)
+  document.addEventListener('click', async e => {
+    if (!e.target.closest('#mp-leave-room-btn')) return;
+    if (MP.active && MP.isHost && MP.connected) mpSend({ type: 'game_over', reason: 'host_left' });
+    _mpCleanup();
+    leaveMultiplayer(); G.mp = null;
+    document.getElementById('mp-modal')?.classList.remove('mp-role-guest');
+    _mpSetCodeRowMode(false);
+    _mpCurrentCode = genRoomCode();
+    const codeEl = document.getElementById('mp-room-code');
+    if (codeEl) codeEl.textContent = _mpCurrentCode;
+    document.getElementById('mp-join-status').textContent = '';
+    try { await startHost(_mpCurrentCode); G.mp = MP; _mpSetupCallbacks(); } catch (_) {}
+  });
+
+  // Disconnect overlay leave button
+  document.getElementById('mp-disconnect-leave-btn')?.addEventListener('click', () => {
+    _hideMpDisconnectOverlay();
+    _mpCleanup();
+    leaveMultiplayer();
+    G.mp = null;
+    goToMenu();
+  });
+});
+
+async function _mpTryJoin() {
+  const input = document.getElementById('mp-join-input');
+  const status = document.getElementById('mp-join-status');
+  if (!input || !status) return;
+
+  const code = input.value.trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length < 8) {
+    status.textContent = i18n('multiplayer.invalidCode');
+    return;
+  }
+  const formatted = code.slice(0, 4) + '-' + code.slice(4, 8);
+
+  // Prevent self-connection or reconnecting to current room
+  if (formatted === _mpCurrentCode || (MP.active && formatted === MP.roomCode)) {
+    status.textContent = i18n('multiplayer.selfConnect') || 'Cannot join your own room!';
+    return;
+  }
+
+  status.textContent = i18n('multiplayer.connecting');
+
+  // Leave current host room
+  if (MP.active) { leaveMultiplayer(); G.mp = null; _mpSetCodeRowMode(false); }
+
+  try {
+    await startGuest(formatted);
+    G.mp = MP;
+    _mpSetupCallbacks();
+    _mpSetCodeRowMode(true);
+    status.textContent = i18n('multiplayer.waitingHost');
+    // Update P1 avatar in modal
+    const p1AvEl = document.getElementById('mp-p1-avatar');
+    if (p1AvEl) {
+      if (G.avatar && typeof Avataaars !== 'undefined') {
+        p1AvEl.innerHTML = Avataaars.create({ style: 'transparent', ...G.avatar });
+      } else {
+        p1AvEl.textContent = G.hero || '😊';
+      }
+    }
+    // Update room code display (it's the code we joined)
+    const codeEl = document.getElementById('mp-room-code');
+    if (codeEl) codeEl.textContent = formatted;
+    _mpCurrentCode = formatted;
+  } catch (e) {
+    console.error('[MP] Failed to join:', e);
+    status.textContent = i18n('multiplayer.errorConnect');
+    // Re-host own code
+    _mpCurrentCode = genRoomCode();
+    try { await startHost(_mpCurrentCode); G.mp = MP; _mpSetupCallbacks(); } catch (_) {}
+    const codeEl = document.getElementById('mp-room-code');
+    if (codeEl) codeEl.textContent = _mpCurrentCode;
+  }
+}
+
+function _mpStartGame() {
+  if (!MP.active || !MP.isHost) return;
+
+  const settings = _mpGetSessionSettings();
+  const diffKey  = settings.difficulty;
+  const snapshot = getHostPersistentSnapshot();
+
+  // Apply host settings locally too
+  G.hanjaEnabled            = settings.hanjaEnabled;
+  G.translationEnabled      = settings.translationEnabled;
+  G.dictProgressionDisabled = settings.dictProgressionDisabled;
+
+  // Pre-generate world sequence + dungeon so blueprint can be sent synchronously
+  // before the guest's lore animation ends (eliminates race condition)
+  resetRunState();
+  const DIFF = { baby:50, easy:20, normal:10, hard:5, hardcore:1 };
+  G.playerMax = DIFF[diffKey] || 10;
+  G.playerHP  = G.playerMax;
+  // Seed worldSequence first so generateDungeon(0) picks the correct world (not a random fallback)
+  G.run.worldSequence = generateWorldSequence(14);
+  const preDungeon = generateDungeon(0);
+  const dungeonBlueprint = serializeDungeon(preDungeon, 0);
+  MP._hostPreDungeon = preDungeon;
+
+  mpSend({
+    type:                    'start',
+    difficulty:              diffKey,
+    hanjaEnabled:            settings.hanjaEnabled,
+    translationEnabled:      settings.translationEnabled,
+    dictProgressionDisabled: settings.dictProgressionDisabled,
+    persistentState:         snapshot,
+    dungeonBlueprint,
+  });
+
+  _hideMultiplayerModal();
+  runLoreAnimation(() => triggerMenuPlayTransition());
+}
+
+// ── Disconnect overlay ───────────────────────────────────────────
+function _showMpDisconnectOverlay() {
+  const el = document.getElementById('mp-disconnect-overlay');
+  if (!el) return;
+  el.classList.remove('off');
+  const codeEl = document.getElementById('mp-reconnect-code');
+  if (codeEl) codeEl.textContent = MP.roomCode || '????';
+  // Dim game with ctrlPanel blur instead of hard-pausing
+  // so host's game keeps running while partner reconnects
+  G.ctrlPanelOpen = true;
+}
+
+function _hideMpDisconnectOverlay() {
+  document.getElementById('mp-disconnect-overlay')?.classList.add('off');
+  if (G.mp?.active) G.ctrlPanelOpen = false;
+}
+
+// ── Override MP.onP2Join for reconnect (already handled in callbacks) ─
+
+// ── Periodic state broadcast from player (HP + wallet) ───────────
+let _mpSyncTimer = 0;
+const _mpSyncInterval = 2; // seconds
+
+function _mpTickSync(dt) {
+  if (!G.mp?.active || !G.mp.connected) return;
+  _mpSyncTimer += dt;
+  if (_mpSyncTimer >= _mpSyncInterval) {
+    _mpSyncTimer = 0;
+    const _spellIcoEl = document.getElementById('spell-ico');
+    mpSend({
+      type:       'player_state',
+      hp:         G.playerHP,
+      hpMax:      G.playerMax,
+      wallet:     G.run?.wallet ?? 0,
+      spellEmoji: _spellIcoEl?.textContent || null,
+    });
+    // Host: sync game time + weather every interval
+    if (G.mp.isHost) {
+      mpSend({ type: 'time_sync', gameTime: G.gameTime, weather: G.weather });
+    }
+    // Keep P2 sprite visibility in sync (handles phase changes etc.)
+    _mpUpdateP2Sprite();
+  }
+}
+
+window._mpTickSync = _mpTickSync;
+
+// ── Export for usage in startNewRun ──────────────────────────────
+window._mpOnRunStart = function () {
+  if (!G.mp?.active) return;
+  // Blueprint was already sent/received in the 'start' message and applied in startRun.
+  // This is a safety net: if guest somehow still has a pending blueprint, apply it now.
+  if (!G.mp.isHost && MP._blueprintPending) {
+    G.dungeon = reconstructDungeon(MP._blueprintPending);
+    G.currentRoom = { ...G.dungeon.start };
+    MP._blueprintPending = null;
+    enterRoom(G.currentRoom.col, G.currentRoom.row);
+  }
+  _mpUpdateP2Sprite();
+};
+
+// Also handle dungeon_blueprint message (can arrive late)
+(function _patchMpMessage() {
+  const _base = MP.onMessage;
+  const _extended = (msg) => {
+    if (msg.type === 'dungeon_blueprint' && !MP.isHost) {
+      if (G.phase === 'run' && G.dungeon) {
+        G.dungeon = reconstructDungeon(msg.blueprint);
+        G.currentRoom = { ...G.dungeon.start };
+        enterRoom(G.currentRoom.col, G.currentRoom.row);
+      } else {
+        MP._blueprintPending = msg.blueprint;
+      }
+      return;
+    }
+    if (_base) _base(msg);
+  };
+  MP.onMessage = _extended;
 })();
 
 /* ================================================================

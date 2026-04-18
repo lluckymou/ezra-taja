@@ -6,6 +6,7 @@
    - Room-clear detection triggers navigate mode
 ================================================================ */
 import { G, incrementWordKillCount, incrementWordConjugationCount, savePersistentState } from './state.js';
+import { MP, mpSend } from './multiplayer.js';
 import { LESSONS_BASE } from '../data/lessons.js';
 import { POWERUP_DEFS, POWERUP_KEYS, rollPowerupDrop, formatKoreanNumber } from '../data/items.js';
 import { WORD_DICT } from '../data/words.js';
@@ -316,6 +317,15 @@ export function mkMonster(tmpl) {
     }
     spawnNX = x / G.W;
     spawnNY = y / G.vH;
+  } else if (tmpl.spawnNX !== undefined && tmpl.spawnNY !== undefined) {
+    // Use pre-computed position from template (ensures all clients see same landing spot)
+    const landX = tmpl.spawnNX * G.W;
+    const landY = tmpl.spawnNY * G.vH;
+    x = landX;
+    y = -(size * 3);
+    spawnNX = tmpl.spawnNX;
+    spawnNY = tmpl.spawnNY;
+    spawnAnim = { t: 0, dur: 0.65, landNY: tmpl.spawnNY };
   } else {
     // Normal monsters: always spawn near room borders, with spacing check
     const MIN_DIST = Math.max(60, size * 1.8);
@@ -347,7 +357,7 @@ export function mkMonster(tmpl) {
     }
     if (landX === undefined) { landX = best.lx; landY = best.ly; } // fallback
     x = landX;
-    y = -(size * 3); // start well above canvas
+    y = -(size * 3);
     spawnNX = landX / G.W;
     spawnNY = landY / G.vH;
     spawnAnim = { t: 0, dur: 0.65, landNY: landY / G.vH };
@@ -397,6 +407,7 @@ export function mkMonster(tmpl) {
 
   return {
     id:       ++_id,
+    _mpId:    tmpl._mpId ?? null,  // stable ID shared with partner for sync
     type:     tmpl.type || 'normal',
     special:  tmpl.special || null,
     emoji, wieldIcon, hpIcon, labelColor,
@@ -443,24 +454,21 @@ export function initRoomSpawner(templates) {
   G.room.wKilled   = 0;
   G.room.wTotal    = templates.length;
   G.room.wPhase    = 'spawning';
-  // Tutorial: first monster spawning in world 0
+  // Tutorial: first monster(s) spawning in world 0
   if (G.run?.worldIdx === 0 && G.run?.tutorial && !G.run.tutorial.firstMonsterShown) {
     G.run.tutorial.firstMonsterShown = true;
     if (typeof window !== 'undefined') window._showTutorial?.('⚔️', 'tutorial.typeToKill', null, { allowDuringCombat: true, autoClose: 30 });
-    // Mark the first template so its monster will pause before hitting player
-    if (G.room.wTemplates.length > 0) {
-      G.room.wTemplates[0]._tutorialStop = true;
-    }
+    // In multiplayer, first group is 2 (one per player) — mark both as tutorial stops
+    const tutCount = G.mp?.active ? Math.min(2, G.room.wTemplates.length) : 1;
+    for (let i = 0; i < tutCount; i++) G.room.wTemplates[i]._tutorialStop = true;
   }
   sendNextGroup();
 }
 
 function groupSize(wn) {
-  if (wn <= 3)  return 1;
-  if (wn <= 7)  return 2;
-  if (wn <= 15) return 2;
-  if (wn <= 25) return 3;
-  return 4;
+  const base = wn <= 3 ? 1 : wn <= 7 ? 2 : wn <= 15 ? 2 : wn <= 25 ? 3 : 4;
+  // Co-op: minimum group of 2 so both players always have a monster to fight simultaneously
+  return G.mp?.active ? Math.max(2, base) : base;
 }
 
 function wordCap(wn) {
@@ -707,12 +715,15 @@ export function genRoomEnemies(cell) {
   const wn = cell.waveNum;
 
   if (cell.type === 'boss') {
+    // In multiplayer each player fights their own boss (2 bosses total in room)
     const t = genBoss(wn);
     cell._templates = t;
     return t;
   }
 
-  const count = cell.enemyCount || 2;
+  // In multiplayer, double the enemy count (two monsters spawn simultaneously)
+  const mpMult = (G.mp?.active) ? 2 : 1;
+  const count = (cell.enemyCount || 2) * mpMult;
   const templates = [];
   let spent = 0;
   const budget = count * Math.max(1, Math.floor(wn / 4));
@@ -728,7 +739,24 @@ export function genRoomEnemies(cell) {
     const wordEmojis = words.map(w => WORD_DICT.find(d => d.text === w)?.emoji || null);
     const wordEmoji = wordEmojis[0];
 
-    let tmpl = { type:'normal', hp, maxHp:hp, words, wordEmoji, wordEmojis };
+    // Pre-compute normalized spawn position so all clients land the same monster at the same spot
+    const edge = Math.random();
+    let spawnNX, spawnNY;
+    if (edge < 0.25) {
+      spawnNX = (80 + Math.random() * (G.W - 160)) / G.W;
+      spawnNY = 0.13 + Math.random() * 0.04;
+    } else if (edge < 0.5) {
+      spawnNX = 0.84 + Math.random() * 0.09;
+      spawnNY = 0.13 + Math.random() * 0.18;
+    } else if (edge < 0.75) {
+      spawnNX = 0.07 + Math.random() * 0.09;
+      spawnNY = 0.13 + Math.random() * 0.18;
+    } else {
+      spawnNX = (80 + Math.random() * (G.W - 160)) / G.W;
+      spawnNY = 0.13 + Math.random() * 0.05;
+    }
+
+    let tmpl = { type:'normal', hp, maxHp:hp, words, wordEmoji, wordEmojis, spawnNX, spawnNY };
 
     if (specialCount < cap && Math.random() < chance) {
       // Specials: always noVerbAdj (specials have special visual mechanics that conflict)
@@ -736,7 +764,7 @@ export function genRoomEnemies(cell) {
       const specialWords = pickWordsForMonster(wn, 1, { noVerbAdj: true });
       const specialEmojis = specialWords.map(w => WORD_DICT.find(d => d.text === w)?.emoji || null);
       tmpl = { type:'normal', hp:1, maxHp:1, words:specialWords, wordEmoji:specialEmojis[0],
-               wordEmojis:specialEmojis, special:stype, spdMult:0.55 };
+               wordEmojis:specialEmojis, special:stype, spdMult:0.55, spawnNX, spawnNY };
       specialCount++;
       spent += 1;
     } else {
@@ -852,6 +880,16 @@ export function fire(monster) {
   monster.firedAt = true;
   _maybeTriggerSpawn();
 
+  // Multiplayer: broadcast projectile so partner can see it in their view
+  if (G.mp?.active) {
+    mpSend({
+      type:  'proj_fire',
+      emoji, px, py,
+      mpId:  monster._mpId ?? null,
+      // Velocity normalised (partner recomputes from their monster position for accuracy)
+    });
+  }
+
   rollNextSpell();
 }
 
@@ -928,6 +966,22 @@ export function hitMonster(m) {
 
   if (m.hp <= 0) {
     m.dead = true;
+    // ── Multiplayer: broadcast kill so P2 removes same monster ──
+    if (G.mp?.active && !m.isProjectileMonster) {
+      // Send word entries so partner can sync vocabulary progress
+      const wordEntries = m.words.map(w => {
+        const def = WORD_DICT.find(d => d.text === w);
+        const entry = { text: w, emoji: def?.emoji || m.emoji || '', category: def?.category || '' };
+        // Include conjugation data for verbs/adjectives so partner can sync conjugation counts
+        if ((def?.category === 'verb' || def?.category === 'adjective') &&
+            m.conjugation?.tense && m.conjugation?.formality) {
+          entry.conjKey       = `${m.conjugation.tense}-${m.conjugation.formality}`;
+          entry.verbDictWord  = m.verbAdjDictWord || w;
+        }
+        return entry;
+      });
+      mpSend({ type: 'monster_kill', words: m.words, mpId: m._mpId ?? null, wordEntries });
+    }
     sfx(m.isProjectileMonster ? 'monsterDamage' : 'monsterDeath');
     const killBonus = Math.floor((G.room.wave || 1) * m.maxHp * 4 * coinMult * mult);
     G.room.roomPool = (G.room.roomPool || 0) + killBonus;
@@ -1478,7 +1532,8 @@ export function tickProjs(dt) {
     p.vy = (dy/d) * PROJ_SPD;
     p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.rs * dt;
     if (Math.hypot(p.x - t.x, p.y - t.y) < t.size * 0.4 + 8) {
-      hitMonster(t); p.dead = true;
+      if (!p._fromP2) hitMonster(t); // ghost P2 projectiles don't trigger local hit (kill comes via monster_kill msg)
+      p.dead = true;
     }
     if (p.x<-100||p.x>G.W+100||p.y<-200||p.y>G.vH+100) p.dead = true;
   }
@@ -1780,6 +1835,12 @@ export function invNavigate(dir) {
   sfx('invNavigate', 0.5);
   G.inventory.sel = ((G.inventory.sel + dir) + G.inventory.stacks.length) % G.inventory.stacks.length;
   refreshInventoryUI();
+  // Multiplayer: broadcast spell selection so partner's spell-ico stays in sync
+  if (G.mp?.active) {
+    const ico = document.getElementById('spell-ico');
+    const emoji = ico?.textContent || _nextSpell || '🔮';
+    mpSend({ type: 'inv_nav', emoji });
+  }
 }
 
 function _checkItemUsable(item) {
@@ -2094,6 +2155,45 @@ function hideBubble() {
 export function refreshLives() {
   const el = document.getElementById('pl-lives');
   if (!el) return;
+
+  if (G.mp?.active) {
+    // ── Multiplayer: show two inline HP blocks ──────────────────
+    el.classList.add('mp-lives');
+    const fmt = (hp, max) =>
+      Array.from({length: Math.min(max, 12)}, (_, i) => i < hp ? '❤️' : '🖤').join('') +
+      (max > 12 ? ` ${hp}/${max}` : '');
+    const p1AvaEl = document.getElementById('pl-emoji');
+    const p1AvaSvg = p1AvaEl?.querySelector('svg');
+    const p1AvaHtml = p1AvaSvg
+      ? p1AvaSvg.outerHTML
+      : (G.hero || '🧙');
+    const p2 = G.mp.p2;
+    const p2AvaEl = document.getElementById('mp-p2-sprite');
+    const p2AvaSvg = p2AvaEl?.querySelector('svg');
+    const p2AvaHtml = p2AvaSvg
+      ? p2AvaSvg.outerHTML
+      : (p2?.emoji || '🤺');
+
+    el.innerHTML =
+      `<span class="mp-lives-block">` +
+        `<span class="mp-lives-avatar">${p1AvaHtml}</span>` +
+        `<span class="mp-lives-hp">${fmt(G.playerHP, G.playerMax)}</span>` +
+        `<span class="mp-lives-wallet">` +
+          `${formatKoreanNumber(G.run?.wallet ?? 0)}원` +
+        `</span>` +
+      `</span>` +
+      `<span class="mp-lives-sep">│</span>` +
+      `<span class="mp-lives-block${!G.mp.connected ? ' mp-p2-dead' : ''}">` +
+        `<span class="mp-lives-avatar">${p2AvaHtml}</span>` +
+        `<span class="mp-lives-hp">${fmt(p2?.hp ?? 0, p2?.hpMax ?? 5)}</span>` +
+        `<span class="mp-lives-wallet">` +
+          `${formatKoreanNumber(p2?.wallet ?? 0)}원` +
+        `</span>` +
+      `</span>`;
+    return;
+  }
+
+  el.classList.remove('mp-lives');
   el.textContent = Array.from({length: G.playerMax}, (_, i) => i < G.playerHP ? '❤️' : '🖤').join('');
 }
 
@@ -2459,13 +2559,16 @@ export function drawProjs() {
   const now = performance.now();
   for (const p of G.room.projs) {
     ctx.save();
+    // P2 ghost projectiles: slightly transparent to distinguish from local player's
+    if (p._fromP2) ctx.globalAlpha = 0.72;
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
     const age     = Math.min(1, (now - (p.born || now)) / 350);
     const arcT    = Math.sin(age * Math.PI);
-    const drawSize = p.size * (0.55 + arcT * 0.55);
+    const sizeMult = p._fromP2 ? 0.85 : 1; // P2 projectiles slightly smaller
+    const drawSize = p.size * (0.55 + arcT * 0.55) * sizeMult;
     const shadowSz = 4 + arcT * 18;
-    ctx.shadowColor   = 'rgba(0,0,0,0.5)';
+    ctx.shadowColor   = p._fromP2 ? 'rgba(100,180,255,0.6)' : 'rgba(0,0,0,0.5)';
     ctx.shadowBlur    = shadowSz;
     ctx.shadowOffsetY = 2 + arcT * 8;
     ctx.font = `${drawSize}px 'Noto Color Emoji', serif`;

@@ -98,6 +98,11 @@ export const G = {
   // dojangStats: null | { jamoProgress, globalThreshold, unlockedGuides, ... }
   // Loaded by loadPersistentState(); saved by DojangManager.exit()
   dojangStats: null,
+
+  // ── Multiplayer session state ──────────────────────────────────
+  // null when offline. Set to the MP singleton from multiplayer.js
+  // when a co-op session is active. Read by combat/world/hud layers.
+  mp: null,
 };
 
 export function resetRunState() {

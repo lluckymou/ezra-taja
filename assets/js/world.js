@@ -4,6 +4,7 @@
 import { G, resetRoomState } from './state.js';
 import { get as i18n } from './i18n.js';
 import { genRoomEnemies, initRoomSpawner, setRoomClearedCallback, announce, dismissAnnounce, flashAnnounce, addToInventory, mkMonster, collectCoins, explodeCoins } from './combat.js';
+import { mpSend, getMpTemplates } from './multiplayer.js';
 import { rollModifierChoices, PERMANENTS } from '../data/items.js';
 import { POWERUP_DEFS, POWERUP_KEYS } from '../data/items.js';
 import { WORD_DICT } from '../data/words.js';
@@ -331,7 +332,7 @@ function extendWorldSequence(seq, n = 10) {
 }
 
 /** Generate the initial world sequence for a run (worlds 0..n-1). */
-function generateWorldSequence(n = 14) {
+export function generateWorldSequence(n = 14) {
   const history = ['forest'];
   const result = [];
   for (let i = 0; i < n; i++) {
@@ -582,6 +583,108 @@ export function generateDungeon(worldIdx) {
 }
 
 /* ================================================================
+   DUNGEON SERIALIZATION / RECONSTRUCTION (for multiplayer sync)
+================================================================ */
+
+/** Serialize dungeon to a plain JSON-safe object for sending to guest. */
+export function serializeDungeon(dungeon, worldIdx) {
+  return {
+    worldIdx,
+    worldDefId: dungeon.worldDef.id,
+    start:    { col: dungeon.start.col,    row: dungeon.start.row    },
+    bossRoom: { col: dungeon.bossRoom.col, row: dungeon.bossRoom.row },
+    maxHops:  dungeon.maxHops,
+    cells: dungeon.grid.map(cell => ({
+      col:          cell.col,
+      row:          cell.row,
+      type:         cell.type,
+      connections:  [...cell.connections],
+      waveNum:      cell.waveNum,
+      enemyCount:   cell.enemyCount,
+      hopDist:      cell.hopDist,
+      treasureItems:   cell.treasureItems   || null,
+      scrollReward:    cell.scrollReward    ?? null,
+      shopRevealed:    cell.shopRevealed    || false,
+      teacherRevealed: cell.teacherRevealed || false,
+    })),
+  };
+}
+
+/** Reconstruct a dungeon object from a blueprint received from host. */
+export function reconstructDungeon(blueprint) {
+  const worldDef = WORLDS.find(w => w.id === blueprint.worldDefId) || WORLDS[0];
+  const grid = blueprint.cells.map(c => {
+    const cell = emptyCell(c.col, c.row);
+    cell.type           = c.type;
+    cell.connections    = new Set(c.connections);
+    cell.waveNum        = c.waveNum;
+    cell.enemyCount     = c.enemyCount;
+    cell.hopDist        = c.hopDist;
+    cell.treasureItems  = c.treasureItems  || undefined;
+    cell.scrollReward   = c.scrollReward   ?? null;
+    cell.shopRevealed   = c.shopRevealed   || false;
+    cell.teacherRevealed = c.teacherRevealed || false;
+    cell.visited        = false;
+    cell.cleared        = false;
+    return cell;
+  });
+  return {
+    grid,
+    start:    blueprint.start,
+    bossRoom: blueprint.bossRoom,
+    worldDef,
+    maxHops:  blueprint.maxHops,
+  };
+}
+
+/** Serialize monster templates for sending to guest (words + stats only). */
+export function serializeTemplates(templates) {
+  return templates.map((t, idx) => ({
+    _mpId:    idx,
+    type:     t.type,
+    hp:       t.hp,
+    maxHp:    t.maxHp,
+    words:    t.words,
+    wordEmoji:  t.wordEmoji  || null,
+    wordEmojis: t.wordEmojis || [],
+    special:    t.special    || null,
+    wieldIcon:  t.wieldIcon  || null,
+    isNumeric:  t.isNumeric  || false,
+    spawnNX:    t.spawnNX    ?? null,
+    spawnNY:    t.spawnNY    ?? null,
+    isVerbAdj:       t.isVerbAdj       || false,
+    verbAdjType:     t.verbAdjType     || null,
+    conjugation:     t.conjugation     || null,
+    verbAdjDictWord: t.verbAdjDictWord || null,
+  }));
+}
+
+/** Reconstruct templates from serialized form (guest side). */
+export function deserializeTemplates(serialized) {
+  return serialized.map(s => ({
+    _mpId:    s._mpId,
+    type:     s.type,
+    hp:       s.hp,
+    maxHp:    s.maxHp,
+    words:    s.words,
+    wordEmoji:  s.wordEmoji,
+    wordEmojis: s.wordEmojis,
+    special:    s.special,
+    wieldIcon:  s.wieldIcon,
+    isNumeric:  s.isNumeric,
+    spawnNX:    s.spawnNX ?? undefined,
+    spawnNY:    s.spawnNY ?? undefined,
+    isVerbAdj:       s.isVerbAdj       || false,
+    verbAdjType:     s.verbAdjType     || null,
+    conjugation:     s.conjugation     || null,
+    verbAdjDictWord: s.verbAdjDictWord || null,
+  }));
+}
+
+// Direction the local player last navigated (set in navigate(), cleared after mpSend)
+let _mpLastNavDir = null;
+
+/* ================================================================
    GET CELL HELPER
 ================================================================ */
 export function getCell(col, row) {
@@ -594,6 +697,79 @@ export function currentCell() {
 }
 
 /* ================================================================
+   MULTIPLAYER TEMPLATE HELPER
+   HOST: generate templates → broadcast → return
+   GUEST: use received templates; if not yet arrived, defer spawning
+          and wait up to 2 s before falling back to own generation
+================================================================ */
+
+// Cell the guest is waiting templates for (null when not waiting).
+let _mpGuestAwaitingCell = null;
+
+/** Called from game.js when a 'room_templates' message arrives. */
+export function onMpTemplatesReceived(col, row, serialized) {
+  getMpTemplates(col, row); // already stored by caller (storeMpTemplates)
+  if (_mpGuestAwaitingCell?.col === col && _mpGuestAwaitingCell?.row === row) {
+    const cell = _mpGuestAwaitingCell;
+    _mpGuestAwaitingCell = null;
+    cell._templates = deserializeTemplates(serialized);
+    // Only spawn if we're still in this room and still in spawning phase
+    if (G.currentRoom?.col === col && G.currentRoom?.row === row &&
+        G.room?.wPhase === 'waiting_templates') {
+      initRoomSpawner(cell._templates);
+      // Apply any pending monster_sync that arrived before monsters were spawned (validate room)
+      if (G.mp._pendingMonsterSync) {
+        const pending = G.mp._pendingMonsterSync;
+        G.mp._pendingMonsterSync = null;
+        const syncCol = pending.col ?? col, syncRow = pending.row ?? row;
+        if (syncCol === col && syncRow === row) {
+          // Defer one tick so monsters are in the array before applying
+          setTimeout(() => { if (typeof window._applyMonsterSync === 'function') window._applyMonsterSync(pending.states ?? pending); }, 50);
+        }
+      }
+    }
+  }
+}
+
+function _mpGetOrGenTemplates(cell) {
+  if (!G.mp?.active) return genRoomEnemies(cell);
+
+  if (!G.mp.isHost) {
+    // Guest: use templates received from host if already here
+    const received = getMpTemplates(cell.col, cell.row);
+    if (received) {
+      if (!cell._templates) cell._templates = deserializeTemplates(received);
+      return cell._templates;
+    }
+    // Templates not yet arrived — defer spawning until they arrive
+    _mpGuestAwaitingCell = cell;
+    // Fallback: if templates don't arrive within 8 s, generate own
+    setTimeout(() => {
+      if (_mpGuestAwaitingCell === cell) {
+        _mpGuestAwaitingCell = null;
+        if (G.currentRoom?.col === cell.col && G.currentRoom?.row === cell.row &&
+            G.room?.wPhase === 'waiting_templates') {
+          initRoomSpawner(genRoomEnemies(cell));
+        }
+      }
+    }, 8000);
+    return null; // signals "deferred — caller must NOT call initRoomSpawner"
+  }
+
+  // Host: generate (doubles enemy count in multiplayer) then broadcast
+  const templates = genRoomEnemies(cell);
+  if (G.mp.connected && templates?.length) {
+    mpSend({
+      type:      'room_templates',
+      col:       cell.col,
+      row:       cell.row,
+      templates: serializeTemplates(templates),
+    });
+  }
+  return templates;
+}
+
+/* ================================================================
    ENTER ROOM
 ================================================================ */
 export function enterRoom(col, row) {
@@ -602,6 +778,17 @@ export function enterRoom(col, row) {
   document.getElementById('first-clear-banner')?.classList.add('off');
   G.currentRoom = { col, row };
   G.doorLabelAlpha = 0; // fade labels in after transition completes
+
+  // ── Multiplayer: broadcast room change to P2 ──────────────────
+  if (G.mp?.active) {
+    // Broadcast after room setup so G.mode is already set; capture nav dir before clearing
+    const _fromDir = _mpLastNavDir;
+    _mpLastNavDir = null;
+    setTimeout(() => {
+      mpSend({ type: 'room_enter', col, row, fromDir: _fromDir, inCombat: G.mode === 'combat' });
+    }, 0);
+  }
+
   const cell = getCell(col, row);
   if (!cell) return;
 
@@ -643,9 +830,13 @@ export function enterRoom(col, row) {
       if (cell._savedRoom) {
         restoreSavedRoom(cell);
       } else if (G.worldTransition) {
-        G.room._deferredTemplates = genRoomEnemies(cell); // defer spawn until animation ends
+        const t = _mpGetOrGenTemplates(cell);
+        G.room._deferredTemplates = t; // null = guest waiting; handled in onMpTemplatesReceived
+        if (t === null) G.room.wPhase = 'waiting_templates';
       } else {
-        initRoomSpawner(genRoomEnemies(cell));
+        const t = _mpGetOrGenTemplates(cell);
+        if (t !== null) { initRoomSpawner(t); }
+        else G.room.wPhase = 'waiting_templates'; // guest waiting for host templates
       }
       break;
     }
@@ -659,9 +850,13 @@ export function enterRoom(col, row) {
       if (cell._savedRoom) {
         restoreSavedRoom(cell);
       } else if (G.worldTransition) {
-        G.room._deferredTemplates = genRoomEnemies(cell); // defer spawn until animation ends
+        const t = _mpGetOrGenTemplates(cell);
+        G.room._deferredTemplates = t;
+        if (t === null) G.room.wPhase = 'waiting_templates';
       } else {
-        initRoomSpawner(genRoomEnemies(cell));
+        const t = _mpGetOrGenTemplates(cell);
+        if (t !== null) { initRoomSpawner(t); }
+        else G.room.wPhase = 'waiting_templates';
       }
       break;
     }
@@ -824,6 +1019,11 @@ function onRoomCleared(cell) {
   window._flushTutQueue?.();
 
   if (typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();
+
+  // Multiplayer: broadcast room clear so partner's cell is also marked cleared
+  if (G.mp?.active) {
+    mpSend({ type: 'room_cleared', col: cell.col, row: cell.row });
+  }
 }
 
 function spawnNextWorldNpc() {
@@ -867,6 +1067,12 @@ function onBossDefeated(cell) {
   }
   // Flush any tip queued during boss fight
   window._flushTutQueue?.();
+
+  // Multiplayer: broadcast boss room cleared so partner's cell is also marked cleared
+  if (G.mp?.active) {
+    const cell = G.dungeon?.grid?.find(c => c.col === G.currentRoom?.col && c.row === G.currentRoom?.row);
+    if (cell) mpSend({ type: 'room_cleared', col: cell.col, row: cell.row });
+  }
 }
 
 // setCombatRef kept for compatibility; no-op since addToInventory is imported directly
@@ -927,6 +1133,9 @@ export function navigate(dir) {
     plEl.classList.remove('entering');
     plEl.classList.add('exiting');
   }
+
+  // Record navigation direction for MP room_enter broadcast
+  _mpLastNavDir = dir;
 
   // Trigger fade transition
   G.transition = {
@@ -1105,8 +1314,18 @@ function placeTent() {
   spawnRoomNpc('tent', '⛺', cell);
   flashAnnounce(i18n('world.tentPitched'), '#88ddaa');
   if (typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();
+  // Multiplayer: broadcast tent placement to partner
+  if (G.mp?.active) {
+    mpSend({ type: 'tent_placed', col: cell.col, row: cell.row });
+  }
 }
-if (typeof window !== 'undefined') window._placeTent = placeTent;
+if (typeof window !== 'undefined') {
+  window._placeTent = placeTent;
+  window._reopenTentNpc = () => {
+    const cell = currentCell();
+    if (cell?.isTent) spawnRoomNpc('tent', '⛺', cell);
+  };
+}
 
 /* ================================================================
    INVENTORY HELPER (forward to combat.js addToInventory)
@@ -1191,14 +1410,34 @@ export function startNewWorld(worldIdx) {
   }
   if (typeof window !== 'undefined' && window._hudUpdate) window._hudUpdate();
   if (typeof window !== 'undefined' && window._syncClock) window._syncClock();
+
+  // Multiplayer: after dungeon + weather are set, broadcast world change to guest
+  if (G.mp?.active && G.mp.isHost && G.dungeon) {
+    mpSend({
+      type:      'world_change',
+      blueprint: serializeDungeon(G.dungeon, worldIdx),
+      weather:   G.weather || 'clear',
+    });
+  }
 }
 
 export function startRun() {
   G.phase = 'run';
   G.run.worldIdx = 0;
   G.run.seed = Math.floor(Math.random() * 1e6); // per-run seed for deterministic room labels
-  G.run.worldSequence = generateWorldSequence(14); // seed entire run upfront
-  G.dungeon = generateDungeon(0);
+  // Only generate worldSequence if not already seeded (MP host pre-seeds it before generateDungeon)
+  if (!G.run.worldSequence?.length) G.run.worldSequence = generateWorldSequence(14);
+  // Multiplayer host: reuse pre-generated dungeon so blueprint matches what was sent to guest
+  if (G.mp?.active && G.mp.isHost && G.mp._hostPreDungeon) {
+    G.dungeon = G.mp._hostPreDungeon;
+    G.mp._hostPreDungeon = null;
+  } else if (G.mp?.active && !G.mp.isHost && G.mp._blueprintPending) {
+    // Multiplayer guest: use host's blueprint immediately (eliminates race condition)
+    G.dungeon = reconstructDungeon(G.mp._blueprintPending);
+    G.mp._blueprintPending = null;
+  } else {
+    G.dungeon = generateDungeon(0);
+  }
   G.currentRoom = { ...G.dungeon.start };
   G.run.nextWorldsPreview = previewNextWorlds(7);
   enterRoom(G.dungeon.start.col, G.dungeon.start.row);

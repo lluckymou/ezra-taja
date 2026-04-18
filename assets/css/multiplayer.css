@@ -1,0 +1,498 @@
+/* ================================================================
+   MULTIPLAYER - Modal, dual HP bar, disconnect overlay
+================================================================ */
+
+/* ── Multiplayer modal ──────────────────────────────────────────── */
+#mp-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(3, 8, 26, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: opacity .3s;
+}
+#mp-modal.off {
+  opacity: 0;
+  pointer-events: none;
+}
+#mp-modal-inner {
+  background: #0d1428;
+  border: 1px solid rgba(80, 140, 255, 0.25);
+  border-radius: 20px;
+  padding: 28px 28px 24px;
+  width: min(620px, 96vw);
+  color: #e8eaf6;
+  box-shadow: 0 24px 80px rgba(0,0,0,.65);
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+#mp-modal-inner h2 {
+  font-size: clamp(1rem, 3vw, 1.35rem);
+  font-weight: 700;
+  margin: 0 0 20px;
+  color: #f0f4ff;
+  text-align: center;
+}
+
+/* ── Room code row ──────────────────────────────────────────────── */
+#mp-code-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  margin-bottom: 20px;
+}
+.mp-divider {
+  width: 1px;
+  background: rgba(255,255,255,.1);
+  align-self: stretch;
+  margin: 0 14px;
+}
+.mp-code-section,
+.mp-join-section {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.mp-code-label {
+  font-size: .72rem;
+  color: rgba(200,210,240,.55);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+#mp-room-code {
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: .2em;
+  color: #4a9eff;
+  font-family: monospace;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: rgba(74, 158, 255, .08);
+  border: 1.5px solid rgba(74, 158, 255, .2);
+  transition: background .2s;
+  user-select: all;
+  display: inline-block;
+}
+#mp-room-code:hover { background: rgba(74, 158, 255, .16); }
+#mp-copy-hint {
+  font-size: .68rem;
+  color: rgba(200,210,240,.35);
+}
+#mp-join-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+#mp-join-input {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #e8eaf6;
+  font-size: .9rem;
+  font-family: monospace;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  outline: none;
+}
+#mp-join-input::placeholder {
+  color: rgba(200,210,240,.3);
+  letter-spacing: .05em;
+  text-transform: none;
+}
+#mp-join-input:focus { border-color: rgba(74, 158, 255, .5); }
+#mp-join-btn {
+  background: rgba(74, 158, 255, .14);
+  border: 1.5px solid rgba(74, 158, 255, .35);
+  border-radius: 8px;
+  color: #4a9eff;
+  padding: 8px 14px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, border-color .2s;
+  font-family: inherit;
+}
+#mp-join-btn:hover { background: rgba(74, 158, 255, .28); border-color: rgba(74, 158, 255, .6); }
+#mp-join-btn:disabled { opacity: .4; cursor: not-allowed; }
+#mp-join-status {
+  font-size: .7rem;
+  min-height: 1em;
+  color: rgba(200,210,240,.5);
+}
+
+/* ── Player slots ──────────────────────────────────────────────── */
+.mp-sep { height: 1px; background: rgba(255,255,255,.08); margin: 14px 0; }
+#mp-players {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.mp-player-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+.mp-avatar-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  border: 2px solid rgba(255,255,255,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.3rem;
+  overflow: hidden;
+  transition: border-color .3s;
+}
+.mp-avatar-wrap svg { width: 72px !important; height: 72px !important; }
+.mp-slot-label {
+  font-size: .8rem;
+  color: rgba(200,210,240,.75);
+  font-weight: 600;
+}
+.mp-slot-status {
+  font-size: .7rem;
+  color: rgba(200,210,240,.4);
+  min-height: 1em;
+}
+#mp-vs {
+  font-size: 1.3rem;
+  color: rgba(255,255,255,.2);
+  margin: 0 10px;
+  text-align: center;
+}
+.mp-slot-connected .mp-avatar-wrap {
+  border-color: rgba(74, 200, 100, .5);
+  background: rgba(74, 200, 100, .05);
+}
+.mp-slot-waiting .mp-avatar-wrap {
+  border-color: rgba(255,255,255,.1);
+  border-style: dashed;
+}
+.mp-waiting-pulse {
+  animation: mp-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mp-pulse {
+  0%, 100% { opacity: .35; }
+  50% { opacity: .75; }
+}
+
+/* ── Session settings panel ─────────────────────────────────────── */
+#mp-session-settings { margin-bottom: 4px; }
+.mp-opts-title {
+  font-size: .72rem;
+  color: rgba(200,210,240,.45);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+}
+.mp-opt-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.mp-opt-row:last-child { border-bottom: none; }
+.mp-opt-label {
+  flex: 1;
+  font-size: .82rem;
+  color: rgba(200,210,240,.72);
+}
+.mp-opt-select {
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.15);
+  border-radius: 8px;
+  padding: 5px 10px;
+  color: #e8eaf6;
+  font-size: .82rem;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+}
+.mp-opt-select:focus { border-color: rgba(74,158,255,.5); }
+.mp-guest-ctrl {
+  display: none;
+  font-size: .8rem;
+  color: rgba(200,210,240,.65);
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 6px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+/* ── Pause menu: hide host-controlled settings during MP ────────── */
+body.mp-active .mp-session-row { display: none; }
+
+/* ── Role-based visibility ──────────────────────────────────────── */
+#mp-modal.mp-role-guest .mp-host-ctrl { display: none; }
+#mp-modal.mp-role-guest .mp-guest-ctrl { display: inline-block; }
+#mp-modal.mp-role-guest #mp-session-settings { opacity: .7; pointer-events: none; }
+
+/* Guest-ready start button: visible but not interactive */
+#mp-start-btn.mp-guest-ready {
+  opacity: .5;
+  cursor: default;
+  pointer-events: none;
+  background: linear-gradient(135deg, rgba(50,110,210,.7), rgba(60,180,100,.6));
+}
+
+/* ── Start button ──────────────────────────────────────────────── */
+#mp-start-btn {
+  width: 100%;
+  margin-top: 6px;
+  padding: 14px 20px;
+  background: linear-gradient(135deg, rgba(50,110,210,.85), rgba(60,180,100,.75));
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .2s, transform .15s;
+}
+#mp-start-btn:hover:not(:disabled) {
+  opacity: .85;
+  transform: translateY(-1px);
+}
+#mp-start-btn:disabled {
+  opacity: .32;
+  cursor: not-allowed;
+  background: rgba(255,255,255,.08);
+}
+#mp-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(200,210,240,.45);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-family: inherit;
+  line-height: 1;
+}
+#mp-modal-close:hover { color: #fff; background: rgba(255,255,255,.1); }
+
+/* ── Disconnect / waiting overlay ───────────────────────────────── */
+#mp-disconnect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 350;
+  background: rgba(3, 8, 26, 0.93);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#mp-disconnect-overlay.off { display: none; }
+#mp-disconnect-panel {
+  background: #0d1428;
+  border: 1px solid rgba(80,140,255,.25);
+  border-radius: 20px;
+  padding: 36px 40px;
+  text-align: center;
+  max-width: 380px;
+  width: 90vw;
+}
+#mp-disconnect-panel h2 {
+  font-size: 1.25rem;
+  margin: 0 0 10px;
+  color: #f0f4ff;
+}
+.mp-disconnect-sub {
+  color: rgba(200,210,240,.6);
+  font-size: .9rem;
+  margin: 0 0 20px;
+}
+#mp-reconnect-code {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: #4a9eff;
+  font-family: monospace;
+  margin-bottom: 22px;
+}
+#mp-disconnect-leave-btn {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 10px;
+  padding: 10px 24px;
+  color: rgba(200,210,240,.7);
+  font-size: .9rem;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s;
+}
+#mp-disconnect-leave-btn:hover { background: rgba(255,255,255,.12); }
+
+/* ── Dual HP bar (multiplayer) ──────────────────────────────────── */
+#pl-lives.mp-lives {
+  display: flex;
+  gap: 7px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  font-size: .75rem;
+  margin-bottom: 8px;
+}
+.mp-lives-block {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.11);
+  border-radius: 20px;
+  padding: 3px 8px 3px 5px;
+  white-space: nowrap;
+  min-width: 0;
+}
+.mp-lives-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .85rem;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.06);
+}
+.mp-lives-avatar svg { width: 18px !important; height: 18px !important; }
+.mp-lives-hp { font-size: .78rem; }
+.mp-lives-wallet { font-size: .68rem; color: rgba(255,215,0,.8); }
+.mp-lives-sep {
+  color: rgba(255,255,255,.18);
+  font-size: .85rem;
+  flex-shrink: 0;
+  padding: 0 2px;
+}
+/* Dim P2 block when P2 is dead or disconnected */
+.mp-lives-block.mp-p2-dead { opacity: .45; }
+
+/* ── P2 on minimap ──────────────────────────────────────────────── */
+.map-cell { position: relative; }
+.map-cell.mp-p2-here::after {
+  content: '👤';
+  font-size: 9px;
+  position: absolute;
+  bottom: 0;
+  right: -1px;
+  line-height: 1;
+  pointer-events: none;
+}
+/* P2 in a different room from P1: translucent door text */
+.map-cell.mp-p2-visited-only { opacity: .65; }
+
+/* ── P2 character in lore animation ─────────────────────────────── */
+#lore-p2-outer {
+  position: fixed;
+  pointer-events: none;
+  bottom: -4px;
+  opacity: .85;
+}
+#lore-p2-inner {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Player 2 sprite (inline in #pl-emoji-row, left of P1) ─────── */
+#mp-p2-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 10px;
+}
+#mp-p2-spell-ico {
+  font-size: 1.1rem;
+  line-height: 1;
+  opacity: 0.85;
+  margin-top: 2px;
+  pointer-events: none;
+}
+#mp-p2-sprite {
+  display: none;           /* JS toggles to flex when P2 in same room */
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.5));
+  line-height: 1;
+  /* Must match #pl-emoji size — #pl-emoji-row has no explicit font-size */
+  font-size: clamp(3.5rem, 8vh, 5.5rem);
+}
+#mp-p2-sprite svg { width: 1em; height: 1em; display: block; }
+@media (min-width: 1600px) { #mp-p2-sprite { font-size: clamp(4.5rem, 9.5vh, 7.5rem); } }
+@media (min-width: 1920px) { #mp-p2-sprite { font-size: clamp(5.5rem, 11vh, 9rem); } }
+#mp-p2-sprite.mp-entering { animation: mp-p2-enter .35s ease-out; }
+#mp-p2-sprite.mp-exiting  { animation: mp-p2-exit  .25s ease-in forwards; }
+@keyframes mp-p2-enter {
+  from { opacity: 0; transform: scale(.6) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes mp-p2-exit {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(.6) translateY(12px); }
+}
+
+/* ── In-room disconnect bar ─────────────────────────────────────── */
+#mp-in-room-bar {
+  display: none;
+  grid-column: 1 / -1;
+  justify-content: center;
+  align-items: center;
+  padding: 4px 0;
+}
+#mp-code-row.in-room .mp-code-section,
+#mp-code-row.in-room .mp-divider,
+#mp-code-row.in-room .mp-join-section {
+  display: none;
+}
+#mp-code-row.in-room #mp-in-room-bar {
+  display: flex;
+}
+#mp-leave-room-btn {
+  background: rgba(255, 80, 80, .1);
+  border: 1.5px solid rgba(255, 80, 80, .3);
+  border-radius: 8px;
+  color: rgba(255, 140, 140, .9);
+  padding: 8px 22px;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .2s, border-color .2s;
+}
+#mp-leave-room-btn:hover {
+  background: rgba(255, 80, 80, .22);
+  border-color: rgba(255, 80, 80, .55);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  #mp-code-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+  .mp-divider { display: none; }
+  #mp-room-code { font-size: 1.2rem; }
+}

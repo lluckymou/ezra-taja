@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="assets/css/fonts.css">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/dojang.css">
+<link rel="stylesheet" href="assets/css/multiplayer.css">
 <script>
 (function(){
   var ua = navigator.userAgent;
@@ -306,11 +307,11 @@
           <span class="pause-opt-label" data-i18n="options.speakWords">🔊 Speak Words</span>
           <label class="gopt-toggle"><input type="checkbox" id="pause-chk-tts" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
         </div>
-        <div class="pause-opt-row">
+        <div class="pause-opt-row mp-session-row">
           <span class="pause-opt-label" data-i18n="options.translations">💬 Translations</span>
           <label class="gopt-toggle"><input type="checkbox" id="pause-chk-translation" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
         </div>
-        <div class="pause-opt-row">
+        <div class="pause-opt-row mp-session-row">
           <span class="pause-opt-label" data-i18n="options.hanjaOnMonsters">漢 Hanja on Monsters</span>
           <label class="gopt-toggle"><input type="checkbox" id="pause-chk-hanja-monsters"><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
         </div>
@@ -432,7 +433,7 @@
   <!-- Inventory HUD (identical to original) -->
   <div id="inv-hud" style="display:none">
     <div id="inv-main-row">
-      <button class="inv-nav" id="inv-prev" title="Tab+Shift">◁</button>
+      <button class="inv-nav" id="inv-prev">◁</button>
       <div id="inv-slot" onclick="invUseClick()">
         <div id="inv-emoji"></div>
         <div id="inv-count"></div>
@@ -440,7 +441,7 @@
           <button id="inv-use-hover" title="Enter">USE</button>
         </div>
       </div>
-      <button class="inv-nav" id="inv-next" title="Tab">▷</button>
+      <button class="inv-nav" id="inv-next">▷</button>
     </div>
     <div id="inv-item-name"></div>
   </div>
@@ -476,6 +477,7 @@
     <span>🎰 <span data-i18n="map.legendCasino">Casino</span></span>
     <span>⛺ <span data-i18n="map.legendCamp">Camp</span></span>
     <span>🧑‍🏫 <span data-i18n="map.legendTeacher">Teacher</span></span>
+    <span id="map-legend-partner" style="display:none">👤 <span data-i18n="map.legendPartner">Partner</span></span>
   </div>
   <div id="map-perms-row" style="margin-top:8px;border-top:1px solid rgba(255,255,255,.1);padding-top:8px">
     <div style="font-size:.72rem;color:#888;margin-bottom:4px" data-i18n="map.nextWorlds">Next Worlds</div>
@@ -521,6 +523,10 @@
         <span id="spell-ico">✨</span>
         <div id="pl-chevron">⌃</div>
       </div>
+      <div id="mp-p2-wrap">
+        <div id="mp-p2-sprite"></div>
+        <span id="mp-p2-spell-ico" style="display:none">✨</span>
+      </div>
     </div>
     <div id="pl-lives"></div>
     <div id="inp-wrap">
@@ -548,10 +554,111 @@
 <!-- ── DOJANG STROKE CANVAS (drawing input layer) ────────── -->
 <canvas id="dojang-canvas"></canvas>
 
+<!-- ── MULTIPLAYER MODAL ──────────────────────────────────── -->
+<div id="mp-modal" class="off">
+  <div id="mp-modal-inner">
+    <button id="mp-modal-close">✕</button>
+    <h2>🧑‍🤝‍🧑 <span data-i18n="multiplayer.title">Co-op Adventure</span></h2>
+
+    <!-- Room code + join row -->
+    <div id="mp-code-row">
+      <div class="mp-code-section">
+        <div class="mp-code-label" data-i18n="multiplayer.yourCode">Your Room Code</div>
+        <div id="mp-room-code">····-····</div>
+        <div id="mp-copy-hint" data-i18n="multiplayer.copyHint">Click to copy</div>
+      </div>
+      <div class="mp-divider"></div>
+      <div class="mp-join-section">
+        <div class="mp-code-label" data-i18n="multiplayer.joinRoom">Join a Room</div>
+        <div id="mp-join-row">
+          <input id="mp-join-input" placeholder="XXXX-XXXX" maxlength="9"
+            autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+          <button id="mp-join-btn" data-i18n="multiplayer.joinBtn">Join</button>
+        </div>
+        <div id="mp-join-status"></div>
+      </div>
+      <div id="mp-in-room-bar">
+        <button id="mp-leave-room-btn" data-i18n="multiplayer.leaveRoom">Desconectar</button>
+      </div>
+    </div>
+
+    <div class="mp-sep"></div>
+
+    <!-- Player avatars -->
+    <div id="mp-players">
+      <div class="mp-player-slot mp-slot-connected" id="mp-slot-p1">
+        <div class="mp-avatar-wrap" id="mp-p1-avatar"></div>
+        <div class="mp-slot-label" data-i18n="multiplayer.you">You</div>
+        <div class="mp-slot-status" id="mp-p1-status">✅</div>
+      </div>
+      <div id="mp-vs">⚔️</div>
+      <div class="mp-player-slot mp-slot-waiting" id="mp-slot-p2">
+        <div class="mp-avatar-wrap mp-waiting-pulse" id="mp-p2-avatar">
+          <span id="mp-p2-avatar-inner">⌛</span>
+        </div>
+        <div class="mp-slot-label" data-i18n="multiplayer.guest">Guest</div>
+        <div class="mp-slot-status mp-waiting-pulse" id="mp-p2-status" data-i18n="multiplayer.waiting">waiting...</div>
+      </div>
+    </div>
+
+    <div class="mp-sep"></div>
+
+    <!-- Session settings (interactive for host, read-only for guest) -->
+    <div id="mp-session-settings">
+      <div class="mp-opts-title" data-i18n="multiplayer.hostSettings">Session Settings</div>
+
+      <div class="mp-opt-row">
+        <span class="mp-opt-label" data-i18n="multiplayer.settingDiff">Difficulty</span>
+        <select id="mp-difficulty" class="mp-opt-select mp-host-ctrl">
+          <option value="baby">🍼 Baby: 50 ❤️</option>
+          <option value="easy">😊 Easy: 20 ❤️</option>
+          <option value="normal" selected>⚔️ Normal: 10 ❤️</option>
+          <option value="hard">💪 Hard: 5 ❤️</option>
+          <option value="hardcore">💀 Hardcore: 1 ❤️</option>
+        </select>
+        <span id="mp-diff-guest" class="mp-guest-ctrl"></span>
+      </div>
+
+      <div class="mp-opt-row">
+        <span class="mp-opt-label" data-i18n="multiplayer.settingHanja">🀄 Hanja Power-ups</span>
+        <label class="gopt-toggle mp-host-ctrl"><input type="checkbox" id="mp-chk-hanja" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        <span id="mp-hanja-guest" class="mp-guest-ctrl"></span>
+      </div>
+
+      <div class="mp-opt-row">
+        <span class="mp-opt-label" data-i18n="multiplayer.settingTrans">💬 Translations</span>
+        <label class="gopt-toggle mp-host-ctrl"><input type="checkbox" id="mp-chk-trans" checked><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        <span id="mp-trans-guest" class="mp-guest-ctrl"></span>
+      </div>
+
+      <div class="mp-opt-row">
+        <span class="mp-opt-label" data-i18n="multiplayer.settingDict">🔓 Disable Dict. Progression</span>
+        <label class="gopt-toggle mp-host-ctrl"><input type="checkbox" id="mp-chk-dict-prog"><span class="gopt-track"><span class="gopt-thumb"></span></span></label>
+        <span id="mp-dict-guest" class="mp-guest-ctrl"></span>
+      </div>
+    </div>
+
+    <div class="mp-sep"></div>
+
+    <!-- Start button -->
+    <button id="mp-start-btn" disabled data-i18n="multiplayer.startBtn">⚔️ Start Co-op</button>
+  </div>
+</div>
+
+<!-- ── DISCONNECT OVERLAY ──────────────────────────────────── -->
+<div id="mp-disconnect-overlay" class="off">
+  <div id="mp-disconnect-panel">
+    <h2>📡 <span data-i18n="multiplayer.disconnected">Connection Lost</span></h2>
+    <p class="mp-disconnect-sub" data-i18n="multiplayer.disconnectedSub">Waiting for your partner to reconnect...</p>
+    <div id="mp-reconnect-code"></div>
+    <button id="mp-disconnect-leave-btn" data-i18n="multiplayer.leaveSession">Leave Session</button>
+  </div>
+</div>
+
 <!-- ── DOJANG ENTRY MODAL ─────────────────────────────────── -->
 <div id="dojang-entry-modal" class="off">
   <div id="dojang-entry-inner">
-    <h2 data-i18n="dojang.entryTitle">Ready, warrior?</h2>
+    <h2 data-i18n="dojang.entryTitle">Ready, adventurer?</h2>
     <p data-i18n="dojang.entrySub">Do you want to train in the Hangul Dojang before your adventure?</p>
     <div id="dojang-entry-btns">
       <button class="dj-entry-btn dj-btn-primary" id="dojang-entry-go">
@@ -563,6 +670,11 @@
         <span class="dj-btn-icon">⚔️</span>
         <span class="dj-btn-main" data-i18n="dojang.btnAdventure">Start Adventure</span>
         <span class="dj-btn-sub" data-i18n="dojang.btnAdventureSub">Jump straight in</span>
+      </button>
+      <button class="dj-entry-btn dj-btn-coop" id="dojang-entry-coop">
+        <span class="dj-btn-icon">🧑‍🤝‍🧑</span>
+        <span class="dj-btn-main" data-i18n="multiplayer.btnCoop">Co-op Adventure</span>
+        <span class="dj-btn-sub" data-i18n="multiplayer.btnCoopSub">Play with a friend</span>
       </button>
     </div>
   </div>
@@ -799,6 +911,9 @@
 
 <!-- ── LORE ANIMATION OVERLAY ────────────────────────────── -->
 <div id="lore-overlay" style="display:none">
+  <div id="lore-p2-outer" style="display:none">
+    <div id="lore-p2-inner"></div>
+  </div>
   <div id="lore-player-outer">
     <div id="lore-player-inner"></div>
   </div>

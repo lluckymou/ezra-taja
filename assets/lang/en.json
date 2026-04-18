@@ -191,7 +191,8 @@
     "legendTreasure": "Treasure",
     "legendCasino": "Casino",
     "legendCamp": "Camp",
-    "legendTeacher": "Teacher"
+    "legendTeacher": "Teacher",
+    "legendPartner": "Partner"
   },
   "announce": {
     "flee": "Flee! 🏃",
@@ -1719,7 +1720,7 @@
     "importWrongFormat": "Invalid code. Make sure you copied the full export."
   },
   "dojang": {
-    "entryTitle": "Ready, warrior?",
+    "entryTitle": "Ready, adventurer?",
     "entrySub": "Do you want to train in the Hangul Dojang before your adventure?",
     "btnDojang": "Hangul Dojang",
     "btnDojangSub": "Learn to write Hangul",
@@ -1752,6 +1753,42 @@
     "phaseCV": "Stage 3 · CV Syllables",
     "phase3": "Stage 4 · Batchim",
     "phase4": "Stage 5 · Words"
+  },
+  "multiplayer": {
+    "btnCoop": "Co-op Adventure",
+    "btnCoopSub": "Play with a friend",
+    "title": "Co-op Adventure",
+    "yourCode": "Your room code",
+    "copyHint": "Click to copy",
+    "copied": "Copied!",
+    "joinRoom": "Join a room",
+    "joinPlaceholder": "XXXX-XXXX",
+    "joinBtn": "Join",
+    "you": "You",
+    "guest": "Guest",
+    "waiting": "Waiting for partner...",
+    "hostSettings": "Session Settings",
+    "startBtn": "⚔️ Start Adventure!",
+    "readyBtn": "✓ Ready!",
+    "disconnected": "Partner disconnected",
+    "disconnectedSub": "Share the code to reconnect: {code}",
+    "leaveSession": "Leave session",
+    "errorConnect": "Failed to connect. Check the room code.",
+    "invalidCode": "Invalid room code format.",
+    "connecting": "Connecting...",
+    "waitingHost": "Waiting for host to start...",
+    "partnerDied": "Your partner has fallen. The run is over.",
+    "hostLeft": "The host left the session.",
+    "selfConnect": "You cannot join your own room!",
+    "leaveRoom": "Disconnect",
+    "host": "Host",
+    "settingDiff": "Difficulty",
+    "settingHanja": "🀄 Hanja Power-ups",
+    "settingTrans": "💬 Translations",
+    "settingDict": "🔓 Disable Dict. Progression",
+    "bothMustPass": "Both players must pass to unlock vocabulary.",
+    "p2Passed": "Partner passed! Your turn.",
+    "youPassed": "You passed! Waiting for partner..."
   },
   "jamo_desc": {
     "ㄱ": {
