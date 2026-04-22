@@ -886,7 +886,7 @@ export function fire(monster) {
       type:  'proj_fire',
       emoji, px, py,
       mpId:  monster._mpId ?? null,
-      // Velocity normalised (partner recomputes from their monster position for accuracy)
+      words: monster.words,  // fallback for _mpId lookup
     });
   }
 
@@ -1619,13 +1619,15 @@ function pickHanjaForWave(wn) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
-export function spawnGroundItem(x, y) {
-  const life = 60 + Math.random() * 180;
+export function spawnGroundItem(x, y, precomputed = null) {
   const wn   = G.room.wave || 1;
+  const life = precomputed?.life ?? (60 + Math.random() * 180);
   // 1/3 of items are hanja-keyed in hanja mode; rest use hangul complex syllables
-  const useHanja = G.hanjaEnabled && Math.random() < 0.33;
+  const useHanja = precomputed ? precomputed.isHanja : (G.hanjaEnabled && Math.random() < 0.33);
   let keys;
-  if (useHanja) {
+  if (precomputed) {
+    keys = precomputed.keys;
+  } else if (useHanja) {
     const wi = G.run?.worldIdx || 0;
     const multiCnt = wi >= 15 ? (Math.random() < .4 ? 3 : 2) : wi >= 10 ? (Math.random() < .4 ? 2 : 1) : 1;
     let pool = [...HANJA_T1, ...HANJA_T1];
@@ -1646,8 +1648,8 @@ export function spawnGroundItem(x, y) {
     keys = [buildComplexSyl()];
   }
   const COIN_TYPES = ['gold','silver','bronze'];
-  const coinType = COIN_TYPES[Math.floor(Math.random()*3)];
-  const item = rollPowerupDrop(wn);
+  const coinType = precomputed?.coinType ?? COIN_TYPES[Math.floor(Math.random()*3)];
+  const item = precomputed?.item ?? rollPowerupDrop(wn);
 
   const el = document.createElement('div');
   el.className = 'gitem';
@@ -1673,11 +1675,17 @@ export function spawnGroundItem(x, y) {
     <div class="gitem-hanja" style="font-size:${Math.max(10, Math.round(svgSz * 0.45))}px">${keys[0]}</div>`;
 
   document.getElementById('ground-items').appendChild(el);
-  const entry = { id: ++G.room._groundId, x, y, keys, keyIdx:0, item, life, maxLife:life, el, isHanja: useHanja };
+  const entryId = precomputed?.id ?? ++G.room._groundId;
+  const entry = { id: entryId, x, y, keys, keyIdx:0, item, life, maxLife:life, el, isHanja: useHanja };
   G.room.groundItems.push(entry);
 
+  // Broadcast to partner (only for locally generated items — not replicated ones)
+  if (G.mp?.active && !precomputed) {
+    mpSend({ type: 'ground_item_spawn', id: entryId, x, y, keys, coinType, item, life, isHanja: useHanja });
+  }
+
   // Tutorial: item drop hints in world 0 (first time each type) - queued, shows after combat
-  if (G.run?.worldIdx === 0 && G.run?.tutorial && typeof window !== 'undefined') {
+  if (!precomputed && G.run?.worldIdx === 0 && G.run?.tutorial && typeof window !== 'undefined') {
     const tut = G.run.tutorial;
     if (useHanja && !tut.hanjaDropShown) {
       tut.hanjaDropShown = true;
@@ -1760,6 +1768,10 @@ export function tryCollectGroundItem(val) {
   setTimeout(() => { if (gi.el) gi.el.remove(); }, 750);
   G.room.groundItems = G.room.groundItems.filter(g => g !== gi);
   addToInventory(gi.item);
+  // Broadcast pickup to partner so the item disappears on their side too
+  if (G.mp?.active) {
+    mpSend({ type: 'ground_item_collect', id: gi.id });
+  }
   // Dismiss item-pickup tutorial tip when player collects an item
   if (typeof window !== 'undefined') window._hideTutorial?.(true);
   return true;

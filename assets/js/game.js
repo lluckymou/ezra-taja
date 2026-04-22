@@ -1608,7 +1608,11 @@ function runLoreAnimation(onComplete) {
     } else if (name === 'villain_exit') {
       spawnVillainLaugh();
     } else if (name === 'player_exit') {
-      renderAvatar(G.avatar); // restore user's chosen look
+      // Restore default look — set each avatar independently to avoid P1 overriding P2
+      playerInner.innerHTML = _makeAvatarSvg(G.avatar) || '';
+      if (p2Inner && _mp2Active && G.mp?.p2?.avatar) {
+        p2Inner.innerHTML = _makeAvatarSvg(G.mp.p2.avatar) || '';
+      }
       playerInner.classList.add('lore-walking');
       if (p2Inner && _mp2Active) p2Inner.classList.add('lore-walking');
     }
@@ -5945,6 +5949,14 @@ function _mpHandleMessage(msg) {
             .map(m => ({ mpId: m._mpId, nx: m.x / G.W, ny: m.y / G.vH, hp: m.hp, spawnDone: !m.spawnAnim }));
           if (states.length) mpSend({ type: 'monster_sync', col: G.currentRoom.col, row: G.currentRoom.row, states });
         }
+        // Sync any existing ground items to the arriving partner
+        if (G.room?.groundItems?.length) {
+          for (const gi of G.room.groundItems) {
+            mpSend({ type: 'ground_item_spawn', id: gi.id, x: gi.x, y: gi.y, keys: gi.keys,
+                     coinType: gi.el.dataset.coin || 'gold', item: gi.item,
+                     life: gi.life, isHanja: gi.isHanja || false });
+          }
+        }
       } else if (!p2IsNowHere && p2WasHere) {
         // P2 just left our room — play exit animation then hide
         _mpUpdateP2Sprite('mp-exiting');
@@ -5967,8 +5979,13 @@ function _mpHandleMessage(msg) {
       const sameRoom = G.currentRoom?.col === G.mp.p2.currentRoom.col &&
                        G.currentRoom?.row === G.mp.p2.currentRoom.row;
       if (!sameRoom) break;
-      // Find the target monster by _mpId
-      const target = G.room.monsters.find(m => !m.dead && m._mpId === msg.mpId);
+      // Find the target monster by _mpId (fall back to word if not found)
+      let target = msg.mpId != null
+        ? G.room.monsters.find(m => !m.dead && m._mpId === msg.mpId)
+        : null;
+      if (!target && msg.words?.length) {
+        target = G.room.monsters.find(m => !m.dead && m.words[0] === msg.words[0]);
+      }
       if (!target) break;
       // Compute velocity from P2's spawn position toward the monster
       const px = msg.px ?? G.W / 2;
@@ -5993,13 +6010,15 @@ function _mpHandleMessage(msg) {
     case 'monster_kill': {
       // P2 killed a monster - remove matching monster from our room + sync vocabulary
       if (!G.room?.monsters) break;
-      const target = G.room.monsters.find(m =>
-        !m.dead &&
-        !m.isProjectileMonster &&
-        (msg.mpId != null
-          ? m._mpId === msg.mpId
-          : m.words[0] === (msg.words || [])[0])
-      );
+      // Match by _mpId first (preferred), fall back to word if not found
+      let target = msg.mpId != null
+        ? G.room.monsters.find(m => !m.dead && !m.isProjectileMonster && m._mpId === msg.mpId)
+        : null;
+      if (!target) {
+        target = G.room.monsters.find(m =>
+          !m.dead && !m.isProjectileMonster && m.words[0] === (msg.words || [])[0]
+        );
+      }
       if (target) {
         target.dead = true;
         // Advance wave counter and maybe trigger room clear — same as local kill
@@ -6033,6 +6052,34 @@ function _mpHandleMessage(msg) {
       MP.p2.wallet = msg.wallet ?? MP.p2.wallet;
       if (msg.spellEmoji) MP.p2.spellEmoji = msg.spellEmoji;
       refreshLives();
+      break;
+    }
+
+    case 'ground_item_spawn': {
+      // Partner spawned a ground item — recreate it in our room so both players see it
+      if (!G.room) break;
+      // Only show if we're in the same room as the partner
+      const sameRoomGI = G.currentRoom?.col === MP.p2.currentRoom?.col &&
+                         G.currentRoom?.row === MP.p2.currentRoom?.row;
+      if (!sameRoomGI) break;
+      spawnGroundItem(msg.x, msg.y, {
+        id:      msg.id,
+        keys:    msg.keys,
+        coinType: msg.coinType,
+        item:    msg.item,
+        life:    msg.life,
+        isHanja: msg.isHanja || false,
+      });
+      break;
+    }
+
+    case 'ground_item_collect': {
+      // Partner collected a ground item — remove it from our room without giving inventory
+      if (!G.room?.groundItems) break;
+      const gi = G.room.groundItems.find(g => g.id === msg.id);
+      if (!gi) break;
+      gi.el.remove();
+      G.room.groundItems = G.room.groundItems.filter(g => g !== gi);
       break;
     }
 

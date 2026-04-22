@@ -640,7 +640,7 @@ export function reconstructDungeon(blueprint) {
 /** Serialize monster templates for sending to guest (words + stats only). */
 export function serializeTemplates(templates) {
   return templates.map((t, idx) => ({
-    _mpId:    idx,
+    _mpId:    t._mpId ?? idx,
     type:     t.type,
     hp:       t.hp,
     maxHp:    t.maxHp,
@@ -756,8 +756,10 @@ function _mpGetOrGenTemplates(cell) {
     return null; // signals "deferred — caller must NOT call initRoomSpawner"
   }
 
-  // Host: generate (doubles enemy count in multiplayer) then broadcast
+  // Host: generate, stamp stable IDs (same ones guest will receive), then broadcast
   const templates = genRoomEnemies(cell);
+  // Assign _mpId here so host monsters get the same IDs as the serialized version sent to guest
+  templates.forEach((t, idx) => { t._mpId = idx; });
   if (G.mp.connected && templates?.length) {
     mpSend({
       type:      'room_templates',

@@ -1981,7 +1981,8 @@ body.touch-mode.book-open #player-area * { pointer-events: none !important; }
   width: 100%; height: 100%;
   transform-origin: bottom center;
 }
-#lore-player-inner.lore-walking {
+#lore-player-inner.lore-walking,
+#lore-p2-inner.lore-walking {
   animation: loreWalk 0.4s ease-in-out infinite;
 }
 @keyframes loreWalk {

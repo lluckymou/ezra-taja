@@ -418,17 +418,20 @@ body.mp-active .mp-session-row { display: none; }
 
 /* ── Player 2 sprite (inline in #pl-emoji-row, left of P1) ─────── */
 #mp-p2-wrap {
+  position: relative;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   margin-left: 10px;
 }
 #mp-p2-spell-ico {
-  font-size: 1.1rem;
+  position: absolute;
+  bottom: -2px; left: -6px;
+  font-size: clamp(1.4rem, 2.7vh, 1.75rem);
   line-height: 1;
-  opacity: 0.85;
-  margin-top: 2px;
   pointer-events: none;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.6));
+  opacity: 0.9;
 }
 #mp-p2-sprite {
   display: none;           /* JS toggles to flex when P2 in same room */
@@ -439,6 +442,7 @@ body.mp-active .mp-session-row { display: none; }
   line-height: 1;
   /* Must match #pl-emoji size — #pl-emoji-row has no explicit font-size */
   font-size: clamp(3.5rem, 8vh, 5.5rem);
+  margin: 0;
 }
 #mp-p2-sprite svg { width: 1em; height: 1em; display: block; }
 @media (min-width: 1600px) { #mp-p2-sprite { font-size: clamp(4.5rem, 9.5vh, 7.5rem); } }
