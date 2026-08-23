@@ -745,12 +745,12 @@ export function drawMenuBackground(worldDef, openDirs = [], patIdx = 0) {
    DRAW DOORS
 ================================================================ */
 const OPEN_EDGE_STYLES = {
-  boss:     { rgb: '225, 48, 48',   alpha: 0.38 },
+  boss:     { rgb: '225, 48, 48',   alpha: 0.56 },
   teacher:  { rgb: '38, 185, 104',  alpha: 0.30 },
   shop:     { rgb: '218, 166, 42',  alpha: 0.28 },
   casino:   { rgb: '153, 64, 220',  alpha: 0.30 },
-  modifier: { rgb: '44, 190, 220',  alpha: 0.24 },
-  treasure: { rgb: '248, 196, 54',  alpha: 0.28 },
+  modifier: { rgb: '92, 211, 235',  alpha: 0.36 },
+  treasure: { rgb: '92, 211, 235',  alpha: 0.36 },
   tent:     { rgb: '158, 111, 204', alpha: 0.22 },
 };
 
@@ -759,6 +759,52 @@ function openWorldEdgeStyle(cell, adjacent) {
   if (type && OPEN_EDGE_STYLES[type]) return OPEN_EDGE_STYLES[type];
   if (cell?.type && OPEN_EDGE_STYLES[cell.type]) return OPEN_EDGE_STYLES[cell.type];
   return null;
+}
+
+function drawBossPathParticles(x, y, intensity = 1, monochrome = false) {
+  const t = (G.last ?? 0) * 0.001;
+  ctx.save();
+  // Cleared boss-path rooms keep a neutral, high-contrast marker instead of
+  // competing with the gray direction label. Keep the particles fully visible
+  // even though the label itself is intentionally dimmed.
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = monochrome ? 'source-over' : 'lighter';
+
+  const halo = ctx.createRadialGradient(x, y, 0, x, y, 30 * intensity);
+  if (monochrome) {
+    halo.addColorStop(0, 'rgba(255, 255, 255, 0.34)');
+    halo.addColorStop(0.45, 'rgba(235, 235, 235, 0.16)');
+    halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  } else {
+    halo.addColorStop(0, 'rgba(255, 45, 45, 0.42)');
+    halo.addColorStop(0.45, 'rgba(220, 25, 35, 0.18)');
+    halo.addColorStop(1, 'rgba(180, 0, 0, 0)');
+  }
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.arc(x, y, 30 * intensity, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowColor = monochrome ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 40, 40, 0.95)';
+  ctx.shadowBlur = monochrome ? 7 : 10;
+  for (let i = 0; i < 8; i++) {
+    const phase = (t * (0.8 + i * 0.06) + i * 0.37) % 1;
+    const angle = t * (0.45 + i * 0.035) + i * 0.9;
+    const orbit = (8 + (i % 3) * 5) * intensity;
+    const px = x + Math.cos(angle) * orbit;
+    const py = y + Math.sin(angle) * orbit - phase * 18 * intensity;
+    const size = (1.8 + (i % 2) * 1.3) * intensity;
+    if (monochrome) {
+      const lightParticle = i % 2 === 0;
+      ctx.fillStyle = lightParticle ? '#ffffff' : '#111111';
+    } else {
+      ctx.fillStyle = i % 3 === 0 ? '#ffb0a8' : '#ff3f45';
+    }
+    ctx.beginPath();
+    ctx.arc(px, py, size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 function drawOpenWorldEdgeGradients(cell, W, H) {
@@ -821,9 +867,11 @@ function drawOpenWorldLabels(cell, W, H) {
     if (!adj) continue;
 
     const adjBossDist = bossDistMap?.get(`${adj.col},${adj.row}`);
-    const isBossDoor = adj.type === 'boss' || cell.type === 'boss';
-    const onBossPath = !isBossDoor && !adj.cleared && curBossDist != null
+    const adjCleared = !!adj.cleared && !!adj.visited;
+    const isBossPath = curBossDist != null
       && adjBossDist != null && adjBossDist < curBossDist;
+    const showBossPathRed = isBossPath && !adjCleared;
+    const showBossPathMonochrome = isBossPath && adjCleared;
     const pos = labelPos[dir];
 
     ctx.save();
@@ -831,14 +879,26 @@ function drawOpenWorldLabels(cell, W, H) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.font = `bold ${Math.floor(Math.min(wallH, wallSide) * 0.52)}px 'Noto Sans KR', 'Noto Color Emoji', sans-serif`;
-    if (onBossPath) {
+    if (showBossPathRed) {
+      drawBossPathParticles(pos.x, pos.y, 1.05);
       ctx.shadowBlur = 6 + pulse * 5;
-      ctx.shadowColor = 'rgba(235, 38, 38, 0.86)';
+      ctx.shadowColor = 'rgba(255, 24, 32, 0.98)';
+    } else if (showBossPathMonochrome) {
+      drawBossPathParticles(pos.x, pos.y, 1.05, true);
+      ctx.shadowBlur = 3 + pulse * 2;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
     } else if (roomCleared) {
       ctx.shadowBlur = 2 + pulse * 2;
       ctx.shadowColor = 'rgba(165, 230, 255, 0.46)';
     }
-    ctx.fillStyle = onBossPath ? '#ffd5d2' : 'rgba(255,255,255,0.88)';
+    ctx.fillStyle = showBossPathRed ? '#ffffff'
+      : (adjCleared ? 'rgba(160,160,160,0.9)' : 'rgba(255,255,255,0.88)');
+    if (showBossPathRed) {
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = 'rgba(220, 28, 38, 0.98)';
+      ctx.strokeText(DIR_NAMES[dir], pos.x, pos.y);
+    }
     ctx.fillText(DIR_NAMES[dir], pos.x, pos.y);
     ctx.restore();
   }
@@ -891,6 +951,13 @@ export function drawDoors() {
     ctx.closePath(); ctx.fill();
   }
 
+  function strokePts(pts) {
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath(); ctx.stroke();
+  }
+
   const labelAlpha  = G.doorLabelAlpha ?? 1;
   const roomCleared = !!cell?.cleared;
   const _glowT      = roomCleared ? (G.last ?? 0) * 0.002 : 0;
@@ -909,18 +976,57 @@ export function drawDoors() {
     const isCasinoDoor  = adj?.type === 'casino'  || cell.type === 'casino';
     const isShopDoor    = adj?.type === 'shop'    || cell.type === 'shop';
     const isTeacherDoor = adj?.type === 'teacher' || cell.type === 'teacher';
+    const isCyanDoor    = adj?.type === 'modifier' || adj?.type === 'treasure'
+                       || cell.type === 'modifier' || cell.type === 'treasure';
     ctx.fillStyle = '#000000';
     fillPts(d.pts);
 
     // Colored glow overlay
     if (isBossDoor) {
-      ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#cc1111'; fillPts(d.pts); ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.52;
+      ctx.fillStyle = '#d51f2f';
+      fillPts(d.pts);
+      ctx.strokeStyle = 'rgba(255, 150, 150, 0.95)';
+      ctx.lineWidth = 3;
+      strokePts(d.pts);
+      ctx.restore();
     } else if (isCasinoDoor) {
-      ctx.save(); ctx.globalAlpha = 0.40; ctx.fillStyle = '#8800cc'; fillPts(d.pts); ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.40;
+      ctx.fillStyle = '#8800cc';
+      fillPts(d.pts);
+      ctx.strokeStyle = 'rgba(225, 155, 255, 0.95)';
+      ctx.lineWidth = 2.5;
+      strokePts(d.pts);
+      ctx.restore();
     } else if (isShopDoor) {
-      ctx.save(); ctx.globalAlpha = 0.40; ctx.fillStyle = '#aa8800'; fillPts(d.pts); ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.40;
+      ctx.fillStyle = '#aa8800';
+      fillPts(d.pts);
+      ctx.strokeStyle = 'rgba(255, 232, 125, 0.95)';
+      ctx.lineWidth = 2.5;
+      strokePts(d.pts);
+      ctx.restore();
     } else if (isTeacherDoor) {
-      ctx.save(); ctx.globalAlpha = 0.50; ctx.fillStyle = '#0a5c1e'; fillPts(d.pts); ctx.restore();
+      ctx.save();
+      ctx.globalAlpha = 0.50;
+      ctx.fillStyle = '#0a5c1e';
+      fillPts(d.pts);
+      ctx.strokeStyle = 'rgba(145, 255, 185, 0.95)';
+      ctx.lineWidth = 2.5;
+      strokePts(d.pts);
+      ctx.restore();
+    } else if (isCyanDoor) {
+      ctx.save();
+      ctx.globalAlpha = 0.55;
+      ctx.fillStyle = '#4bd4e9';
+      fillPts(d.pts);
+      ctx.strokeStyle = 'rgba(185, 247, 255, 0.95)';
+      ctx.lineWidth = 2.5;
+      strokePts(d.pts);
+      ctx.restore();
     }
 
     if (labelAlpha < 0.01) continue;
@@ -934,23 +1040,36 @@ export function drawDoors() {
 
     // Boss-path: this door leads toward the boss room via the shortest route
     const adjBossDist = adj ? bossDistMap?.get(`${adj.col},${adj.row}`) : undefined;
-    const onBossPath  = !isBossDoor && !adjCleared &&
-                        curBossDist != null && adjBossDist != null && adjBossDist < curBossDist;
+    const isBossPath  = curBossDist != null && adjBossDist != null && adjBossDist < curBossDist;
+    const showBossPathRed = isBossPath && !adjCleared;
+    const showBossPathMonochrome = isBossPath && adjCleared;
 
     ctx.save();
     ctx.globalAlpha = labelAlpha * (adjCleared ? 0.28 : 1.0);
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     // Glow effects: boss-path red takes priority; cleared-room blue is subtle
-    if (onBossPath) {
+    if (showBossPathRed) {
+      drawBossPathParticles(d.lx, d.ly, 1.0);
       ctx.shadowBlur  = 5 + _glowPulse * 4;
-      ctx.shadowColor = 'rgba(220, 50, 50, 0.75)';
+      ctx.shadowColor = 'rgba(255, 24, 32, 0.98)';
+    } else if (showBossPathMonochrome) {
+      drawBossPathParticles(d.lx, d.ly, 1.0, true);
+      ctx.shadowBlur  = 3 + _glowPulse * 2;
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
     } else if (roomCleared) {
       ctx.shadowBlur  = 2 + _glowPulse * 3;
       ctx.shadowColor = 'rgba(160, 230, 255, 0.5)';
     }
-    ctx.fillStyle = onBossPath ? 'rgba(255, 222, 218, 0.9)' : 'rgba(255,255,255,0.9)';
     ctx.font = `bold ${Math.floor(Math.min(wallH, wallSide) * 0.52)}px 'Noto Sans KR', 'Noto Color Emoji', sans-serif`;
+    ctx.fillStyle = showBossPathRed ? '#ffffff'
+      : (adjCleared ? 'rgba(155,155,155,0.92)' : 'rgba(255,255,255,0.9)');
+    if (showBossPathRed) {
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = 3.5;
+      ctx.strokeStyle = 'rgba(220, 28, 38, 0.98)';
+      ctx.strokeText(DIR_NAMES[dir], d.lx, d.ly);
+    }
     ctx.fillText(DIR_NAMES[dir], d.lx, d.ly);
     ctx.restore();
   }

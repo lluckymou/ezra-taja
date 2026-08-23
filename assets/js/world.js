@@ -3,7 +3,7 @@
 ================================================================ */
 import { G, resetRoomState, savePersistentState, recordWorldReached } from './state.js';
 import { get as i18n } from './i18n.js';
-import { genRoomEnemies, initRoomSpawner, setRoomClearedCallback, announce, dismissAnnounce, flashAnnounce, addToInventory, mkMonster, collectCoins, explodeCoins, finalizePendingCombat } from './combat.js';
+import { genRoomEnemies, initRoomSpawner, setRoomClearedCallback, announce, dismissAnnounce, flashAnnounce, addToInventory, mkMonster, collectCoins, explodeCoins, finalizePendingCombat, detachGroundItems, hydrateGroundItems } from './combat.js';
 import { mpSend, getMpTemplates } from './multiplayer.js';
 import { rollModifierChoices, PERMANENTS } from '../data/items.js';
 import { POWERUP_DEFS, POWERUP_KEYS } from '../data/items.js';
@@ -147,7 +147,7 @@ export const WORLDS = [
     bossEmoji: '🦈',       // Great white shark - deep East Sea
     bossName: '상어왕',
     biome: 'ocean',
-    forbiddenWeathers: ['snowing', 'blizzard','blossom'],
+    forbiddenWeathers: ['snowing', 'blizzard','blossom','fall'],
     wind: 0.88,
     floorColor:     '#001628',  floorColorAlt: '#001020',
     wallColor:      '#001c38',  altWallColor:  '#003058',  // abyssal dark; door shows faint bioluminescence
@@ -175,7 +175,7 @@ export const WORLDS = [
     bossEmoji: '💀',       // Ancient Silla king's ghost - Daereungwon burial mounds
     bossName: '신라왕',
     biome: 'ruins',
-    forbiddenWeathers: ['snowing', 'blizzard'],
+    forbiddenWeathers: ['blizzard'],
     wind: 0.54,
     floorColor:     '#1a1806',  floorColorAlt: '#141204',
     wallColor:      '#1c1a06',  altWallColor:  '#363410',  // ochre stone; door glows faint gold
@@ -191,7 +191,7 @@ export const WORLDS = [
     bossEmoji: '🐍',       // Serpent lurking beneath the sakura
     bossName: '꽃뱀',
     biome: 'spring',
-    forbiddenWeathers: ['snowing', 'blizzard', 'foggy'],
+    forbiddenWeathers: ['clear', 'snowing', 'blizzard', 'foggy', 'fall'],
     wind: 0.42,
     floorColor:     '#2c0c1a',  floorColorAlt: '#200812',
     wallColor:      '#3c0e20',  altWallColor:  '#601830',  // deep rose; door glows with pink petal light
@@ -207,7 +207,7 @@ export const WORLDS = [
     bossEmoji: '🦅',       // Steller's sea eagle - endemic to Dokdo's rocky cliffs
     bossName: '독수리',
     biome: 'ocean',
-    forbiddenWeathers: [],
+    forbiddenWeathers: ['fall','blossom'],
     wind: 0.92,
     floorColor:     '#0e1a28',  floorColorAlt: '#0a1420',
     wallColor:      '#101c2e',  altWallColor:  '#1e3048',  // dark basalt; door opens to grey pre-dawn sea
@@ -255,7 +255,7 @@ export const WORLDS = [
     bossEmoji: '👾',       // Space invader - cosmic void boss
     bossName: '우주괴물',
     biome: 'cosmos',
-    forbiddenWeathers: ['raining', 'drizzle', 'snowing', 'blizzard', 'blossom'],
+    forbiddenWeathers: ['foggy','drizzle','raining','snowing','blizzard','fall','blossom'],
     wind: 0.18,
     floorColor:     '#060012',  floorColorAlt: '#04000c',
     wallColor:      '#080018',  altWallColor:  '#140030',  // void black; door cracks show deep space purple
@@ -277,6 +277,7 @@ function emptyCell(col, row) {
     connections: new Set(),   // 'N'|'S'|'E'|'W'
     visited: false,
     cleared: false,
+    isTent: false,
     hopDist: -1,
     waveNum: 1,
     enemyCount: 4,
@@ -285,6 +286,8 @@ function emptyCell(col, row) {
     itemChoices: null,     // modifier: array of 3 choices
     treasureItems: null,   // treasure: array of item keys
     rewardCollected: false,
+    // Persistent floor drops for this room. DOM elements are recreated on entry.
+    droppedOrbs: [],
   };
 }
 
@@ -355,6 +358,55 @@ function ensureMinConnections(grid) {
       grid[idx(cell.col + pick.dc, cell.row + pick.dr)].connections.add(pick.opp);
     }
   }
+}
+
+function graphDistanceMap(grid, origin) {
+  const distances = new Map([[idx(origin.col, origin.row), 0]]);
+  const queue = [origin];
+  while (queue.length) {
+    const current = queue.shift();
+    const currentDistance = distances.get(idx(current.col, current.row));
+    for (const { dir, dc, dr } of DIRS) {
+      if (!current.connections.has(dir)) continue;
+      const nc = current.col + dc, nr = current.row + dr;
+      if (nc < 0 || nc >= COLS || nr < 0 || nr >= ROWS) continue;
+      const neighbor = grid[idx(nc, nr)];
+      const key = idx(nc, nr);
+      if (!distances.has(key)) {
+        distances.set(key, currentDistance + 1);
+        queue.push(neighbor);
+      }
+    }
+  }
+  return distances;
+}
+
+function chooseSpreadCell(grid, candidates, anchors = []) {
+  if (!candidates.length) return null;
+  if (!anchors.length) return candidates[Math.floor(Math.random() * candidates.length)];
+
+  const anchorMaps = anchors.map(anchor => graphDistanceMap(grid, anchor));
+  const scored = candidates.map(cell => {
+    const distances = anchorMaps.map(map => map.get(idx(cell.col, cell.row)) ?? 0);
+    const minDistance = Math.min(...distances);
+    const averageDistance = distances.reduce((sum, distance) => sum + distance, 0) / distances.length;
+    // Min distance keeps special rooms apart; the average distance prevents
+    // all later rooms from drifting back into the same local pocket.
+    const score = minDistance * 5 + averageDistance * 0.35 + Math.random() * 1.5;
+    return { cell, minDistance, score };
+  });
+
+  // Prefer at least two graph steps of separation whenever the map allows it,
+  // and three when there are enough candidates. Choosing among the top slice
+  // preserves procedural variety instead of producing one fixed arrangement.
+  const comfortablySeparated = scored.filter(entry => entry.minDistance >= 3);
+  const separated = comfortablySeparated.length
+    ? comfortablySeparated
+    : scored.filter(entry => entry.minDistance >= 2);
+  const pool = separated.length ? separated : scored;
+  pool.sort((a, b) => b.score - a.score);
+  const topCount = Math.max(1, Math.ceil(pool.length * 0.30));
+  return pool[Math.floor(Math.random() * topCount)].cell;
 }
 
 /** Append more worlds to an existing sequence, using its tail as history. */
@@ -604,6 +656,12 @@ export function generateDungeon(worldIdx) {
   bfsDist(grid, startCol, startRow);
   ensureMinConnections(grid);
 
+  // ensureMinConnections adds shortcuts. Recompute distances after those
+  // edges are present so boss placement uses the real playable route length,
+  // not the stale distance from the pre-shortcut maze.
+  for (const cell of grid) cell.hopDist = -1;
+  bfsDist(grid, startCol, startRow);
+
   const maxHops = Math.max(...grid.map(c => c.hopDist));
 
   // Boss room: must be on edge/corner, far from spawn, with a single entrance
@@ -612,10 +670,16 @@ export function generateDungeon(worldIdx) {
   function edgeScore(cell) {
     return cell.hopDist + (isCorner(cell) ? 4 : isEdge(cell) ? 2 : 0);
   }
-  const minBossHops = Math.max(3, Math.floor(maxHops * 0.45));
+  const minBossHops = 4;
   let bossPool = grid.filter(c => isEdge(c) && c.hopDist >= minBossHops);
-  if (!bossPool.length) bossPool = grid.filter(c => isEdge(c));
-  if (!bossPool.length) bossPool = grid.filter(c => c.hopDist >= 2);
+  // A pathological maze may have no qualifying edge room after shortcuts;
+  // preserve the distance rule before relaxing the edge/corner preference.
+  if (!bossPool.length) bossPool = grid.filter(c => c.hopDist >= minBossHops);
+  if (!bossPool.length) {
+    // The current 8×6 topology always has a distant room, but keep a safe
+    // farthest-room fallback if the topology is changed in the future.
+    bossPool = [...grid].sort((a, b) => b.hopDist - a.hopDist);
+  }
   bossPool.sort((a, b) => edgeScore(b) - edgeScore(a));
   const bossCell = bossPool[0];
   bossCell.type = 'boss';
@@ -651,37 +715,62 @@ export function generateDungeon(worldIdx) {
     treasure: Math.floor(maxHops * 0.35),
   };
 
+  const isSpecialCandidate = (cell, minHop = 0) =>
+    cell.type === 'normal'
+    && !(cell.col === startCol && cell.row === startRow)
+    && cell.hopDist >= minHop;
+
+  // Special rooms are spread using graph distance. The boss is an anchor so
+  // the map does not put every discoverable room in the same far-away pocket.
+  const specialAnchors = [bossCell];
+
   // Pick 1 shop (high distance)
   const shopCandidates = normal.filter(c => c.hopDist >= hopThresholds.shop && c.type === 'normal');
   if (shopCandidates.length) {
-    const pick = shopCandidates[Math.floor(Math.random() * shopCandidates.length)];
+    const pick = chooseSpreadCell(grid, shopCandidates, [bossCell]);
     pick.type = 'shop';
+    specialAnchors.push(pick);
   }
 
-  // Pick 2–3 modifier rooms
+  // Pick 2–3 modifier rooms. Their old hard 55% threshold made all gifts
+  // occupy the same distant band, so use a broader pool plus graph spacing.
   const modCount = 2 + (maxHops > 8 ? 1 : 0);
-  const modCandidates = normal.filter(c => c.hopDist >= hopThresholds.modifier && c.type === 'normal');
-  shuffle(modCandidates);
-  for (let i = 0; i < Math.min(modCount, modCandidates.length); i++)
-    modCandidates[i].type = 'modifier';
+  const minSpecialHop = Math.max(2, Math.floor(maxHops * 0.25));
+  const modCandidates = normal.filter(c => isSpecialCandidate(c, minSpecialHop));
+  for (let i = 0; i < Math.min(modCount, modCandidates.length); i++) {
+    const pick = chooseSpreadCell(grid, modCandidates, specialAnchors);
+    if (!pick) break;
+    pick.type = 'modifier';
+    specialAnchors.push(pick);
+    modCandidates.splice(modCandidates.indexOf(pick), 1);
+  }
 
-  // Pick 1–2 treasure rooms
+  // Pick 1–2 treasure rooms from the same broad pool, while spacing them from
+  // gifts and the other special rooms already placed.
   const treasCount = 1 + (maxHops > 6 ? 1 : 0);
-  const treasCandidates = normal.filter(c => c.hopDist >= hopThresholds.treasure && c.type === 'normal');
-  shuffle(treasCandidates);
-  for (let i = 0; i < Math.min(treasCount, treasCandidates.length); i++)
-    treasCandidates[i].type = 'treasure';
+  const treasCandidates = normal.filter(c => isSpecialCandidate(c, minSpecialHop));
+  for (let i = 0; i < Math.min(treasCount, treasCandidates.length); i++) {
+    const pick = chooseSpreadCell(grid, treasCandidates, specialAnchors);
+    if (!pick) break;
+    pick.type = 'treasure';
+    specialAnchors.push(pick);
+    treasCandidates.splice(treasCandidates.indexOf(pick), 1);
+  }
 
   // Pick 1 casino room: world 2 (old world 1) at 33% (secret), world 3+ at 66%
   const casinoChance = worldIdx === 2 ? 0.33 : (worldIdx >= 3 ? 0.66 : 0);
   if (casinoChance > 0 && Math.random() < casinoChance) {
-    const casinoCandidates = normal.filter(c => c.type === 'normal');
+    const casinoCandidates = normal.filter(c => isSpecialCandidate(c, minSpecialHop));
     if (casinoCandidates.length) {
       // Mid-range hop distance for casino
       const midHop = Math.floor(maxHops * 0.4);
       const midCandidates = casinoCandidates.filter(c => c.hopDist >= midHop);
       const pool = midCandidates.length ? midCandidates : casinoCandidates;
-      pool[Math.floor(Math.random() * pool.length)].type = 'casino';
+      const pick = chooseSpreadCell(grid, pool, specialAnchors);
+      if (pick) {
+        pick.type = 'casino';
+        specialAnchors.push(pick);
+      }
     }
   }
 
@@ -703,15 +792,18 @@ export function generateDungeon(worldIdx) {
     const pick = pool[Math.floor(Math.random() * pool.length)];
     if (pick) { pick.type = 'teacher'; pick.teacherRevealed = true; }
   } else if (Math.random() < 0.6) {
-    const teacherCandidates = normal.filter(c => c.type === 'normal');
-    if (teacherCandidates.length) {
-      const highHop = Math.floor(maxHops * 0.8);
-      const highCandidates = teacherCandidates.filter(c => c.hopDist >= highHop);
-      const pool = highCandidates.length ? highCandidates : teacherCandidates;
-      const pick = pool[Math.floor(Math.random() * pool.length)];
-      pick.teacherRevealed = true;
-      pick.type = 'teacher';
-    }
+      const teacherCandidates = normal.filter(c => isSpecialCandidate(c, hopThresholds.modifier));
+      if (teacherCandidates.length) {
+        const highHop = Math.floor(maxHops * 0.8);
+        const highCandidates = teacherCandidates.filter(c => c.hopDist >= highHop);
+        const pool = highCandidates.length ? highCandidates : teacherCandidates;
+        const pick = chooseSpreadCell(grid, pool, specialAnchors);
+        if (pick) {
+          pick.teacherRevealed = true;
+          pick.type = 'teacher';
+          specialAnchors.push(pick);
+        }
+      }
   }
 
   // Assign waveNum and enemyCount to each cell.
@@ -755,6 +847,26 @@ export function generateDungeon(worldIdx) {
       } else {
         cell.scrollReward = null;
       }
+    }
+  }
+
+  // Every day/night world contains one hidden, already-safe camp. It is not
+  // shown until the player visits the room or uses the World Guide, and does
+  // not consume a tent item when discovered.
+  if (!worldDef.fixedLighting) {
+    const campCandidates = grid.filter(cell =>
+      cell.type === 'normal'
+      && !(cell.col === startCol && cell.row === startRow)
+      && cell !== bossCell
+    );
+    const campCell = campCandidates[Math.floor(Math.random() * campCandidates.length)];
+    if (campCell) {
+      campCell.type = 'tent';
+      campCell.isTent = true;
+      campCell.cleared = true;
+      campCell.waveNum = 0;
+      campCell.enemyCount = 0;
+      campCell.scrollReward = null;
     }
   }
 
@@ -804,6 +916,9 @@ export function serializeDungeon(dungeon, worldIdx) {
       scrollReward:    cell.scrollReward    ?? null,
       shopRevealed:    cell.shopRevealed    || false,
       teacherRevealed: cell.teacherRevealed || false,
+      cleared:         !!cell.cleared,
+      isTent:          !!cell.isTent,
+      droppedOrbs: (cell.droppedOrbs || []).map(orb => ({ ...orb, keys: [...(orb.keys || [])] })),
     })),
   };
 }
@@ -822,8 +937,10 @@ export function reconstructDungeon(blueprint) {
     cell.scrollReward   = c.scrollReward   ?? null;
     cell.shopRevealed   = c.shopRevealed   || false;
     cell.teacherRevealed = c.teacherRevealed || false;
+    cell.isTent         = !!c.isTent || c.type === 'tent';
+    cell.cleared        = !!c.cleared || cell.isTent;
+    cell.droppedOrbs    = (c.droppedOrbs || []).map(orb => ({ ...orb, keys: [...(orb.keys || [])] }));
     cell.visited        = false;
-    cell.cleared        = false;
     return cell;
   });
   return {
@@ -855,6 +972,8 @@ export function serializeTemplates(templates) {
     verbAdjType:     t.verbAdjType     || null,
     conjugation:     t.conjugation     || null,
     verbAdjDictWord: t.verbAdjDictWord || null,
+    _tutorialStop:    t._tutorialStop || false,
+    _openingAttackStop: t._openingAttackStop || false,
   }));
 }
 
@@ -877,6 +996,8 @@ export function deserializeTemplates(serialized) {
     verbAdjType:     s.verbAdjType     || null,
     conjugation:     s.conjugation     || null,
     verbAdjDictWord: s.verbAdjDictWord || null,
+    _tutorialStop:    s._tutorialStop || false,
+    _openingAttackStop: s._openingAttackStop || false,
   }));
 }
 
@@ -1030,6 +1151,14 @@ export function enterRoom(col, row, fromDir = null) {
   // flight. Resolve that old room once before replacing G.room so rewards and
   // map state cannot be lost with the outgoing animation.
   finalizePendingCombat();
+  // Floor drops belong to the dungeon cell, not to the transient room object.
+  // Detach their DOM nodes before resetRoomState replaces G.room.
+  const previousRoom = G.currentRoom ? { ...G.currentRoom } : null;
+  // A new run/reconstructed dungeon can replace G.dungeon before enterRoom;
+  // never persist the previous run's transient room into the new dungeon.
+  if (previousRoom && G.room?._groundDungeon === G.dungeon) {
+    detachGroundItems(getCell(previousRoom.col, previousRoom.row));
+  }
   // Room changes always dismiss the map, regardless of how navigation started.
   // The minimap click path used to do this itself, but door navigation and
   // room-code teleports could leave the panel visible over the new room.
@@ -1041,7 +1170,6 @@ export function enterRoom(col, row, fromDir = null) {
   dismissAnnounce(); // close any active room popup immediately on room change
   // Dismiss first-clear banner when entering a new room
   document.getElementById('first-clear-banner')?.classList.add('off');
-  const previousRoom = G.currentRoom ? { ...G.currentRoom } : null;
   G.currentRoom = { col, row };
   G.doorLabelAlpha = 0; // fade labels in after transition completes
 
@@ -1069,6 +1197,7 @@ export function enterRoom(col, row, fromDir = null) {
   cell.visited = true;
 
   resetRoomState(cell.waveNum);
+  hydrateGroundItems(cell);
   // Reset per-room noise cancellation
   if (G.room) G.room.noiseCancelled = false;
 
@@ -1093,6 +1222,10 @@ export function enterRoom(col, row, fromDir = null) {
     G.mode = 'navigate';
     G.room.wPhase = 'clear';
     reopenSpecialRoom(cell);
+    // Keep the room code and minimap synchronized on re-entry too. This path
+    // returns early, so it cannot rely on the common update block below.
+    if (typeof window !== 'undefined' && window._mapUpdate) window._mapUpdate();
+    if (typeof window !== 'undefined' && window._hudUpdate) window._hudUpdate();
     if (typeof window !== 'undefined' && window._onRoomEntered) {
       window._onRoomEntered(cell.type, true);
     }
@@ -1223,6 +1356,8 @@ export function enterRoom(col, row, fromDir = null) {
 function restoreSavedRoom(cell) {
   const saved = cell._savedRoom;
   delete cell._savedRoom;
+  G.room.openingAttackPending = !!saved.openingAttackPending;
+  G.room.openingAttackGroupSize = saved.openingAttackGroupSize || 0;
 
   // Re-create alive monsters using mkMonster (gets fresh id, wob, scl, etc.)
   // then override position so they drop in from where they fled (top)
@@ -1415,18 +1550,8 @@ export function navigate(dir) {
   // Close any open screens
   hideAllScreens();
 
-  // Explode any remaining ground items and uncollected coins when leaving
-  for (const gi of (G.room?.groundItems || [])) {
-    const label = gi.el?.querySelector?.('.gitem-hanja, .gitem-emoji');
-    if (label) label.textContent = '💥';
-    if (gi.el) {
-      gi.el.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
-      gi.el.style.opacity = '0';
-      gi.el.style.transform = 'translate(-50%, calc(-50% - 40px)) scale(1.5)';
-      setTimeout(() => gi.el.remove(), 350);
-    }
-  }
-  if (G.room) G.room.groundItems = [];
+  // Floor drops survive room changes; only their visual nodes are detached.
+  detachGroundItems(cell);
   explodeCoins();
 
   // Player exit animation

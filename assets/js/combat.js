@@ -330,13 +330,10 @@ function genDojangRoomEnemies(cell) {
   for (let i = 0; i < count; i++) {
     const words  = _pickDojangWords(level);
     const ninja  = _dojangNinjaEmoji();
-    const edge   = Math.random();
-    let spawnNX, spawnNY;
-    if (edge < 0.25)      { spawnNX = (80 + Math.random() * (G.W - 160)) / G.W; spawnNY = 0.13 + Math.random() * 0.04; }
-    else if (edge < 0.5)  { spawnNX = 0.84 + Math.random() * 0.09; spawnNY = 0.13 + Math.random() * 0.18; }
-    else if (edge < 0.75) { spawnNX = 0.07 + Math.random() * 0.09; spawnNY = 0.13 + Math.random() * 0.18; }
-    else                  { spawnNX = (80 + Math.random() * (G.W - 160)) / G.W; spawnNY = 0.13 + Math.random() * 0.05; }
-    templates.push({ type:'normal', hp:1, maxHp:1, words, wordEmoji: ninja, wordEmojis: [ninja], spawnNX, spawnNY, wieldIcon: false, special: null });
+    const spawn = rollTemplateSpawnPosition(templates.slice(-Math.max(1, groupSize(level))), words, 1);
+    templates.push({ type:'normal', hp:1, maxHp:1, words, wordEmoji: ninja, wordEmojis: [ninja],
+      spawnNX: spawn.spawnNX, spawnNY: spawn.spawnNY, bodySize: spawn.bodySize,
+      wieldIcon: false, special: null });
   }
   cell._templates = templates;
   return templates;
@@ -372,6 +369,75 @@ export const WEAPONS = {
 };
 
 let _id = 0;
+
+function rollTemplateSpawnPosition(existing, words = [], hp = 1) {
+  const scale = Math.max(0.75, G.vH / 800);
+  const labelSize = Math.max(20, Math.round((G.hangulSize || 38) * G.vH / 1080));
+  const labelChars = Math.max(1, [...words.join('')].length);
+  const labelWidth = Math.max(72, labelChars * labelSize * 0.72 + 26);
+  const labelHeight = labelSize * 1.35;
+  const bodySize = Math.round((40 + Math.max(1, hp) * 18)
+    * Math.min(1.45, Math.max(0.72, G.vH / 1080)) * (G.touchMode ? 1.14 : 1));
+
+  const roll = () => {
+    const edge = Math.random();
+    if (edge < 0.25) {
+      return { x: 80 + Math.random() * Math.max(1, G.W - 160), y: G.vH * (0.13 + Math.random() * 0.04) };
+    }
+    if (edge < 0.5) {
+      return { x: G.W * (0.84 + Math.random() * 0.09), y: G.vH * (0.13 + Math.random() * 0.18) };
+    }
+    if (edge < 0.75) {
+      return { x: G.W * (0.07 + Math.random() * 0.09), y: G.vH * (0.13 + Math.random() * 0.18) };
+    }
+    return { x: 80 + Math.random() * Math.max(1, G.W - 160), y: G.vH * (0.13 + Math.random() * 0.05) };
+  };
+
+  const footprint = other => {
+    const otherWords = other.words || [];
+    const otherSize = Math.max(20, Math.round((G.hangulSize || 38) * G.vH / 1080));
+    const otherWidth = Math.max(72, Math.max(1, [...otherWords.join('')].length) * otherSize * 0.72 + 26);
+    const otherHeight = otherSize * 1.35;
+    const dx = other.spawnNX * G.W;
+    const dy = other.spawnNY * G.vH;
+    return { dx, dy, width: otherWidth, height: otherHeight, body: other.bodySize || 58 };
+  };
+
+  let best = null;
+  let bestClearance = -Infinity;
+  for (let attempt = 0; attempt < 40; attempt++) {
+    const candidate = roll();
+    let minClearance = Infinity;
+    let valid = true;
+    for (const other of existing) {
+      if (other.spawnNX == null || other.spawnNY == null) continue;
+      const o = footprint(other);
+      const dx = candidate.x - o.dx;
+      const dy = candidate.y - o.dy;
+      const dist = Math.hypot(dx, dy);
+      const labelGap = (labelWidth + o.width) * 0.5 + 30 * scale;
+      const bodyGap = Math.max(105 * scale, (bodySize + o.body) * 0.72);
+      // If labels share a horizontal band, enforce a wider horizontal gap so
+      // two Korean words cannot sit on top of each other while spawning.
+      const required = Math.abs(dy) < Math.max(labelHeight, o.height)
+        ? labelGap
+        : bodyGap;
+      const clearance = dist - required;
+      minClearance = Math.min(minClearance, clearance);
+      if (clearance < 0) valid = false;
+    }
+    if (valid) {
+      return { spawnNX: candidate.x / G.W, spawnNY: candidate.y / G.vH, bodySize };
+    }
+    if (minClearance > bestClearance) {
+      bestClearance = minClearance;
+      best = candidate;
+    }
+  }
+
+  const fallback = best || roll();
+  return { spawnNX: fallback.x / G.W, spawnNY: fallback.y / G.vH, bodySize };
+}
 
 /* ================================================================
    MONSTER FACTORY
@@ -542,6 +608,7 @@ export function mkMonster(tmpl) {
     numericValue:   tmpl.numericValue   ?? null,
     numericSystem:  tmpl.numericSystem  ?? null,
     _tutorialStop:  tmpl._tutorialStop  || false,
+    _openingAttackStop: tmpl._openingAttackStop || false,
     spawnAnim,
   };
 }
@@ -557,15 +624,41 @@ export function initRoomSpawner(templates) {
   G.room.wKilled   = 0;
   G.room.wTotal    = templates.length;
   G.room.wPhase    = 'spawning';
+  const openingCount = Math.min(groupSize(G.room.wave || 1), G.room.wTemplates.length);
+  const tutorialState = G.run?.tutorial;
+  if (openingCount > 0 && tutorialState && !tutorialState.openingAttackGateUsed) {
+    tutorialState.openingAttackGateUsed = true;
+    G.room.openingAttackPending = true;
+    G.room.openingAttackGroupSize = openingCount;
+    for (let i = 0; i < openingCount; i++) {
+      G.room.wTemplates[i]._openingAttackStop = true;
+    }
+  }
   // Tutorial: first monster(s) spawning in worlds 0-1
-  if ((G.run?.worldIdx ?? 0) <= 1 && G.run?.tutorial && !G.run.tutorial.firstMonsterShown) {
-    G.run.tutorial.firstMonsterShown = true;
+  if ((G.run?.worldIdx ?? 0) <= 1 && tutorialState && !tutorialState.firstMonsterShown) {
+    tutorialState.firstMonsterShown = true;
     if (typeof window !== 'undefined') window._showTutorial?.('⚔️', 'tutorial.typeToKill', null, { allowDuringCombat: true, autoClose: 30 });
-    // In multiplayer, first group is 2 (one per player) — mark both as tutorial stops
-    const tutCount = G.mp?.active ? Math.min(2, G.room.wTemplates.length) : 1;
-    for (let i = 0; i < tutCount; i++) G.room.wTemplates[i]._tutorialStop = true;
+    for (let i = 0; i < openingCount; i++) G.room.wTemplates[i]._tutorialStop = true;
   }
   sendNextGroup();
+}
+
+/** Release every member of the opening group after the first valid attack. */
+export function releaseOpeningAttack({ broadcast = true } = {}) {
+  const room = G.room;
+  if (!room?.openingAttackPending) return false;
+  room.openingAttackPending = false;
+  for (const m of room.monsters || []) {
+    if (m._openingAttackStop) m._openingAttackStop = false;
+  }
+  if (broadcast && G.mp?.active) {
+    mpSend({
+      type: 'opening_attack_started',
+      col: G.currentRoom?.col ?? null,
+      row: G.currentRoom?.row ?? null,
+    });
+  }
+  return true;
 }
 
 function groupSize(wn) {
@@ -744,6 +837,8 @@ export function startFleeEffects(cell) {
     spawnedIdx: Math.max(0, spawnedIdx),
     wKilled: G.room.wKilled || 0,
     wTotal:  G.room.wTotal  || 0,
+    openingAttackPending: !!G.room.openingAttackPending,
+    openingAttackGroupSize: G.room.openingAttackGroupSize || 0,
     monsters: G.room.monsters.filter(m => !m.dead).map(m => ({
       type: m.type, hp: m.hp, maxHp: m.maxHp,
       words: [...(m.words || [])], word: m.word,
@@ -758,6 +853,7 @@ export function startFleeEffects(cell) {
       isNumeric: m.isNumeric || false,
       numericValue: m.numericValue ?? null,
       numericSystem: m.numericSystem ?? null,
+      _openingAttackStop: !!m._openingAttackStop,
       spawnNX: m.spawnNX ?? (m.x / G.W),
     })),
   };
@@ -773,16 +869,9 @@ export function startFleeEffects(cell) {
   // 3b. Explode coins on flee (pool is lost)
   explodeCoins();
 
-  // 4. Explode ground items with 💥 animation
-  for (const gi of G.room.groundItems) {
-    const label = gi.el.querySelector('.gitem-hanja');
-    if (label) label.textContent = '💥';
-    gi.el.style.transition = 'opacity 0.45s ease-out, transform 0.45s ease-out';
-    gi.el.style.opacity = '0';
-    gi.el.style.transform = 'translate(-50%, calc(-50% - 50px)) scale(1.6)';
-    setTimeout(() => gi.el.remove(), 500);
-  }
-  G.room.groundItems = [];
+  // Floor drops belong to the room in the current dungeon. Fleeing removes
+  // their DOM nodes, but deliberately keeps their records for re-entry.
+  detachGroundItems(cell);
 }
 
 /* ================================================================
@@ -951,24 +1040,7 @@ export function genRoomEnemies(cell) {
     const wordEmojis = words.map(w => WORD_DICT.find(d => d.text === w)?.emoji || null);
     const wordEmoji = wordEmojis[0];
 
-    // Pre-compute normalized spawn position so all clients land the same monster at the same spot
-    const edge = Math.random();
-    let spawnNX, spawnNY;
-    if (edge < 0.25) {
-      spawnNX = (80 + Math.random() * (G.W - 160)) / G.W;
-      spawnNY = 0.13 + Math.random() * 0.04;
-    } else if (edge < 0.5) {
-      spawnNX = 0.84 + Math.random() * 0.09;
-      spawnNY = 0.13 + Math.random() * 0.18;
-    } else if (edge < 0.75) {
-      spawnNX = 0.07 + Math.random() * 0.09;
-      spawnNY = 0.13 + Math.random() * 0.18;
-    } else {
-      spawnNX = (80 + Math.random() * (G.W - 160)) / G.W;
-      spawnNY = 0.13 + Math.random() * 0.05;
-    }
-
-    let tmpl = { type:'normal', hp, maxHp:hp, words, wordEmoji, wordEmojis, spawnNX, spawnNY };
+    let tmpl = { type:'normal', hp, maxHp:hp, words, wordEmoji, wordEmojis };
 
     if (specialCount < cap && Math.random() < chance) {
       // Specials: always noVerbAdj (specials have special visual mechanics that conflict)
@@ -976,7 +1048,7 @@ export function genRoomEnemies(cell) {
       const specialWords = pickWordsForMonster(wn, 1, { noVerbAdj: true });
       const specialEmojis = specialWords.map(w => WORD_DICT.find(d => d.text === w)?.emoji || null);
       tmpl = { type:'normal', hp:1, maxHp:1, words:specialWords, wordEmoji:specialEmojis[0],
-               wordEmojis:specialEmojis, special:stype, spdMult:0.55, spawnNX, spawnNY };
+               wordEmojis:specialEmojis, special:stype, spdMult:0.55 };
       specialCount++;
       spent += 1;
     } else {
@@ -988,12 +1060,21 @@ export function genRoomEnemies(cell) {
       _applyVerbAdjConj(tmpl);
     }
 
+    const spawn = rollTemplateSpawnPosition(templates.slice(-Math.max(1, groupSize(wn))), tmpl.words, tmpl.hp);
+    tmpl.spawnNX = spawn.spawnNX;
+    tmpl.spawnNY = spawn.spawnNY;
+    tmpl.bodySize = spawn.bodySize;
+
     templates.push(tmpl);
   }
 
   // Inject a numeric monster (~28% chance, requires numbers lesson)
   const numericTmpl = genNumericTemplate();
   if (numericTmpl && Math.random() < 0.28) {
+    const spawn = rollTemplateSpawnPosition(templates.slice(-Math.max(1, groupSize(wn))), numericTmpl.words, numericTmpl.hp);
+    numericTmpl.spawnNX = spawn.spawnNX;
+    numericTmpl.spawnNY = spawn.spawnNY;
+    numericTmpl.bodySize = spawn.bodySize;
     templates.push(numericTmpl);
   }
 
@@ -1003,6 +1084,10 @@ export function genRoomEnemies(cell) {
     const wordEmojis = words.map(w => WORD_DICT.find(d => d.text === w)?.emoji || null);
     const fallback = { type:'normal', hp:1, maxHp:1, words, wordEmoji: wordEmojis[0], wordEmojis };
     _applyVerbAdjConj(fallback);
+    const spawn = rollTemplateSpawnPosition(templates.slice(-Math.max(1, groupSize(wn))), fallback.words, fallback.hp);
+    fallback.spawnNX = spawn.spawnNX;
+    fallback.spawnNY = spawn.spawnNY;
+    fallback.bodySize = spawn.bodySize;
     templates.push(fallback);
   }
 
@@ -1093,6 +1178,9 @@ export function projectileSpeedMultiplierForTyping(typedJamo, elapsedMs) {
 
 export function fire(monster, { typedJamo = null, typingDurationMs = null } = {}) {
   if (!monster || monster.dead || monster.firedAt || monster.defeatCommitted) return false;
+  // Starting the first valid projectile is enough to release the opening group;
+  // do not make the player wait for that projectile to travel before movement resumes.
+  releaseOpeningAttack();
   sfx('arrowShoot');
   const emoji = _nextSpell || '🔮';
   const px    = G.W / 2;
@@ -1192,6 +1280,9 @@ export function setOnHitCallback(cb) { _onHitCallback = cb; }
 export function hitMonster(m) {
   if (m.special === 'warrior' && m.shielded) { m.firedAt = false; m.defeatCommitted = false; return; }
   if (m.type === 'boss' && m.special === 'king' && m.kingWaiting) { m.firedAt = false; m.defeatCommitted = false; return; }
+
+  // The first valid hit releases the entire opening group, including in co-op.
+  releaseOpeningAttack();
 
   // Shield perk
   if (G.run?.shieldHits > 0 && !m.isProjectileMonster) {
@@ -1822,8 +1913,8 @@ export function tickMonsters(dt) {
       const totalDist = Math.hypot(targetX - spawnX, targetY - spawnY) || 1;
       m.progress += effSpd * dt / totalDist;
 
-      // Tutorial first monster: cap progress so it stops just before hitting
-      if (m._tutorialStop) {
+      // Opening group: cap progress so every member waits just before hitting.
+      if (G.room?.openingAttackPending && m._openingAttackStop) {
         if (m.progress >= 0.65) m.progress = 0.65;
       }
 
@@ -1965,7 +2056,210 @@ function pickHanjaForWave(wn) {
   return pool[Math.floor(Math.random() * pool.length)];
 }
 
+function _currentGroundCell() {
+  const room = G.currentRoom;
+  return G.dungeon?.grid?.find(cell => cell.col === room?.col && cell.row === room?.row) || null;
+}
+
+function _groundWorldKey() {
+  return `${G.dungeon?.runSeed ?? G.run?.seed ?? 'run'}:${G.run?.worldIdx ?? G.dungeon?.worldDef?.id ?? 0}`;
+}
+
+function _groundContext(cell) {
+  return {
+    worldKey: _groundWorldKey(),
+    col: cell?.col ?? G.currentRoom?.col,
+    row: cell?.row ?? G.currentRoom?.row,
+    roomKey: `${cell?.col ?? G.currentRoom?.col}:${cell?.row ?? G.currentRoom?.row}`,
+  };
+}
+
+function _newGroundId(cell) {
+  const side = G.mp?.active ? (G.mp.isHost ? 'h' : 'g') : 'l';
+  const random = Math.random().toString(36).slice(2, 10);
+  return `${_groundWorldKey()}:${cell.col}:${cell.row}:${side}:${Date.now().toString(36)}:${random}`;
+}
+
+function _normalizeGroundRecord(record, cell = _currentGroundCell()) {
+  const maxLife = Math.max(1, Number(record.maxLife ?? record.life ?? 180));
+  const expiresAt = Number.isFinite(Number(record.expiresAt))
+    ? Number(record.expiresAt)
+    : G.gameTime + maxLife;
+  return {
+    id: record.id || _newGroundId(cell),
+    xNorm: Math.max(0, Math.min(1, Number(record.xNorm ?? (record.x / G.W)) || 0.5)),
+    yNorm: Math.max(0, Math.min(1, Number(record.yNorm ?? (record.y / G.vH)) || 0.5)),
+    keys: [...(record.keys || [])],
+    keyIdx: Math.max(0, Math.min((record.keys || []).length - 1, Number(record.keyIdx) || 0)),
+    item: record.item,
+    isHanja: !!record.isHanja,
+    coinType: record.coinType || 'gold',
+    spawnedAt: Number(record.spawnedAt ?? (expiresAt - maxLife)),
+    maxLife,
+    expiresAt,
+  };
+}
+
+function _recordFromEntry(entry) {
+  return {
+    id: entry.id,
+    xNorm: entry.xNorm,
+    yNorm: entry.yNorm,
+    keys: [...entry.keys],
+    keyIdx: entry.keyIdx,
+    item: entry.item,
+    isHanja: !!entry.isHanja,
+    coinType: entry.coinType || entry.el?.dataset?.coin || 'gold',
+    spawnedAt: entry.spawnedAt,
+    maxLife: entry.maxLife,
+    expiresAt: entry.expiresAt,
+  };
+}
+
+function _pruneGroundCell(cell) {
+  if (!cell?.droppedOrbs) return [];
+  const expired = cell.droppedOrbs.filter(orb => Number(orb.expiresAt) <= G.gameTime).map(orb => orb.id);
+  if (expired.length) cell.droppedOrbs = cell.droppedOrbs.filter(orb => !expired.includes(orb.id));
+  return expired;
+}
+
+function _groundLabelText(record) {
+  const key = record.keys[record.keyIdx];
+  if (record.isHanja && G.room?.hanjaToggle && G.room._hjFlip) return HANJA_TO_HANGUL[key] || key;
+  return key || '';
+}
+
+function _refreshGroundLabel(entry) {
+  const label = entry.el?.querySelector('.gitem-hanja');
+  if (label) label.textContent = _groundLabelText(entry);
+}
+
+function _renderGroundRecord(record) {
+  const x = record.xNorm * G.W;
+  const y = record.yNorm * G.vH;
+  const el = document.createElement('div');
+  el.className = 'gitem';
+  el.dataset.coin = record.coinType;
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  el.style.transform = 'translate(-50%,-50%)';
+
+  const svgSz = Math.max(48, Math.round(84 * G.vH / 1080));
+  el.style.width  = svgSz + 'px';
+  el.style.height = svgSz + 'px';
+  const r = 24, cx = 28, cy = 28, circ = 2*Math.PI*r;
+  el.innerHTML = `
+    <svg viewBox="0 0 56 56" width="${svgSz}" height="${svgSz}">
+      <g class="gitem-coin-group">
+        <circle class="gitem-coin-fill" cx="${cx}" cy="${cy}" r="${r}"/>
+        <ellipse class="gitem-coin-sheen" cx="${cx+10}" cy="${cy}" rx="10" ry="${r-2}"/>
+        <circle class="gitem-coin-arc gitem-ring-arc" cx="${cx}" cy="${cy}" r="${r}"
+          stroke-dasharray="${circ} ${circ}" stroke-dashoffset="0"
+          stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+      </g>
+    </svg>
+    <div class="gitem-hanja" style="font-size:${Math.max(10, Math.round(svgSz * 0.45))}px"></div>`;
+  _refreshGroundLabel({ ...record, el });
+  document.getElementById('ground-items')?.appendChild(el);
+
+  const entry = {
+    ...record,
+    keys: [...record.keys],
+    x,
+    y,
+    life: Math.max(0, record.expiresAt - G.gameTime),
+    el,
+  };
+  G.room.groundItems.push(entry);
+  return entry;
+}
+
+/** Persist the currently rendered drops into their dungeon cell. */
+export function persistGroundItems(cell = _currentGroundCell()) {
+  if (!cell || !G.room?.groundItems || cell !== _currentGroundCell()) return;
+  // An earlier navigation path may already have detached the visuals. Do not
+  // let that second detach overwrite valid cell records with an empty array.
+  if (!G.room.groundItems.length) return;
+  _pruneGroundCell(cell);
+  cell.droppedOrbs = G.room.groundItems.map(_recordFromEntry);
+}
+
+/** Remove only the visual layer when leaving a room; records remain in cell. */
+export function detachGroundItems(cell = _currentGroundCell()) {
+  if (!cell || cell !== _currentGroundCell()) return;
+  persistGroundItems(cell);
+  for (const gi of G.room?.groundItems || []) gi.el?.remove();
+  if (G.room) G.room.groundItems = [];
+}
+
+/** Recreate active drop visuals after resetRoomState() created a new room. */
+export function hydrateGroundItems(cell) {
+  if (!cell || cell !== _currentGroundCell() || !G.room) return;
+  _pruneGroundCell(cell);
+  for (const record of cell.droppedOrbs || []) _renderGroundRecord(_normalizeGroundRecord(record, cell));
+}
+
+/** Add or update a canonical drop, optionally rendering it if this is active room. */
+export function upsertGroundItemRecord(cell, incoming) {
+  if (!cell) return null;
+  _pruneGroundCell(cell);
+  const record = _normalizeGroundRecord(incoming, cell);
+  const index = (cell.droppedOrbs || []).findIndex(orb => orb.id === record.id);
+  if (index >= 0) cell.droppedOrbs[index] = record;
+  else cell.droppedOrbs.push(record);
+
+  if (cell === _currentGroundCell() && G.room) {
+    const runtime = G.room.groundItems.find(gi => gi.id === record.id);
+    if (runtime) {
+      Object.assign(runtime, record, { keys: [...record.keys], life: Math.max(0, record.expiresAt - G.gameTime) });
+      _refreshGroundLabel(runtime);
+    } else {
+      return _renderGroundRecord(record);
+    }
+  }
+  return record;
+}
+
+export function getGroundItemRecord(cell, id) {
+  return cell?.droppedOrbs?.find(orb => orb.id === id) || null;
+}
+
+export function removeGroundItem(cell, id, { removeElement = true } = {}) {
+  const record = getGroundItemRecord(cell, id);
+  if (!record) return null;
+  const runtime = G.room?.groundItems?.find(gi => gi.id === id);
+  if (removeElement) runtime?.el?.remove();
+  if (G.room) G.room.groundItems = G.room.groundItems.filter(gi => gi.id !== id);
+  cell.droppedOrbs = (cell.droppedOrbs || []).filter(orb => orb.id !== id);
+  return record;
+}
+
+export function applyGroundItemProgress(cell, id, keyIdx) {
+  const record = getGroundItemRecord(cell, id);
+  if (!record) return null;
+  record.keyIdx = Math.max(record.keyIdx || 0, Math.min(record.keys.length - 1, Number(keyIdx) || 0));
+  const runtime = G.room?.groundItems?.find(gi => gi.id === id);
+  if (runtime) {
+    runtime.keyIdx = record.keyIdx;
+    _refreshGroundLabel(runtime);
+  }
+  return record;
+}
+
+export function groundItemSnapshot(item, cell = _currentGroundCell()) {
+  const record = item?.el ? _recordFromEntry(item) : _normalizeGroundRecord(item, cell);
+  return {
+    ..._groundContext(cell),
+    ...record,
+    x: record.xNorm * G.W,
+    y: record.yNorm * G.vH,
+    life: Math.max(0, record.expiresAt - G.gameTime),
+  };
+}
+
 export function spawnGroundItem(x, y, precomputed = null) {
+  const cell = _currentGroundCell();
+  if (!cell || !G.room) return null;
   const wn   = G.room.wave || 1;
   const life = precomputed?.life ?? (60 + Math.random() * 180);
   // 1/3 of items are hanja-keyed in hanja mode; rest use hangul complex syllables
@@ -1973,7 +2267,7 @@ export function spawnGroundItem(x, y, precomputed = null) {
   const useHanja = precomputed ? precomputed.isHanja : (G.hanjaEnabled && (G.run?.worldIdx || 0) >= 1 && Math.random() < 0.33);
   let keys;
   if (precomputed) {
-    keys = precomputed.keys;
+    keys = [...(precomputed.keys || [])];
   } else if (useHanja) {
     const wi = G.run?.worldIdx || 0;
     const multiCnt = wi >= 15 ? (Math.random() < .4 ? 3 : 2) : wi >= 10 ? (Math.random() < .4 ? 2 : 1) : 1;
@@ -1997,38 +2291,29 @@ export function spawnGroundItem(x, y, precomputed = null) {
   const COIN_TYPES = ['gold','silver','bronze'];
   const coinType = precomputed?.coinType ?? COIN_TYPES[Math.floor(Math.random()*3)];
   const item = precomputed?.item ?? rollPowerupDrop(wn);
+  const record = _normalizeGroundRecord({
+    id: precomputed?.id || _newGroundId(cell),
+    xNorm: precomputed?.xNorm ?? (x / G.W),
+    yNorm: precomputed?.yNorm ?? (y / G.vH),
+    keys,
+    keyIdx: precomputed?.keyIdx ?? 0,
+    item,
+    isHanja: useHanja,
+    coinType,
+    spawnedAt: precomputed?.spawnedAt ?? G.gameTime,
+    maxLife: precomputed?.maxLife ?? life,
+    expiresAt: precomputed?.expiresAt ?? (G.gameTime + life),
+  }, cell);
+  const entry = upsertGroundItemRecord(cell, record);
 
-  const el = document.createElement('div');
-  el.className = 'gitem';
-  el.dataset.coin = coinType;
-  el.style.left = x + 'px';
-  el.style.top  = y + 'px';
-  el.style.transform = 'translate(-50%,-50%)';
-
-  const svgSz = Math.max(48, Math.round(84 * G.vH / 1080));
-  el.style.width  = svgSz + 'px';
-  el.style.height = svgSz + 'px';
-  const r = 24, cx = 28, cy = 28, circ = 2*Math.PI*r;
-  el.innerHTML = `
-    <svg viewBox="0 0 56 56" width="${svgSz}" height="${svgSz}">
-      <g class="gitem-coin-group">
-        <circle class="gitem-coin-fill" cx="${cx}" cy="${cy}" r="${r}"/>
-        <ellipse class="gitem-coin-sheen" cx="${cx+10}" cy="${cy}" rx="10" ry="${r-2}"/>
-        <circle class="gitem-coin-arc gitem-ring-arc" cx="${cx}" cy="${cy}" r="${r}"
-          stroke-dasharray="${circ} ${circ}" stroke-dashoffset="0"
-          stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
-      </g>
-    </svg>
-    <div class="gitem-hanja" style="font-size:${Math.max(10, Math.round(svgSz * 0.45))}px">${keys[0]}</div>`;
-
-  document.getElementById('ground-items').appendChild(el);
-  const entryId = precomputed?.id ?? ++G.room._groundId;
-  const entry = { id: entryId, x, y, keys, keyIdx:0, item, life, maxLife:life, el, isHanja: useHanja };
-  G.room.groundItems.push(entry);
-
-  // Broadcast to partner (only for locally generated items — not replicated ones)
+  // Broadcast the full canonical record. A guest-created drop is stored and
+  // relayed by the host even when the host is currently in another room.
   if (G.mp?.active && !precomputed) {
-    mpSend({ type: 'ground_item_spawn', id: entryId, x, y, keys, coinType, item, life, isHanja: useHanja });
+    mpSend({
+      type: 'ground_item_spawn',
+      authoritative: !!G.mp.isHost,
+      ...groundItemSnapshot(entry, cell),
+    });
   }
 
   // Tutorial: item drop hints in worlds 0-1 (first time each type) - queued, shows after combat
@@ -2047,6 +2332,17 @@ export function spawnGroundItem(x, y, precomputed = null) {
 }
 
 export function tickGroundItems(dt) {
+  // Expiry is based on the absolute run clock, so drops also expire while the
+  // player is away from their room. Prune every cell; only the active cell has DOM.
+  for (const cell of G.dungeon?.grid || []) _pruneGroundCell(cell);
+  const cell = _currentGroundCell();
+  if (cell) {
+    const activeIds = new Set((cell.droppedOrbs || []).map(orb => orb.id));
+    for (const gi of [...(G.room?.groundItems || [])]) {
+      if (!activeIds.has(gi.id)) gi.el?.remove();
+    }
+    if (G.room) G.room.groundItems = G.room.groundItems.filter(gi => activeIds.has(gi.id));
+  }
   // Dictionary item: flip hanja ↔ hangul reading every second
   if (G.room.hanjaToggle) {
     G.room._hjFlipTimer = (G.room._hjFlipTimer || 0) + dt;
@@ -2075,9 +2371,13 @@ export function tickGroundItems(dt) {
     }
   }
 
-  const toRemove = [];
-  for (const gi of G.room.groundItems) {
-    gi.life -= dt;
+  for (const gi of [...G.room.groundItems]) {
+    // Keep saved normalized positions aligned with a resized viewport.
+    gi.x = gi.xNorm * G.W;
+    gi.y = gi.yNorm * G.vH;
+    gi.el.style.left = gi.x + 'px';
+    gi.el.style.top  = gi.y + 'px';
+    gi.life = Math.max(0, gi.expiresAt - G.gameTime);
     const ratio = Math.max(0, gi.life / gi.maxLife);
     gi.el.style.opacity = Math.max(0.15, ratio * 0.85 + 0.15).toFixed(2);
     const arc = gi.el.querySelector('.gitem-ring-arc');
@@ -2085,43 +2385,72 @@ export function tickGroundItems(dt) {
       const r = 24, circ = 2*Math.PI*r;
       arc.setAttribute('stroke-dasharray', `${(circ * ratio).toFixed(1)} ${circ}`);
     }
-    if (gi.life <= 0) { gi.el.remove(); toRemove.push(gi); }
+    if (gi.life <= 0) removeGroundItem(cell, gi.id);
   }
-  G.room.groundItems = G.room.groundItems.filter(g => !toRemove.includes(g));
 }
 
 export function tryCollectGroundItem(val) {
   // Accept both the hanja itself and its hangul reading (mobile keyboards can't type hanja)
-  const gi = G.room.groundItems.find(g => {
+  const gi = G.room.groundItems.find(g => !g.collectPending && g.life > 0 && g.keys?.length && (() => {
     const key = g.keys[g.keyIdx];
     return key === val || HANJA_TO_HANGUL[key] === val;
-  });
+  })());
   if (!gi) return false;
   gi.keyIdx++;
   if (gi.keyIdx < gi.keys.length) {
     gi.el.querySelector('.gitem-hanja').textContent = gi.keys[gi.keyIdx];
     gi.el.style.filter = 'brightness(1.8)';
     setTimeout(() => { if (gi.el) gi.el.style.filter = ''; }, 200);
+    const cell = _currentGroundCell();
+    if (cell) {
+      persistGroundItems(cell);
+      if (G.mp?.active) {
+        mpSend({ type: 'ground_item_progress', authoritative: !!G.mp.isHost,
+          ..._groundContext(cell), id: gi.id, keyIdx: gi.keyIdx });
+      }
+    }
     return true;
   }
   // Collect!
-  const hanjaEl = gi.el.querySelector('.gitem-hanja');
-  hanjaEl.textContent = gi.item;
-  hanjaEl.style.transition = 'transform 0.7s ease, opacity 0.7s ease';
-  hanjaEl.style.transform  = 'translateY(-40px) scale(1.5)';
-  hanjaEl.style.opacity    = '0';
-  const svg = gi.el.querySelector('svg');
-  if (svg) { svg.style.transition = 'opacity 0.4s'; svg.style.opacity = '0'; }
-  setTimeout(() => { if (gi.el) gi.el.remove(); }, 750);
-  G.room.groundItems = G.room.groundItems.filter(g => g !== gi);
-  addToInventory(gi.item);
-  // Broadcast pickup to partner so the item disappears on their side too
+  const cell = _currentGroundCell();
+  if (!cell) return false;
   if (G.mp?.active) {
-    mpSend({ type: 'ground_item_collect', id: gi.id });
+    gi.collectPending = true;
+    gi.collectRequestId = `${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 8)}`;
+    gi.el.style.opacity = '0.45';
+    const request = {
+      type: 'ground_item_collect_request',
+      ..._groundContext(cell),
+      id: gi.id,
+      keyIdx: gi.keyIdx,
+      requestId: gi.collectRequestId,
+      // Include the record so the host can resolve a collection even if the
+      // spawn packet and the collection packet cross in transit.
+      groundItem: groundItemSnapshot(gi, cell),
+    };
+    if (typeof window !== 'undefined' && window._mpRequestGroundItemCollect) window._mpRequestGroundItemCollect(request);
+    return true;
   }
+  _finishGroundItemCollection(gi, cell);
   // Dismiss item-pickup tutorial tip when player collects an item
   if (typeof window !== 'undefined') window._hideTutorial?.(true);
   return true;
+}
+
+function _finishGroundItemCollection(gi, cell) {
+  const hanjaEl = gi.el?.querySelector('.gitem-hanja');
+  if (hanjaEl) {
+    hanjaEl.textContent = gi.item;
+    hanjaEl.style.transition = 'transform 0.7s ease, opacity 0.7s ease';
+    hanjaEl.style.transform  = 'translateY(-40px) scale(1.5)';
+    hanjaEl.style.opacity    = '0';
+  }
+  const svg = gi.el?.querySelector('svg');
+  if (svg) { svg.style.transition = 'opacity 0.4s'; svg.style.opacity = '0'; }
+  const item = gi.item;
+  removeGroundItem(cell, gi.id, { removeElement: false });
+  setTimeout(() => { if (gi.el) gi.el.remove(); }, 750);
+  addToInventory(item);
 }
 
 export function addToInventory(item) {
@@ -2223,7 +2552,8 @@ function _checkItemUsable(item) {
     const grid = G.dungeon?.grid;
     if (!grid) { flashAnnounce(i18n('world.worldGuideNoNew'), '#ff9944'); return false; }
     const hasNew = grid.some(cell =>
-      cell && cell.type !== 'normal' && cell.type !== 'boss' && !cell.visited && !cell.guideRevealed
+      cell && (cell.isTent || (cell.type !== 'normal' && cell.type !== 'boss'))
+        && !cell.visited && !cell.guideRevealed
     );
     if (!hasNew) {
       flashAnnounce(i18n('world.worldGuideNoNew'), '#ff9944');
@@ -2383,7 +2713,7 @@ export function applyPowerup(item) {
       const grid = G.dungeon?.grid;
       if (grid) {
         for (const cell of grid) {
-          if (cell && cell.type !== 'normal' && cell.type !== 'boss' && !cell.visited) {
+          if (cell && (cell.isTent || (cell.type !== 'normal' && cell.type !== 'boss')) && !cell.visited) {
             cell.guideRevealed = true;
           }
         }
@@ -2514,6 +2844,35 @@ function hideBubble() {
   if (!bub) return;
   bub.style.opacity = '0';
   setTimeout(() => { if (bub && !G.stunBubble && !G.autokillBubble) bub.style.display = 'none'; }, 400);
+}
+
+// Leaving a run must remove combat-only visuals immediately. The title screen
+// can be shown without a new run being created, so resetting only on the next
+// game start leaves the old effect bubble visible over the menu.
+export function clearCombatTransientVisuals() {
+  G.activeEffect = null;
+  G.stunBubble = false;
+  G.autokillBubble = false;
+  G.critShots = 0;
+  G.frozen = false;
+  G.freezeTimer = 0;
+  if (G.run) {
+    G.run.shieldHits = 0;
+    G.run._itemUseLock = 0;
+  }
+
+  const bub = document.getElementById('effect-bubble');
+  if (bub) {
+    bub.style.display = 'none';
+    bub.style.opacity = '0';
+    bub.innerHTML = '';
+  }
+  document.getElementById('typing')?.classList.remove('frozen');
+  const freezeOverlay = document.getElementById('freeze-overlay');
+  if (freezeOverlay) {
+    freezeOverlay.classList.remove('on');
+    freezeOverlay.style.background = '';
+  }
 }
 
 /* ================================================================

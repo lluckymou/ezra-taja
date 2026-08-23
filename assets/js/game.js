@@ -12,8 +12,11 @@ import {
   tryCollectGroundItem,
   killAllEnemies, fire, hitMonster, primeNextSpawn, countJamoKeys,
   refreshLives, refreshInventoryUI, refreshBubbleDisplay,
+  clearCombatTransientVisuals, releaseOpeningAttack,
   setWeaponGroup, WEAPONS, flashAnnounce,
   mkMonster, spawnGroundItem, startFleeEffects,
+  upsertGroundItemRecord, applyGroundItemProgress, groundItemSnapshot,
+  getGroundItemRecord, removeGroundItem,
   spawnMissParticles, collectCoins, explodeCoins,
   initRoomSpawner, setRoomClearedCallback, setCoinsCollectedCallback, rollConjugation,
   onMonsterRemoved,
@@ -3900,6 +3903,7 @@ function _enterDojang() {
 }
 
 function _dojangExitToMenu() {
+  clearCombatTransientVisuals();
   closeCheatMenu();
   dojangManager.exit();
   G.dojangStats = loadDojangStats();
@@ -4212,6 +4216,7 @@ function resumeGame() {
 }
 
 function goToMenu() {
+  clearCombatTransientVisuals();
   if (_loreCancel) { _loreCancel(); }
   window._hideTutorial?.(true);
   // Disconnect multiplayer session cleanly
@@ -6544,7 +6549,8 @@ function _botCellNeedsVisit(cell) {
 }
 
 function _botCellIsVisible(cell) {
-  return !!(cell?.visited || cell?.guideRevealed || G.run?.mapRevealed);
+  return !!(cell?.type === 'shop' || cell?.type === 'casino'
+    || cell?.visited || cell?.guideRevealed || G.run?.mapRevealed);
 }
 
 function _botNearestSpecial(candidates) {
@@ -6763,7 +6769,7 @@ function _botFindItemToUse() {
     && !G.run.mapRevealed
     && !(G.run.permanents || []).includes('crystal_ball')
     && (G.dungeon?.grid || []).some(room => room
-      && room.type !== 'normal' && room.type !== 'boss'
+      && (room.isTent || (room.type !== 'normal' && room.type !== 'boss'))
       && !room.visited && !room.guideRevealed)) return '📖';
   if (canUse('🕳️')) return '🕳️';
 
@@ -8073,6 +8079,9 @@ function _mpSetupCallbacks() {
           currentRoom:     G.currentRoom,
           gameTime:        G.gameTime,
           weather:         G.weather,
+          hanjaEnabled:    G.hanjaEnabled,
+          translationEnabled: G.translationEnabled,
+          dictProgressionDisabled: G.dictProgressionDisabled,
         });
         _hideMpDisconnectOverlay();
       } else {
@@ -8107,6 +8116,106 @@ function _mpSetupCallbacks() {
 
   MP.onMessage = _mpHandleMessage;
 }
+
+function _mpLocalGroundWorldKey() {
+  return `${G.dungeon?.runSeed ?? G.run?.seed ?? 'run'}:${G.run?.worldIdx ?? G.dungeon?.worldDef?.id ?? 0}`;
+}
+
+function _mpGroundCell(msg) {
+  if (!msg || msg.worldKey !== _mpLocalGroundWorldKey()) return null;
+  return getCell(Number(msg.col), Number(msg.row));
+}
+
+function _mpSendGroundItemsForRoom(col, row) {
+  if (!MP.isHost || !G.mp?.connected) return;
+  const cell = getCell(col, row);
+  if (!cell) return;
+  for (const orb of cell.droppedOrbs || []) {
+    if (orb.expiresAt <= G.gameTime) continue;
+    mpSend({ type: 'ground_item_spawn', authoritative: true, ...groundItemSnapshot(orb, cell) });
+  }
+}
+
+function _mpHandleGroundItemSpawn(msg) {
+  const cell = _mpGroundCell(msg);
+  if (!cell || !msg.id || !Array.isArray(msg.keys)) return;
+
+  // The host stamps the shared expiry when accepting a guest-created drop.
+  const life = Math.max(0, Number(msg.life ?? msg.maxLife ?? 180));
+  const incoming = {
+    ...msg,
+    maxLife: Number(msg.maxLife ?? life),
+    spawnedAt: msg.authoritative ? Number(msg.spawnedAt ?? (msg.expiresAt - life)) : G.gameTime,
+    expiresAt: msg.authoritative ? Number(msg.expiresAt) : G.gameTime + life,
+  };
+  if (!Number.isFinite(incoming.expiresAt) || incoming.expiresAt <= G.gameTime) return;
+  const record = upsertGroundItemRecord(cell, incoming);
+
+  if (MP.isHost && !msg.authoritative && record) {
+    mpSend({ type: 'ground_item_spawn', authoritative: true, ...groundItemSnapshot(record, cell) });
+  }
+}
+
+function _mpHandleGroundItemProgress(msg) {
+  const cell = _mpGroundCell(msg);
+  if (!cell || !msg.id) return;
+  const record = applyGroundItemProgress(cell, msg.id, msg.keyIdx);
+  if (MP.isHost && !msg.authoritative && record) {
+    mpSend({ type: 'ground_item_progress', authoritative: true,
+      worldKey: msg.worldKey, roomKey: msg.roomKey, col: msg.col, row: msg.row,
+      id: msg.id, keyIdx: record.keyIdx });
+  }
+}
+
+function _mpApplyGroundItemCollectResult(msg) {
+  const cell = _mpGroundCell(msg);
+  if (!cell || !msg.id) return;
+  const runtime = G.room?.groundItems?.find(gi => gi.id === msg.id);
+  const won = !!runtime && runtime.collectRequestId === msg.winnerRequestId;
+  const record = removeGroundItem(cell, msg.id);
+  if (won && msg.accepted) {
+    addToInventory(msg.item || record?.item);
+    window._hideTutorial?.(true);
+  }
+}
+
+function _mpHandleGroundItemCollectRequest(msg) {
+  if (!MP.isHost) {
+    mpSend(msg);
+    return;
+  }
+  const cell = _mpGroundCell(msg);
+  let orb = cell && getGroundItemRecord(cell, msg.id);
+  if (cell && !orb && msg.groundItem) {
+    // Recover from packet reordering: the collection request carries the
+    // complete drop record as a fallback for the preceding spawn packet.
+    _mpHandleGroundItemSpawn({
+      ...msg.groundItem,
+      authoritative: false,
+      worldKey: msg.worldKey,
+      col: msg.col,
+      row: msg.row,
+    });
+    orb = getGroundItemRecord(cell, msg.id);
+  }
+  const accepted = !!orb && orb.expiresAt > G.gameTime && msg.keyIdx >= orb.keys.length - 1;
+  const result = {
+    type: 'ground_item_collect_result',
+    worldKey: msg.worldKey,
+    roomKey: msg.roomKey,
+    col: msg.col,
+    row: msg.row,
+    id: msg.id,
+    accepted,
+    item: accepted ? orb.item : null,
+    winnerRequestId: accepted ? msg.requestId : null,
+  };
+  if (accepted || orb?.expiresAt <= G.gameTime) removeGroundItem(cell, msg.id);
+  mpSend(result);
+  _mpApplyGroundItemCollectResult(result);
+}
+
+window._mpRequestGroundItemCollect = _mpHandleGroundItemCollectRequest;
 
 // ── Message dispatch ─────────────────────────────────────────────
 function _mpHandleMessage(msg) {
@@ -8183,6 +8292,9 @@ function _mpHandleMessage(msg) {
       MP.p2.avatar = msg.hostAvatar || null;
       MP.p2.emoji  = msg.hostEmoji  || '🤺';
       if (msg.persistentState) applyHostPersistentState(msg.persistentState);
+      if (msg.hanjaEnabled            !== undefined) G.hanjaEnabled            = msg.hanjaEnabled;
+      if (msg.translationEnabled      !== undefined) G.translationEnabled      = msg.translationEnabled;
+      if (msg.dictProgressionDisabled !== undefined) G.dictProgressionDisabled = msg.dictProgressionDisabled;
       if (msg.difficulty) {
         const DIFF = { baby:50, easy:20, normal:10, hard:5, hardcore:1 };
         G.playerMax = DIFF[msg.difficulty] || 10;
@@ -8236,6 +8348,10 @@ function _mpHandleMessage(msg) {
       const p2IsNowHere  = msg.col === myCol && msg.row === myRow;
       const p2WasHere    = prevP2Room?.col === myCol && prevP2Room?.row === myRow;
 
+      // Drops are world state, so the host must answer even when it is in a
+      // different room from the player requesting the sync.
+      if (MP.isHost) _mpSendGroundItemsForRoom(msg.col, msg.row);
+
       if (p2IsNowHere && !p2WasHere) {
         // P2 just arrived in our room — play entrance animation
         _mpUpdateP2Sprite('mp-entering');
@@ -8245,14 +8361,6 @@ function _mpHandleMessage(msg) {
             .filter(m => !m.dead && !m.isProjectileMonster)
             .map(m => ({ mpId: m._mpId, nx: m.x / G.W, ny: m.y / G.vH, hp: m.hp, spawnDone: !m.spawnAnim }));
           if (states.length) mpSend({ type: 'monster_sync', col: G.currentRoom.col, row: G.currentRoom.row, states });
-        }
-        // Sync any existing ground items to the arriving partner
-        if (G.room?.groundItems?.length) {
-          for (const gi of G.room.groundItems) {
-            mpSend({ type: 'ground_item_spawn', id: gi.id, x: gi.x, y: gi.y, keys: gi.keys,
-                     coinType: gi.el.dataset.coin || 'gold', item: gi.item,
-                     life: gi.life, isHanja: gi.isHanja || false });
-          }
         }
       } else if (!p2IsNowHere && p2WasHere) {
         // P2 just left our room — play exit animation then hide
@@ -8308,6 +8416,7 @@ function _mpHandleMessage(msg) {
     case 'monster_kill': {
       // P2 killed a monster - remove matching monster from our room + sync vocabulary
       if (!G.room?.monsters) break;
+      releaseOpeningAttack({ broadcast: false });
       // Match by _mpId first (preferred), fall back to word if not found
       let target = msg.mpId != null
         ? G.room.monsters.find(m => !m.dead && !m.isProjectileMonster && m._mpId === msg.mpId)
@@ -8343,6 +8452,14 @@ function _mpHandleMessage(msg) {
       break;
     }
 
+    case 'opening_attack_started': {
+      const sameRoom = msg.col == null || (
+        G.currentRoom?.col === msg.col && G.currentRoom?.row === msg.row
+      );
+      if (sameRoom) releaseOpeningAttack({ broadcast: false });
+      break;
+    }
+
     case 'player_state': {
       // P2 HP / wallet / spell update
       MP.p2.hp     = msg.hp     ?? MP.p2.hp;
@@ -8354,30 +8471,32 @@ function _mpHandleMessage(msg) {
     }
 
     case 'ground_item_spawn': {
-      // Partner spawned a ground item — recreate it in our room so both players see it
-      if (!G.room) break;
-      // Only show if we're in the same room as the partner
-      const sameRoomGI = G.currentRoom?.col === MP.p2.currentRoom?.col &&
-                         G.currentRoom?.row === MP.p2.currentRoom?.row;
-      if (!sameRoomGI) break;
-      spawnGroundItem(msg.x, msg.y, {
-        id:      msg.id,
-        keys:    msg.keys,
-        coinType: msg.coinType,
-        item:    msg.item,
-        life:    msg.life,
-        isHanja: msg.isHanja || false,
-      });
+      // Store even when the partner is in another room. Rendering happens
+      // immediately only if this cell is currently active.
+      _mpHandleGroundItemSpawn(msg);
+      break;
+    }
+
+    case 'ground_item_progress': {
+      _mpHandleGroundItemProgress(msg);
+      break;
+    }
+
+    case 'ground_item_collect_request': {
+      _mpHandleGroundItemCollectRequest(msg);
+      break;
+    }
+
+    case 'ground_item_collect_result': {
+      _mpApplyGroundItemCollectResult(msg);
       break;
     }
 
     case 'ground_item_collect': {
-      // Partner collected a ground item — remove it from our room without giving inventory
-      if (!G.room?.groundItems) break;
-      const gi = G.room.groundItems.find(g => g.id === msg.id);
-      if (!gi) break;
-      gi.el.remove();
-      G.room.groundItems = G.room.groundItems.filter(g => g !== gi);
+      // Legacy clients may still emit the old event. It is intentionally
+      // best-effort and never grants a second inventory item.
+      const cell = msg.col != null ? getCell(msg.col, msg.row) : currentCell();
+      if (cell) removeGroundItem(cell, msg.id);
       break;
     }
 

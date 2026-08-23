@@ -112,7 +112,6 @@ export function updateMap() {
       const isCurrent      = c === curCol && r === curRow;
       const isBoss         = bossRoom && c === bossRoom.col && r === bossRoom.row;
       const isVisited      = cell.visited;
-      const shopRevealed   = cell.shopRevealed;
       const isGuideRevealed = !!cell.guideRevealed;
 
       el.className  = 'map-cell';
@@ -134,8 +133,8 @@ export function updateMap() {
         continue;
       }
 
-      // ── Shop room: visible in yellow when shopRevealed or visited ─
-      if (cell.type === 'shop' && (shopRevealed || isVisited || revealed || isGuideRevealed)) {
+      // ── Shop room: always visible, but only visited/map-revealed rooms teleport
+      if (cell.type === 'shop') {
         el.classList.add('shop-room');
         if (isCurrent) el.classList.add('current');
         // Teleportable if visited OR map fully revealed (masterkey/crystal_ball)
@@ -151,8 +150,8 @@ export function updateMap() {
         continue;
       }
 
-      // ── Casino room: visible in purple when visited ───────────────
-      if (cell.type === 'casino' && (isVisited || revealed || isGuideRevealed)) {
+      // ── Casino room: always visible, but only visited/map-revealed rooms teleport
+      if (cell.type === 'casino') {
         el.classList.add('casino-room');
         if (isCurrent) el.classList.add('current');
         if (isVisited || revealed) {

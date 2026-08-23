@@ -158,6 +158,8 @@ export function resetRunState() {
       runNumber:               0,
       suppressed:              false,
       firstMonsterShown:       false,
+      // The first opening group waits for the player's first valid attack.
+      openingAttackGateUsed:   false,
       firstRoomClearShown:     false,
       mapHintShown:            false,
       nightHintShown:          false,
@@ -180,10 +182,15 @@ export function resetRunState() {
     coinsSpent:      0,
     itemsTaken:      0,
   };
+  // Capture the Hanja Powerups setting at run start.  The starting kit is
+  // intentionally fixed for the whole run, even if the setting changes later.
+  G.run.hanjaPowerupsEnabledAtStart = !!G.hanjaEnabled;
   G.playerHP  = G.playerMax;
-  // Every run starts with one tent as the player's starter consumable.
-  // Keep it as a normal inventory stack so the existing item-use flow applies.
-  G.inventory = { stacks: [{ item: '⛺', count: 1 }], sel: 0 };
+  // Every run starts with one tent. Hanja runs also start with one Dictionary
+  // so Hanja-keyed floor drops are immediately usable.
+  const spawnKit = [{ item: '⛺', count: 1 }];
+  if (G.run.hanjaPowerupsEnabledAtStart) spawnKit.push({ item: '📙', count: 1 });
+  G.inventory = { stacks: spawnKit, sel: 0 };
   G.activeEffect = null;
   G.critShots    = 0;
   G.stunBubble   = false;
@@ -213,6 +220,8 @@ export function resetRoomState(waveNum) {
     wTotal:     0,
     wPhase:     'idle', // 'idle'|'spawning'|'wdone'|'clear'
     wdoneTimer: 0,
+    openingAttackPending: false,
+    openingAttackGroupSize: 0,
     // Combat pacing is intentionally room-local. It resets at every door so
     // a slow reader is never punished by a previous room's fast streak.
     flow:       { level: 0, rapidStreak: 0, lastFireAt: 0 },
@@ -222,7 +231,8 @@ export function resetRoomState(waveNum) {
     clearPending: false,
     wave:       waveNum || 1,
     groundItems: [],
-    _groundId:   0,
+    _groundDungeon: G.dungeon,
+    _groundRoomKey: `${G.currentRoom?.col ?? ''}:${G.currentRoom?.row ?? ''}`,
     openDoors:  [], // [{dir, x, y}] for non-S doors - set by enterRoom
     usedWords:  new Set(), // words used in this room (all waves, not just alive)
     coins:      [], // room coin particles (fly to player on clear, explode on flee)
