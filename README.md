@@ -1,5 +1,5 @@
 <div align="center">
-  <a href="https://lluckymou.github.io/ezra-taja/">
+  <a href="https://lluc.dev/ezra/">
     <img src="assets/img/logo.gif" alt="EZRA Taja" width="480">
   </a>
   <br><br>
