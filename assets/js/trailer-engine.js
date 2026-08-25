@@ -71,7 +71,10 @@ function makeDungeon(world, { roomType = 'combat', bossDoor = false, cleared = f
 }
 
 function sizeFor(base) {
-  const raw = G.vH / 1080;
+  // Trailer portraits share the same playable width in 3:4 and 9:16.
+  // Use the shorter dimension so emoji and word labels do not balloon just
+  // because the export canvas is taller than the landscape version.
+  const raw = Math.min(G.vH / 1080, G.W / 1280);
   const soft = raw <= 1 ? raw : 1 + (raw - 1) * 0.45;
   return Math.round(base * soft);
 }
@@ -92,6 +95,8 @@ function makeMonster({
   special = null,
   labelColor = null,
   baseSize = null,
+  landY = null,
+  leashPulse = 0,
   spawnProgress = null,
   spawnDuration = 0.65,
 }) {
@@ -110,6 +115,7 @@ function makeMonster({
     wieldIcon: wieldIcon === undefined ? (entry.secondaryEmoji || null) : wieldIcon,
     hpIcon: '📃',
     labelColor: labelColor ?? (boss ? '#ffd700' : null),
+    leashPulse,
     x,
     y,
     hp: resolvedHp,
@@ -130,13 +136,16 @@ function makeMonster({
     sclDir: 1,
     fleeing: death > 0.01,
     fleeAlpha: Math.max(0, 1 - death),
+    // Lets the trailer renderer suppress the low-information first frames of
+    // its very short ceiling-drop animation without changing the main game.
+    trailerSpawn: true,
     isProjectileMonster: false,
     isVerbAdj: false,
     isNumeric: false,
     spawnAnim: spawnProgress == null ? null : {
       t: Math.max(0, Math.min(1, spawnProgress)) * spawnDuration,
       dur: spawnDuration,
-      landNY: y / G.vH,
+      landNY: (landY ?? y) / G.vH,
     },
   };
   return monster;
@@ -199,7 +208,7 @@ function addDeathBurst({ monster, progress = 0 }) {
   );
 }
 
-function addEnemyProjectile({ monster, progress, emoji = '🗡️' }) {
+function addEnemyProjectile({ monster, progress, emoji = '🗡️', jamo = null }) {
   if (!monster || progress <= 0 || progress >= 1) return;
   const targetX = G.W * 0.5;
   const targetY = G.vH * 0.665;
@@ -207,6 +216,7 @@ function addEnemyProjectile({ monster, progress, emoji = '🗡️' }) {
     x: monster.x + (targetX - monster.x) * progress,
     y: monster.y + (targetY - monster.y) * progress,
     emoji,
+    jamo,
     rot: -progress * 1.1,
     rs: 0,
     size: Math.round(42 * G.vH / 1080),
@@ -232,7 +242,7 @@ function configureState({ world, time, language, roomType, bossDoor, cleared, we
   G.treeScale = treeScale;
   G.translationEnabled = true;
   G.varyFonts = false;
-  G.hangulSize = Math.max(28, Math.round(G.vH * 0.047));
+  G.hangulSize = Math.max(20, Math.round(Math.min(G.vH, G.W) * 0.047));
   G.showHanjaOnMonsters = false;
   G.wordHiddenStatus = {};
   G.run = { worldIdx: WORLDS.indexOf(world), seed: 73691 };
@@ -253,6 +263,7 @@ function configureState({ world, time, language, roomType, bossDoor, cleared, we
       type: npc.type || roomType,
       emoji: npc.emoji,
       word: npc.word,
+      worldId: npc.worldId || null,
       cell,
       x: G.W / 2,
       y: G.vH * 0.42,
@@ -364,6 +375,7 @@ export async function createTrailerGameRenderer() {
           monster: monsters[shot.source ?? 0],
           progress: shot.progress,
           emoji: shot.emoji || '🗡️',
+          jamo: shot.jamo || null,
         });
       }
       drawProjs();

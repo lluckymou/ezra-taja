@@ -3117,6 +3117,7 @@ export function drawBossTether() {
   const { x: tx, y: ty, drawSize } = getBossTetherTarget(boss);
   const time = performance.now() * 0.001;
   const pulse = 0.78 + Math.sin(time * 3.2) * 0.22;
+  const hitPulse = Math.max(0, Math.min(1, Number(boss.leashPulse) || 0));
   const sx = ax + iconSize * 0.48;
   const sy = ay + iconSize * 0.14;
   const wave = Math.sin(time * 2.5 + boss.id * 0.7);
@@ -3124,19 +3125,19 @@ export function drawBossTether() {
 
   ctx.save();
   ctx.lineCap = 'round';
-  ctx.globalAlpha = pulse;
+  ctx.globalAlpha = Math.min(1, pulse + hitPulse * 0.55);
 
   buildBossTetherPath(ctx, sx, sy, tx, endY, wave);
   ctx.shadowColor = 'rgba(255, 180, 48, .9)';
-  ctx.shadowBlur = 18 + pulse * 8;
+  ctx.shadowBlur = 18 + pulse * 8 + hitPulse * 42;
   ctx.strokeStyle = 'rgba(255, 190, 55, .28)';
-  ctx.lineWidth = 9;
+  ctx.lineWidth = 9 + hitPulse * 5;
   ctx.stroke();
 
   buildBossTetherPath(ctx, sx, sy, tx, endY, wave);
-  ctx.shadowBlur = 7;
-  ctx.strokeStyle = 'rgba(255, 218, 112, .95)';
-  ctx.lineWidth = 2.6;
+  ctx.shadowBlur = 7 + hitPulse * 18;
+  ctx.strokeStyle = hitPulse > 0 ? 'rgba(255, 246, 181, 1)' : 'rgba(255, 218, 112, .95)';
+  ctx.lineWidth = 2.6 + hitPulse * 2.5;
   ctx.stroke();
 
   buildBossTetherPath(ctx, sx, sy, tx, endY, wave);
@@ -3206,6 +3207,9 @@ export function drawMonsters({
     // ── Spawn animation (falling from ceiling) ──────────────────
     if (m.spawnAnim && m.spawnAnim.t < m.spawnAnim.dur) {
       const prog = m.spawnAnim.t / m.spawnAnim.dur;
+      // Trailer drops are intentionally very quick. Hide the first fraction
+      // so a newly spawned emoji never sits frozen and bright before falling.
+      if (m.trailerSpawn && prog < 0.34) continue;
       const hpRatio  = m.maxHp > 1 ? m.hp / m.maxHp : 1;
       const drawSz   = m.size * (m.maxHp > 1 ? (0.55 + hpRatio * 0.45) : 1);
 
@@ -3505,6 +3509,22 @@ export function drawProjs() {
     ctx.font = `${drawSize}px 'Noto Color Emoji', serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(p.emoji, 0, 0);
+    if (p.jamo) {
+      // Trailer-only enemy projectiles carry a readable typing clue. It makes
+      // a hit feel like a missed multitasking prompt instead of an arbitrary
+      // projectile, while leaving normal game projectiles unchanged.
+      ctx.save();
+      ctx.rotate(-p.rot);
+      ctx.font = `bold ${Math.max(20, drawSize * 1.0)}px 'Noto Sans KR', sans-serif`;
+      ctx.fillStyle = 'rgba(255, 247, 225, .96)';
+      ctx.shadowColor = 'rgba(0, 0, 0, .95)';
+      ctx.shadowBlur = Math.max(3, drawSize * 0.24);
+      ctx.lineWidth = Math.max(1.8, drawSize * 0.07);
+      ctx.strokeStyle = 'rgba(0, 0, 0, .9)';
+      ctx.strokeText(p.jamo, 0, drawSize * 1.02);
+      ctx.fillText(p.jamo, 0, drawSize * 1.02);
+      ctx.restore();
+    }
     ctx.restore();
   }
 }
