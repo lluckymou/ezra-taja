@@ -302,17 +302,19 @@
       if(!window.MediaRecorder||!canvas.captureStream){exportNote.textContent='This browser cannot export WebM from the canvas.';return;}
       const previousTime=state.time,wasPlaying=state.playing;
       state.playing=false;state.exporting=true;exportButton.disabled=true;exportOverlay.classList.add('visible');ensureAudioGraph();await ensureKeypressBuffer();state.time=0;await syncMusic(true);
-      const videoStream=canvas.captureStream(FPS),tracks=[...videoStream.getVideoTracks(),...(recordDestination?.stream.getAudioTracks()||[])],stream=new MediaStream(tracks),mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(type=>MediaRecorder.isTypeSupported(type)),chunks=[];
+      const videoStream=canvas.captureStream(0),tracks=[...videoStream.getVideoTracks(),...(recordDestination?.stream.getAudioTracks()||[])],stream=new MediaStream(tracks),mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(type=>MediaRecorder.isTypeSupported(type)),chunks=[];
       let recorder;
       try{recorder=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:9000000}:undefined);}catch(error){state.exporting=false;exportButton.disabled=false;exportOverlay.classList.remove('visible');exportNote.textContent=`Could not start export: ${error.message}`;return;}
       recorder.addEventListener('dataavailable',event=>{if(event.data.size)chunks.push(event.data);});
       const completed=new Promise(resolve=>recorder.addEventListener('stop',resolve,{once:true}));
+      const videoTrack=videoStream.getVideoTracks()[0],totalFrames=DURATION*FPS,frameDuration=1000/FPS,manualCapture=typeof videoTrack.requestFrame==='function';
+      if(!manualCapture){state.exporting=false;exportButton.disabled=false;exportOverlay.classList.remove('visible');stopMusic();exportNote.textContent='This browser cannot perform frame-accurate WebM export.';return;}
       recorder.start();
-      const videoTrack=videoStream.getVideoTracks()[0],totalFrames=DURATION*FPS,startedAt=performance.now();
       for(let index=0;index<=totalFrames;index+=1){
+        const frameStartedAt=performance.now();
         state.time=Math.min(DURATION,index/FPS);render(state.time);await syncMusic();if(typeof videoTrack.requestFrame==='function')videoTrack.requestFrame();
         exportProgress.textContent='Rendering frame by frame…';exportDetail.textContent=`Frame ${index.toLocaleString('en-US')} of ${totalFrames.toLocaleString('en-US')} · ${Math.round(index/totalFrames*100)}%`;
-        const target=startedAt+index*(1000/FPS),wait=target-performance.now();if(wait>0)await new Promise(resolve=>setTimeout(resolve,wait));
+        const wait=frameDuration-(performance.now()-frameStartedAt);if(wait>0)await new Promise(resolve=>setTimeout(resolve,wait));
       }
       recorder.stop();await completed;stopMusic();
       const blob=new Blob(chunks,{type:mime||'video/webm'}),url=URL.createObjectURL(blob),link=document.createElement('a');
