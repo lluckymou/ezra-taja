@@ -186,7 +186,7 @@
 
 .dej-card-desc {
   font-size: .9rem;
-  font-family: "Nanum Myeongjo", serif;
+  font-family: "EZRA Serif", serif;
   color: rgb(40, 15, 10);
   line-height: 1.5;
   padding-right: 5.5rem;
@@ -493,7 +493,7 @@ body.mobile-fs #dojang-player {
   pointer-events: none;
   background: none; border: none; box-shadow: none; padding: 0;
   color: rgba(70,28,12,.82);
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: clamp(.8rem, 1.6vw, 1.1rem);
   font-weight: 600;
   letter-spacing: .02em;
@@ -537,7 +537,7 @@ body:not(.phase-dojang) #dojang-announce { opacity: 0 !important; }
   color: #32170d;
 }
 #dojang-pause-panel h2 {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: 1.3rem;
   margin-bottom: 14px;
   color: #7d2119;
@@ -572,7 +572,7 @@ body:not(.phase-dojang) #dojang-announce { opacity: 0 !important; }
   border: 1.5px solid rgba(96, 51, 22, .2);
   border-radius: 11px;
   color: #512719;
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: .95rem;
   font-weight: 600;
   cursor: pointer;

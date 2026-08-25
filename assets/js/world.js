@@ -1648,10 +1648,12 @@ function spawnRoomNpc(type, emoji, cell) {
   const pool = THEMED[type] || ['가게'];
   // Deterministic pick: same room always gets same word within a run
   const seed = (G.run?.seed || 0) + cell.col * 31 + cell.row * 7;
-  const word = pool[((seed % pool.length) + pool.length) % pool.length];
+  const isOceanTent = type === 'tent' && G.dungeon?.worldDef?.biome === 'ocean';
+  // A canoe is an encampment in the ocean, never a literal tent.
+  const word = isOceanTent ? '야영' : pool[((seed % pool.length) + pool.length) % pool.length];
   // Use the word's own emoji as NPC face (falls back to type emoji if not in dict)
   const wordEntry = WORD_DICT.find(w => w.text === word);
-  const npcEmoji = wordEntry?.emoji || emoji;
+  const npcEmoji = type === 'tent' ? emoji : (wordEntry?.emoji || emoji);
 
   G.room.npc = {
     type,

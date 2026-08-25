@@ -2,6 +2,69 @@
    LOCAL FONT DECLARATIONS - assets/fonts/
 ================================================================ */
 
+/*
+   EZRA Serif is a per-character serif stack:
+   - Hangul uses the existing Nanum Myeongjo faces below.
+   - Everything outside the Korean ranges uses local Noto Serif.
+
+   Keeping this as a separate family lets intentional Nanum Myeongjo and
+   Song Myung previews/variants retain their original meaning.
+*/
+@font-face {
+  font-family: 'Noto Serif';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Noto Serif'),
+       url('../fonts/NotoSerif-Variable.ttf') format('truetype');
+}
+
+/* Noto Serif branch: the complement of the Hangul ranges used by EZRA. */
+@font-face {
+  font-family: 'EZRA Serif';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local('Noto Serif'),
+       url('../fonts/NotoSerif-Variable.ttf') format('truetype');
+  unicode-range: U+0000-10FF, U+1200-312F, U+3190-A95F,
+                 U+A980-ABFF, U+D800-FF9F, U+FFDD-10FFFF;
+}
+
+/* Korean branch: Hangul Jamo, syllables, and halfwidth Hangul. */
+@font-face {
+  font-family: 'EZRA Serif';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Nanum Myeongjo'), local('NanumMyeongjo'),
+       url('../fonts/NanumMyeongjo-Regular.ttf') format('truetype');
+  unicode-range: U+1100-11FF, U+3130-318F, U+A960-A97F, U+AC00-D7FF,
+                 U+FFA0-FFDC;
+}
+
+@font-face {
+  font-family: 'EZRA Serif';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Nanum Myeongjo Bold'), local('NanumMyeongjo-Bold'),
+       url('../fonts/NanumMyeongjo-Bold.ttf') format('truetype');
+  unicode-range: U+1100-11FF, U+3130-318F, U+A960-A97F, U+AC00-D7FF,
+                 U+FFA0-FFDC;
+}
+
+@font-face {
+  font-family: 'EZRA Serif';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: local('Nanum Myeongjo ExtraBold'), local('NanumMyeongjo-ExtraBold'),
+       url('../fonts/NanumMyeongjo-ExtraBold.ttf') format('truetype');
+  unicode-range: U+1100-11FF, U+3130-318F, U+A960-A97F, U+AC00-D7FF,
+                 U+FFA0-FFDC;
+}
+
 /* Pretendard Variable - covers Korean + full Latin Extended (accents, ç, etc.) */
 @font-face {
   font-family: 'Pretendard';

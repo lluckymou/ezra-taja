@@ -11,7 +11,7 @@ import {
   getRoomTreeDepths as getRenderTreeDepths,
   clearRoomTrees as clearRoomTreePlan,
   generateRoomTrees as generateRoomTreePlan,
-} from './trees.js';
+} from './trees.js?trailer-tree-scale-v1';
 import {
   drawRoomPuddles as renderRoomPuddles,
   drawRoomEnvironmentObject as renderRoomEnvironmentObject,
@@ -75,6 +75,9 @@ export function drawTrees(layer = 'back', onlyTreeId = null) {
     weather: G.weather || 'clear',
     layer,
     details: G.treeDetails ?? 2,
+    // Trailer previews can use a smaller landmark scale in narrow formats
+    // without changing the actual game's room plans.
+    scale: G.treeScale ?? 1,
     onlyTreeId,
   });
 }

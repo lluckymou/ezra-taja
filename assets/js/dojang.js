@@ -526,7 +526,7 @@ export class DojangManager {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = 'rgba(30,140,70,0.9)';
-      ctx.font = `bold ${Math.round(isMob ? Math.max(15, H * 0.032) : H * 0.026)}px "Nanum Myeongjo", "Song Myung", serif`;
+      ctx.font = `bold ${Math.round(isMob ? Math.max(15, H * 0.032) : H * 0.026)}px "EZRA Serif", "Song Myung", serif`;
       ctx.fillText(i18n('dojang.great'), W / 2, isMob ? mobInstrY : H * 0.80);
       ctx.restore();
       return;
@@ -543,11 +543,11 @@ export class DojangManager {
 
     if (this.errors >= _maxErrors(jamos.length) - 1 && this.challenge.globalStrokeIdx > 0) {
       ctx.fillStyle = 'rgba(200,80,20,0.9)';
-      ctx.font = `bold ${Math.round(isMob ? Math.max(15, H * 0.032) : Math.max(13, H * 0.026))}px "Nanum Myeongjo", "Song Myung", serif`;
+      ctx.font = `bold ${Math.round(isMob ? Math.max(15, H * 0.032) : Math.max(13, H * 0.026))}px "EZRA Serif", "Song Myung", serif`;
       ctx.fillText(i18n('dojang.lastTry'), W / 2, instrY);
     } else {
       ctx.fillStyle = 'rgba(50,40,30,0.70)';
-      ctx.font = `${Math.round(isMob ? Math.max(14, H * 0.030) : Math.max(12, H * 0.024))}px "Nanum Myeongjo", "Song Myung", serif`;
+      ctx.font = `${Math.round(isMob ? Math.max(14, H * 0.030) : Math.max(12, H * 0.024))}px "EZRA Serif", "Song Myung", serif`;
       const stage = computeHangulStage(this.stats);
       let msg;
       if (stage <= 1) {

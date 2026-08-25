@@ -493,6 +493,7 @@ export function drawRoomTrees(ctx, {
   weather = 'clear',
   layer = 'back',
   details = 2,
+  scale = 1,
   onlyTreeId = null,
 } = {}) {
   if (!ctx || details <= 0 || !world || !cell || world.isDojangTutorial || world.biome === 'dojang') return;
@@ -507,6 +508,7 @@ export function drawRoomTrees(ctx, {
   // adds only a small gust so the authored world personality remains visible.
   const wind = Math.min(1.25, getRoomWind(world, cell, seed) + weatherGust);
   const clampedLight = Math.max(0, Math.min(1, light));
+  const treeScale = Number.isFinite(scale) ? Math.max(0.1, scale) : 1;
 
   ctx.save();
   // Day/night already has a dedicated overlay canvas. A small alpha shift is
@@ -524,7 +526,9 @@ export function drawRoomTrees(ctx, {
       ...planTree,
       x: planTree.x * W,
       baseY: planTree.base * H,
-      size: planTree.size * H,
+      // Keep the baseline anchored, but let presentation-only views such as
+      // the trailer shrink the full landmark around that baseline.
+      size: planTree.size * H * treeScale,
     };
     const sprite = getTreeSprite(tree, palette);
     if (sprite) {

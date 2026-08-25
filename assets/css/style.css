@@ -131,7 +131,7 @@ body {
 #version-badge {
   position: absolute; top: 32px; right: 32px;
   writing-mode: vertical-rl; text-orientation: mixed;
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: 1.25rem; color: #b1382f;
   opacity: 0.75; pointer-events: none; user-select: none;
   letter-spacing: 0.45em; z-index: 10;
@@ -403,7 +403,7 @@ body.phase-title #version-badge { pointer-events: all; }
 #btn-play {
   position: fixed; bottom: 32px; left: 32px;
   padding: 28px 52px; font-size: 2.2rem; font-weight: 700;
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   border: none; border-radius: 16px;
   background: rgb(59 53 41 / 80%);
   backdrop-filter: blur(14px);
@@ -685,7 +685,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 }
 #game-over-panel::-webkit-scrollbar-thumb { background: rgba(91, 49, 20, .28); }
 #go-title {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: clamp(2rem, 6vw, 3.25rem); color: #8d261c; text-align: center;
 }
 #go-detail { font-size: 1.05rem; color: rgba(53, 26, 14, .76); margin-top: 8px; }
@@ -732,7 +732,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 #game-over-panel .support-callout { width: 100%; }
 #btn-restart {
   min-width: min(260px, 100%); margin-top: 20px; padding: 13px 28px;
-  font-family: 'Nanum Myeongjo', serif; font-size: 1.05rem; font-weight: 700;
+  font-family: 'EZRA Serif', serif; font-size: 1.05rem; font-weight: 700;
   letter-spacing: .04em; border: 1px solid rgba(42, 33, 23, .76); border-radius: 13px;
   background: rgba(59, 53, 41, .94); color: #fffaf0; cursor: pointer;
   box-shadow: 0 5px 16px rgba(53, 31, 12, .2);
@@ -800,7 +800,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
   .pause-btn { padding: 8px; font-size: .85rem; }
 }
 #pause-top h2 {
-  font-family: 'Nanum Myeongjo', serif;
+  font-family: 'EZRA Serif', serif;
   font-size: 1.6rem; font-weight: 700; text-align: center; color: #7d2119;
 }
 #pause-run-stats {
@@ -836,7 +836,7 @@ input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin
 .pause-btns { display: flex; flex-direction: column; gap: 10px; }
 .pause-btn {
   padding: 13px; font-size: 1rem; width: 100%;
-  font-family: 'Nanum Myeongjo', serif; font-weight: 700; letter-spacing: .03em;
+  font-family: 'EZRA Serif', serif; font-weight: 700; letter-spacing: .03em;
   border: 1px solid rgba(42, 33, 23, .74); border-radius: 13px;
   cursor: pointer; transition: background .15s, border-color .15s, transform .15s;
   background: #3b3529; color: #fffaf0;
